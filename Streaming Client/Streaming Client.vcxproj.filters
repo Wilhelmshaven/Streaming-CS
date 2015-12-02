@@ -26,10 +26,13 @@
     <ClInclude Include="CommonHeaders.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Server.h">
+    <ClInclude Include="myClient.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="myClient.h">
+    <ClInclude Include="rtspServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Server.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

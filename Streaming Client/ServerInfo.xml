@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
 	<serverList>
-		<protocol>RTSP</protocol>
-		<IP>192.168.1.101</IP>
-		<port>8554</port>
-		<displayName>desktop</displayName>
+		<server>
+			<type>RTSP</type>
+			<protocol>http</protocol>
+			<hostname>192.168.1.101</hostname>
+			<port>8554</port>
+			<display></display>
+		</server>
 	</serverList>
 </root>
