@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<serverList>
+		<protocol>RTSP</protocol>
+		<IP>192.168.1.101</IP>
+		<port>8554</port>
+		<displayName>desktop</displayName>
+	</serverList>
+</root>
