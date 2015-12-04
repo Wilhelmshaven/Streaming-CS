@@ -21,6 +21,9 @@
     <ClCompile Include="rtspServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="cnctServ.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonHeaders.h">
@@ -33,6 +36,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Server.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cnctServ.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

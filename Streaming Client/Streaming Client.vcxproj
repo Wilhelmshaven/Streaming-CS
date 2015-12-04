@@ -44,9 +44,11 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>../Streaming Client/jrtplib/include/jrtplib3;../Streaming Client/jthread/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>jrtplib_d.lib;jthread_d.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -64,10 +66,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cnctServ.cpp" />
     <ClCompile Include="myClient.cpp" />
     <ClCompile Include="rtspServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cnctServ.h" />
     <ClInclude Include="CommonHeaders.h" />
     <ClInclude Include="myClient.h" />
     <ClInclude Include="rtspServer.h" />

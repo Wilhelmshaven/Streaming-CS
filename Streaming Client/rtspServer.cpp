@@ -2,7 +2,7 @@
 #include "rtspServer.h"
 #include "myClient.h"
 
-const rtspServer *rtspServer::instance = new rtspServer(servSettingFileName);
+rtspServer *rtspServer::instance = new rtspServer(servSettingFile);
 
 rtspServer::rtspServer(string file)
 {
@@ -18,7 +18,7 @@ rtspServer::rtspServer(string file)
 }
 
 //读取配置文件，配置文件应该是由服务器下发，保证其正确性。嗯暂时就不做太多的错误处理
-void rtspServer::readFile()
+bool rtspServer::readFile()
 {
 	fstream servSettings;
 	servSettings.open(fileName, ios_base::in);  //只读就可以
@@ -28,7 +28,8 @@ void rtspServer::readFile()
 	if (!servSettings.is_open())
 	{
 		//文件未打开或未找到，报错
-		cout << "找不到配置文件： " << servSettingFileName << " !" << endl;
+		cout << "找不到配置文件： " << servSettingFile << " !" << endl;
+		return false;
 	}
 	else
 	{	
@@ -79,7 +80,7 @@ void rtspServer::readFile()
 				}
 
 				// 将读取到的信息保存到服务器信息里
-				//首先要用Winsock解析域名，回头补上这一行
+				// 首先要用Winsock解析域名，回头补上这一行
 				inet_pton(srvAddr.sin_family, hostName.c_str(), (void *)&srvAddr.sin_addr);   //保存IP
 				srvAddr.sin_port = atoi(buf.c_str());                  //保存端口
 
@@ -99,4 +100,6 @@ void rtspServer::readFile()
 			cout << "无可用服务器." << endl;
 		}
 	}
+
+	return true;
 }

@@ -1,3 +1,9 @@
 #include "CommonHeaders.h"
 
-const string servSettingFileName = "ServerInfo.xml";  // 服务器配置文件
+const string servSettingFile = "config/ServerInfo.xml";  // 服务器配置文件
+
+class myMessage
+{
+public:
+	myMessage();
+};

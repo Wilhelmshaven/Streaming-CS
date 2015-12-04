@@ -4,13 +4,15 @@
 class rtspServer
 {
 public:
-	static const rtspServer *getInstance()
+	static rtspServer *getInstance()
 	{
 		return instance;
 	}
 
+	void test();
+
 private:
-	static const rtspServer *instance;
+	static rtspServer *instance;
 	rtspServer(string file);
 
 	//禁止拷贝构造以及赋值
@@ -31,7 +33,7 @@ private:
 	// VARs
 	string fileName;           //配置文件名
 	sockaddr_in srvAddr;       //地址结构（ipv4/6，IP，端口）
-	string displayAddr;           //完整的播放地址，eg. http://www.rayion.com/desktop
+	string displayAddr;        //完整的播放地址，eg. http://www.rayion.com/desktop
 
-	void readFile();  // 读取配置文件
+	bool readFile();  // 读取配置文件
 };
