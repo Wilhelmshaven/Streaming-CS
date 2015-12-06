@@ -16,20 +16,11 @@ public:
 };
 
 //Server类，包括读取配置文件，建立Winsock连接，单例类
+//To do list：增加域名解析功能，并且校验
 class Server
 {
 public:
 	WSADATA wsaData;
-
-	enum
-	{
-		reserve = 0,       //默认值，保留！
-		srvType = 1,       //服务器类型
-		protocol = 2,      //地址头
-		hostName = 3,      //域名
-		port = 4,          //端口
-		displayRoute = 5,  //播放地址
-	};
 
 	static Server *getInstance()
 	{
@@ -44,12 +35,13 @@ public:
 		return srvSocket;
 	}           
 
-	//Test Code
-	void setSocket(SOCKET in)
-	{
-		srvSocket = in;
-	}
+	////Test Code
+	//void setSocket(SOCKET in)
+	//{
+	//	srvSocket = in;
+	//}
 
+	//返回当前信息表
 	serverList* getServerInfo()
 	{
 		return mySrvList->next;

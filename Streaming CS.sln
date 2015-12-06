@@ -7,7 +7,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Streaming Client", "Streami
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Streaming Server", "Streaming Server\Streaming Server.vcxproj", "{3ABEBF1C-CDA7-4CEB-87C0-A15CEB256CED}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "modularTest", "modularTest\modularTest.vcxproj", "{3400B54D-AB03-461A-B824-E514DBD254E4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "clientTest", "modularTest\modularTest.vcxproj", "{3400B54D-AB03-461A-B824-E514DBD254E4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "serverTest", "serverTest\serverTest.vcxproj", "{905A1F46-24EC-482E-A8CD-B7DC352FE1A5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{3400B54D-AB03-461A-B824-E514DBD254E4}.Debug|Win32.Build.0 = Debug|Win32
 		{3400B54D-AB03-461A-B824-E514DBD254E4}.Release|Win32.ActiveCfg = Release|Win32
 		{3400B54D-AB03-461A-B824-E514DBD254E4}.Release|Win32.Build.0 = Release|Win32
+		{905A1F46-24EC-482E-A8CD-B7DC352FE1A5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{905A1F46-24EC-482E-A8CD-B7DC352FE1A5}.Debug|Win32.Build.0 = Debug|Win32
+		{905A1F46-24EC-482E-A8CD-B7DC352FE1A5}.Release|Win32.ActiveCfg = Release|Win32
+		{905A1F46-24EC-482E-A8CD-B7DC352FE1A5}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -32,17 +32,17 @@ int main(int argc, char *argv[])
 
 
 	//--Test code--//
-	in_addr address;
-	sockaddr_in ServerAddr;
+	//in_addr address;
+	//sockaddr_in ServerAddr;
 
-	ServerAddr.sin_family = AF_INET;
-	inet_pton(AF_INET, "192.168.1.101", &address);
-	ServerAddr.sin_addr = address;
-	ServerAddr.sin_port = htons(atoi("554"));
+	//ServerAddr.sin_family = AF_INET;
+	//inet_pton(AF_INET, "192.168.1.101", &address);
+	//ServerAddr.sin_addr = address;
+	//ServerAddr.sin_port = htons(atoi("554"));
 
-	int flag = connect(streamingSocket, (sockaddr *)&ServerAddr, sizeof(ServerAddr));//这里是可能超时的，默认超时时间是75秒
+	//int flag = connect(streamingSocket, (sockaddr *)&ServerAddr, sizeof(ServerAddr));//这里是可能超时的，默认超时时间是75秒
 
-	if (flag == 0)mySrv->setSocket(streamingSocket);
+	//if (flag == 0)mySrv->setSocket(streamingSocket);
 	//--End of test code--//
 
 	//Connect to server
@@ -53,18 +53,18 @@ int main(int argc, char *argv[])
 	else
 	{
 		//连接服务器失败
-		//return 0;
+		return 0;
 	}
 
 	//RTSP交互
 	rtspHandler rtspModule;
 	serverList *srvInfo = mySrv->getServerInfo();
-	rtspModule.initRTSPmsg(mySrv->getDisplayAddr(), atoi(srvInfo->getConfigByIndex(4).c_str()), streamingSocket);
+	rtspModule.initRTSPmsg(mySrv->getDisplayAddr(), atoi(srvInfo->getConfigByIndex(port).c_str()), streamingSocket);
 
 	//创建线程
 	rtspParam rtspPara;
 	rtspPara.URI = mySrv->getDisplayAddr();
-	rtspPara.Port = atoi(srvInfo->getConfigByIndex(4).c_str());
+	rtspPara.Port = atoi(srvInfo->getConfigByIndex(port).c_str());
 	rtspPara.socket = streamingSocket;
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)rtspControl, &rtspPara, 0, NULL);
 

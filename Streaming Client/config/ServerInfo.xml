@@ -3,7 +3,7 @@
 	<serverList>		
 		<server>
 			<type>RTSP</type>
-			<protocol>http</protocol>
+			<protocol>rtsp</protocol>
 			<hostname>192.168.1.101</hostname>
 			<port>554</port>
 			<display>test.mp3</display>
