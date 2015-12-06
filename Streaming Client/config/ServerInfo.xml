@@ -1,11 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-	<serverList>
+	<serverList>		
 		<server>
 			<type>RTSP</type>
 			<protocol>http</protocol>
 			<hostname>192.168.1.101</hostname>
-			<port>8554</port>
+			<port>554</port>
+			<display>test.mp3</display>
+		</server>
+		<server>
+			<type>local</type>
+			<protocol>http</protocol>
+			<hostname>127.0.0.1</hostname>
+			<port>80</port>
 			<display></display>
 		</server>
 	</serverList>

@@ -1,9 +1,26 @@
 #include "CommonHeaders.h"
 
-const string servSettingFile = "config/ServerInfo.xml";  // 服务器配置文件
-
 class myMessage
 {
 public:
 	myMessage();
+};
+
+//线程参数表
+class rtspParam
+{
+public:
+	string URI;
+	int Port;
+	int RTPPort;
+	SOCKET socket;
+
+	rtspParam()
+	{
+		Port = 554;
+		socket = -1;
+		RTPPort = RTP_PORT;
+	}
+
+	~rtspParam(){};
 };

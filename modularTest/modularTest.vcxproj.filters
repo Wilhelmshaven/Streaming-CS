@@ -15,27 +15,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="myClient.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Server.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="rtspHandler.cpp">
+    <ClCompile Include="..\Streaming Client\rtspServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CommonHeaders.h">
+    <ClInclude Include="CommonHeader.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="myClient.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Server.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="rtspHandler.h">
+    <ClInclude Include="..\Streaming Client\rtspServer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
