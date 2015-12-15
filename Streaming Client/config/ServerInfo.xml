@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-	<serverList>		
+	<serverList>
+		<server>
+			<type>VM_XP</type>
+			<protocol>rtsp</protocol>
+			<hostname>192.168.200.128</hostname>
+			<port>554</port>
+			<display>test.mp3</display>
+		</server>
 		<server>
 			<type>RTSP</type>
 			<protocol>rtsp</protocol>

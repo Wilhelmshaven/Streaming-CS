@@ -4,9 +4,9 @@
 class serverList
 {
 public:
-	string getConfigByIndex(int index);   //获取对应参数
+	string getCfgByIndex(int index);   //获取对应参数
 
-	string srvArgs[6];      //参数数量，而详细的参数，见如上的常量表
+	string srvArgs[ServerArgc];      //参数数量，而详细的参数，见常量表：ServerInfoDefine
 
 	serverList *prev;
 	serverList *next;
@@ -35,12 +35,6 @@ public:
 		return srvSocket;
 	}           
 
-	////Test Code
-	//void setSocket(SOCKET in)
-	//{
-	//	srvSocket = in;
-	//}
-
 	//返回当前信息表
 	serverList* getServerInfo()
 	{
@@ -58,7 +52,7 @@ protected:
 
 	serverList *mySrvList;                //服务器链表，内嵌类
 
-	SOCKET srvSocket;                     //避免乱改
+	SOCKET srvSocket;                     //唯一的SOCKET，避免乱改
 
 	//禁止拷贝构造以及赋值
 	Server(const Server &);
@@ -76,7 +70,7 @@ protected:
 	static CGarbo Garbo;
 
 	// VARs
-	string fileName;           //配置文件名
+	string fileName;           //配置文件的文件名
 
 	// 当前正在使用的服务器信息
 	sockaddr_in srvAddr;       //地址结构（ipv4/6，IP，端口）

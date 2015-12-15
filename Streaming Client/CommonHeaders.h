@@ -26,6 +26,8 @@ enum ServerInfoDefine
 	hostName = 3,      //域名
 	port = 4,          //端口
 	displayRoute = 5,  //播放地址
+	hostAddr = 6,      //额，IP地址
+	ServerArgc = 7,    //这个放在最后，表示参数的数量
 };
 
 

@@ -59,12 +59,12 @@ int main(int argc, char *argv[])
 	//RTSP交互
 	rtspHandler rtspModule;
 	serverList *srvInfo = mySrv->getServerInfo();
-	rtspModule.initRTSPmsg(mySrv->getDisplayAddr(), atoi(srvInfo->getConfigByIndex(port).c_str()), streamingSocket);
+	rtspModule.initRTSPmsg(mySrv->getDisplayAddr(), atoi(srvInfo->getCfgByIndex(port).c_str()), streamingSocket);
 
 	//创建线程
 	rtspParam rtspPara;
 	rtspPara.URI = mySrv->getDisplayAddr();
-	rtspPara.Port = atoi(srvInfo->getConfigByIndex(port).c_str());
+	rtspPara.Port = atoi(srvInfo->getCfgByIndex(port).c_str());
 	rtspPara.socket = streamingSocket;
 	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)rtspControl, &rtspPara, 0, NULL);
 
