@@ -1,6 +1,6 @@
 #include "CommonHeaders.h"
 
-//服务器链表结构定义
+//服务器链表结构定义，双向链表
 class serverList
 {
 public:
@@ -12,39 +12,21 @@ public:
 	serverList *next;
 
 	void getLabelMsg(string name, string buf);    //填写内容	
-
 };
 
 //Server类，包括读取配置文件，建立Winsock连接，单例类
-//To do list：增加域名解析功能，并且校验
 class Server
 {
 public:
 	WSADATA wsaData;
 
-	static Server *getInstance()
-	{
-		return instance;
-	}
+	//一系列返回信息的函数
+	static Server *getInstance();     //返回服务器实例
+	SOCKET getSocket();               //返回SOCKET实例
+	serverList* getServerInfo();      //返回服务器链表头指针
+	string getDisplayAddr();          //返回完整地址
 
 	int connectServer();                 //连接服务器，成功返回0
-
-	//返回SOCKET实例
-	SOCKET getSocket()
-	{
-		return srvSocket;
-	}           
-
-	//返回当前信息表
-	serverList* getServerInfo()
-	{
-		return mySrvList->next;
-	}
-
-	string getDisplayAddr()
-	{
-		return displayAddr;
-	}
 
 protected:
 	static Server *instance;              //单例

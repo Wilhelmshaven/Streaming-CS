@@ -6,6 +6,7 @@
 
 // STL Headers
 #include <string>
+#include <map>
 
 // Winsock Headers
 #include <WinSock2.h>
@@ -17,6 +18,7 @@
 
 using namespace std;
 
+/*---------------------自定义常量区，少的话这里写，多的话，不如用map，例如rtsp错误信息--------------------*/
 //
 enum ServerInfoDefine
 {
@@ -52,4 +54,6 @@ enum CustomDefine
 	RTP_PORT = 55778
 };
 
+//配置文件
 const string srvSettingFile = "config/ServerInfo.xml";
+const string rtspErrFile = "config/static/rtspErrCodeList.csv";
