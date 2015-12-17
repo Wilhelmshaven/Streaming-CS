@@ -71,7 +71,8 @@ bool Server::readFile()
 	fstream srvSettings;
 	srvSettings.open(fileName, ios_base::in);  //只读就可以
 
-	string buf;  //输入缓存
+	string buf;    //输入缓存
+	string label;  //标签中的内容
 
 	if (!srvSettings.is_open())
 	{
@@ -99,9 +100,6 @@ bool Server::readFile()
 					if (buf.find("<server>") != string::npos)
 					{
 						//读取单个服务器的信息
-						int length;
-						string label;
-
 						nextServer = new serverList;
 						while (buf.find("</server>") == string::npos)
 						{

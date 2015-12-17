@@ -28,7 +28,7 @@ public:
 
 	int connectServer();                 //连接服务器，成功返回0
 
-protected:
+private:
 	static Server *instance;              //单例
 	Server(string file);                  //构造函数
 
