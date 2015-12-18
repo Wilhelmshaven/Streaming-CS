@@ -15,7 +15,7 @@ rtspHandler::rtspHandler()
 {
 	seqNum = 1;                   //初始化序列号为1
 	rtspVersion = MAKEWORD(1, 0);
-	streamingPort = 54236;
+	streamingPort = 8554;
 	enableUDP = false;
 }
 
@@ -25,11 +25,17 @@ string rtspHandler::getErrMsg(int code)
 	return errHandler.getErrMsg(code);
 }
 
-//改变流媒体参数（就两个就好了，是否UDP以及端口）
-bool rtspHandler::setHandler(WORD rtspVer, int port, bool enableUDP)
+//改变流媒体参数（就三个就好了，地址，是否UDP以及端口）
+bool rtspHandler::setHandler(string URI, WORD rtspVer, int port, bool enableUDP)
 {
-	if(session.empty())rtspVersion = rtspVer;
-	streamingPort = port;
+	this->URI = URI;
+
+	sprintf_s((char *)rtspVersion.data(), 4, "%d.%d", rtspVer >> 8 & 0xff, rtspVer & 0xff);
+
+	//只接受偶数端口号
+	if (port % 2 != 0)streamingPort = (port + 1) % 65535;
+	else streamingPort = port;
+
 	this->enableUDP = enableUDP;
 
 	return true;
@@ -39,12 +45,132 @@ bool rtspHandler::setHandler(WORD rtspVer, int port, bool enableUDP)
 string rtspHandler::getHandlerInfo()
 {
 	string msg;
-	sprintf_s((char *)msg.data(), BUF_SIZE, "RTSP版本：%d.%d\r\n会话号（session）：%s\r\n端口号：%d\r\n传输方式：%s\r\n",
-		rtspVersion >> 8 & 0xff, rtspVersion & 0xff,
+	sprintf_s((char *)msg.data(), BUF_SIZE, "RTSP版本：%s\r\n会话号（session）：%s\r\n端口号：%d\r\n传输方式：%s\r\n",
+		rtspVersion,
 		session,
 		streamingPort,
 		enableUDP ? "UDP" : "TCP");
 	return msg;
+}
+
+//rtsp信令编码器（用到的很少就一个函数得了）
+string rtspHandler::encodeMsg(int method)
+{
+	string msg;
+
+	//仅仅只是缩短代码而已……
+	string reqLine;
+	sprintf_s((char *)reqLine.data(), BUF_SIZE, " %s RTSP/%s\r\nCSeq:%d\r\n", URI.c_str(), rtspVersion, seqNum);
+
+	switch (method)
+	{
+	case DESCRIBE:
+	{
+		/*Example Message*/
+		/*
+		DESCRIBE rtsp://example.com/test.mp3 RTSP/1.0
+		CSeq: 302
+		*/
+		msg = "DESCRIBE" + reqLine;
+		break;
+	}
+	case SETUP:
+	{
+		/*Example Message*/
+		/*
+		SETUP rtsp://example.com/test.mp3 RTSP/1.0
+		CSeq: 302
+		Transport: RTP/AVP;unicast;client_port=8554-8555
+		*/
+		sprintf_s((char *)msg.data(), BUF_SIZE, "Transport: RTP/AVP%s;unicast;client_port=%d-%d\r\n",
+			enableUDP ? "" : "/TCP",
+			streamingPort,
+			streamingPort + 1);
+		msg = "SETUP" + reqLine + msg;
+		break;
+	}
+	case PLAY:
+	{
+		/*Example Message*/
+		/*
+		PLAY rtsp://example.com/test.mp3 RTSP/1.0
+		CSeq: 302
+		Session: 12345678
+		Range: npt=0.000-
+		*/
+		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\nRange: npt=0.000-\r\n",
+			session);
+		msg = "PLAY" + reqLine + msg;
+		break;
+	}
+	case TEARDOWN:
+	{
+		/*Example Message*/
+		/*
+		TEARDOWN rtsp://example.com/test.mp3 RTSP/1.0
+		CSeq: 302
+		Session: 12345678
+		*/
+		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\n",
+			session);
+		msg = "TEARDOWN" + reqLine + msg;
+		break;
+	}
+	case GET_PARAMETER:
+	{
+		/*Example Message*/
+		/*
+		GET_PARAMETER rtsp://example.com/test.mp3 RTSP/1.0
+		CSeq: 302
+		Session: 12345678
+		*/
+		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\n",
+			session);
+		msg = "GET_PARAMETER" + reqLine + msg;
+		break;
+	}
+	default:
+		break;
+	}
+
+	++seqNum;          //重要！序列号自增！
+	return msg;
+}
+
+//rtsp信令解码器
+int rtspHandler::decodeMsg(string msg)
+{
+	int errCode;           //错误代码
+	int sequence;          //序列号，供核对，如果需要
+	string buf;
+
+	//为了降低耦合，是不是不要去考虑到底是发了什么消息的回复
+	//感觉可能还是要考虑吧，不过现在暂时就不考虑了
+	//而且这里并不管发送，你编码之后不一定就发了啊，谁知道是不是遍来玩
+	//就目前的应用而言，其实只需要解析两个，一个是错误代码（其实错误信息这里也有了根本不用查表），一个是会话号
+
+	//提取错误码
+	buf = "RTSP/" + rtspVersion;
+	buf = msg.substr(msg.find(buf) + 1, msg.find(buf) + 4);
+	errCode = atoi(buf.c_str());
+
+	//提取序列号
+	buf = msg.substr(msg.find("CSeq: "));
+	buf = buf.substr(0, buf.find("/r"));
+	sequence = atoi(buf.c_str());
+
+	//提取会话号（如果处理器的会话号为空则写入，否则校验）
+	if (session.empty())
+	{
+		session = msg.substr(msg.find("Session: "), 8);
+	}
+	else
+	{
+		//string ssnTmp = msg.substr(msg.find("Session: "), 8);
+		//if...
+	}
+
+	return errCode;
 }
 
 /*----------------------RTSP错误信息处理器：RTSP 错误码信息查询---------------------*/

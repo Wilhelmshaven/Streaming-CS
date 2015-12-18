@@ -27,20 +27,22 @@ public:
 
 	string getErrMsg(int code);      //返回错误代码所表示的信息
 
-	//只管编解码，不负责发送
-	string encodeMsg(int method);    //编码信令
-	string decodeMsg(string msg);    //解码信令
-
-	bool setHandler(WORD rtspVer, int port, bool enableUDP);           //配置处理器：RTSP版本、端口号、传输方法
+	bool setHandler(string URI, WORD rtspVer, int port, bool enableUDP);           //配置处理器：RTSP版本、端口号、传输方法
 	string getHandlerInfo();         //获取rtsp处理器的相关信息
+
+	//只管编解码，不负责发送
+	string encodeMsg(int method);    //编码信令，返回值为编码好的信息
+	int decodeMsg(string msg);       //解码信令，返回值为错误代码，200为OK
 
 private:
 	static rtspHandler *instance;              //单例
 	rtspHandler();                             //构造函数
 
+	string URI;                                //流媒体地址
 	int seqNum;                                //信令序列号
 	string session;                            //会话号
-	WORD rtspVersion;                          //RTSP版本
+	string rtspVersion;                        //RTSP版本
+	string trackNum;                           //轨道信息（目前不用）
 	int streamingPort;                         //客户端端口号，必须是偶数
 	bool enableUDP;                            //指定传输方法：真则UDP，否则TCP
 

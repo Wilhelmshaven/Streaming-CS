@@ -65,6 +65,12 @@ Server::Server(string file)
 	readFile();
 };
 
+//析构函数
+Server::~Server()
+{
+	closesocket(srvSocket);
+}
+
 //读取配置文件，返回是否成功读取
 bool Server::readFile()
 {

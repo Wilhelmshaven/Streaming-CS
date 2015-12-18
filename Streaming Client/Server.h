@@ -26,7 +26,9 @@ public:
 	serverList* getServerInfo();      //返回服务器链表头指针
 	string getDisplayAddr();          //返回完整地址
 
-	int connectServer();                 //连接服务器，成功返回0
+	int connectServer();              //连接服务器，成功返回0
+
+	~Server();                        //必要的清理工作还是要写出来的
 
 private:
 	static Server *instance;              //单例
