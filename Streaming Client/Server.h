@@ -25,6 +25,7 @@ public:
 	SOCKET getSocket();               //返回SOCKET实例
 	serverList* getServerInfo();      //返回服务器链表头指针
 	string getDisplayAddr();          //返回完整地址
+	int getStreamPort();              //返回端口号
 
 	int connectServer();              //连接服务器，成功返回0
 

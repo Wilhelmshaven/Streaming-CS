@@ -30,7 +30,7 @@ bool rtspHandler::setHandler(string URI, WORD rtspVer, int port, bool enableUDP)
 {
 	this->URI = URI;
 
-	sprintf_s((char *)rtspVersion.data(), 4, "%d.%d", rtspVer >> 8 & 0xff, rtspVer & 0xff);
+	sprintf_s((char *)rtspVersion.data(), 4, "%d.%d", rtspVer & 0xff, rtspVer >> 8 & 0xff);
 
 	//只接受偶数端口号
 	if (port % 2 != 0)streamingPort = (port + 1) % 65535;
@@ -60,7 +60,8 @@ string rtspHandler::encodeMsg(int method)
 
 	//仅仅只是缩短代码而已……
 	string reqLine;
-	sprintf_s((char *)reqLine.data(), BUF_SIZE, " %s RTSP/%s\r\nCSeq:%d\r\n", URI.c_str(), rtspVersion, seqNum);
+	reqLine.resize(BUF_SIZE);
+	sprintf_s((char *)reqLine.data(), BUF_SIZE, " %s RTSP/%s\r\nCSeq:%d\r\n", URI.c_str(), rtspVersion.c_str(), seqNum);
 
 	switch (method)
 	{
@@ -70,8 +71,9 @@ string rtspHandler::encodeMsg(int method)
 		/*
 		DESCRIBE rtsp://example.com/test.mp3 RTSP/1.0
 		CSeq: 302
+		Accept: application/sdp
 		*/
-		msg = "DESCRIBE" + reqLine;
+		msg = "DESCRIBE" + reqLine + "Accept: application/sdp\r\n";
 		break;
 	}
 	case SETUP:
@@ -133,6 +135,7 @@ string rtspHandler::encodeMsg(int method)
 		break;
 	}
 
+	msg = msg.substr(0, msg.find('\0')) + "\r\n";
 	++seqNum;          //重要！序列号自增！
 	return msg;
 }
@@ -150,19 +153,20 @@ int rtspHandler::decodeMsg(string msg)
 	//就目前的应用而言，其实只需要解析两个，一个是错误代码（其实错误信息这里也有了根本不用查表），一个是会话号
 
 	//提取错误码
-	buf = "RTSP/" + rtspVersion;
-	buf = msg.substr(msg.find(buf) + 1, msg.find(buf) + 4);
+	buf = "RTSP/";
+	buf += rtspVersion;
+	buf = msg.substr(msg.find(buf) + 5, msg.find('\r') - 5);
 	errCode = atoi(buf.c_str());
 
 	//提取序列号
 	buf = msg.substr(msg.find("CSeq: "));
-	buf = buf.substr(0, buf.find("/r"));
+	buf = buf.substr(0, buf.find("\r"));
 	sequence = atoi(buf.c_str());
 
 	//提取会话号（如果处理器的会话号为空则写入，否则校验）
 	if (session.empty())
 	{
-		session = msg.substr(msg.find("Session: "), 8);
+		if (msg.find("Session: ") != string::npos)session = msg.substr(msg.find("Session: "), 8);
 	}
 	else
 	{

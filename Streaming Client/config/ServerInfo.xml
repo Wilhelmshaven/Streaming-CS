@@ -4,7 +4,7 @@
 		<server>
 			<type>VM_XP</type>
 			<protocol>rtsp</protocol>
-			<hostname>192.168.200.128</hostname>
+			<hostname>192.168.131.128</hostname>
 			<port>554</port>
 			<display>test.mp3</display>
 		</server>

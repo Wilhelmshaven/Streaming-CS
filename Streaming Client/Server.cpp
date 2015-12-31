@@ -24,6 +24,11 @@ string Server::getDisplayAddr()
 	return displayAddr;
 }
 
+int Server::getStreamPort()
+{
+	return srvAddr.sin_port;
+}
+
 //获取标签里的内容，填到相应的变量中
 void serverList::getLabelMsg(string name, string buf)
 {
