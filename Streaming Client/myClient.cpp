@@ -19,8 +19,10 @@ const myMessage myMsg;
 
 UINT rtspHandleThread();              //rtsp交互线程
 
-HANDLE hCloseClient = CreateEvent(NULL, TRUE, FALSE, NULL);      //事件：关闭客户端，初值为NULL
-HANDLE sendRecvMutex;             //rtsp收发互斥信号量
+HANDLE hCloseClientEvent = CreateEvent(NULL, TRUE, FALSE, NULL);      //事件：关闭客户端，初值为NULL
+HANDLE hRTSPBeginEvent = CreateEvent(NULL, TRUE, FALSE, NULL);        //事件：启动RTSP收发
+HANDLE hBeatStartEvent = CreateEvent(NULL, TRUE, FALSE, NULL);        //事件：启动RTSP心跳线程，初值为NULL
+HANDLE sendRecvMutex = NULL;             //rtsp收发互斥信号量
 
 //================================= MAIN =================================//
 int main(int argc, char *argv[])
@@ -47,7 +49,7 @@ int main(int argc, char *argv[])
 		//连接服务器失败
 	}
 
-	WaitForSingleObject(hCloseClient, INFINITE);
+	WaitForSingleObject(hCloseClientEvent, INFINITE);
 	system("pause");
 	return 0;
 }
@@ -55,17 +57,11 @@ int main(int argc, char *argv[])
 //RTSP控制线程
 UINT rtspHandleThread()
 {
-	//收发与心跳子线程
-	UINT sendMsgThread();
-	UINT recvMsgThread();
-	UINT rtspHeartBeat();
-
-	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)sendMsgThread, NULL, NULL, NULL);
-	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)recvMsgThread, NULL, NULL, NULL);
-
-	//这个放在Play以后创建
-	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)rtspHeartBeat, NULL, NULL, NULL);
-
+	//子线程
+	UINT sendMsgThread();       //发送信息
+	UINT recvMsgThread();       //接收信息
+	UINT rtspHeartBeat();       //心跳
+	
 	//获取单例
 	Server *mySrv = Server::getInstance();
 	rtspHandler *rtsp = rtspHandler::getInstance();
@@ -73,73 +69,179 @@ UINT rtspHandleThread()
 	//并用服务器信息设置rtsp处理器
 	rtsp->setHandler(mySrv->getDisplayAddr(), MAKEWORD(1, 0), mySrv->getStreamPort(), true);
 
-	string sendBuf, recvBuf;        //收发缓存
-	int errCode;                    //错误代码
-	int bytesSent;
-	recvBuf.resize(BUF_SIZE);
+	//设置Socket接收超时，避免阻塞太久（嗯当然我们现在还是用阻塞模式，客户端么
+	int recvTimeMax = 5000;  //5s
+	setsockopt(mySrv->getSocket(), SOL_SOCKET, SO_RCVTIMEO, (char *)recvTimeMax, sizeof(int));
 
-	//考虑到阻塞和超时，回头在这里再开两个子线程，以便更好地控制。
-	//首先发送DESCRIBE信令
-	sendBuf = rtsp->encodeMsg(DESCRIBE);
-	bytesSent = send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.length(), NULL);
+	//启动收发和心跳线程
+	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)sendMsgThread, NULL, NULL, NULL);
+	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)recvMsgThread, NULL, NULL, NULL);
+	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)rtspHeartBeat, NULL, NULL, NULL);     //这个放在Play以后进行
+	
+	//启动线程
+	SetEvent(hRTSPBeginEvent);
 
-	//接收答复（求写成非阻塞）
-	recv(mySrv->getSocket(), (char *)recvBuf.data(), recvBuf.length(), NULL);
-	errCode = rtsp->decodeMsg(recvBuf);
-	if (errCode != 200)
-	{
-		cout << "Error:" << rtsp->getErrMsg(errCode) << endl;
-		SetEvent(hCloseClient);   //设置一个结束事件，结束，看是结束所有还是什么
-	}
+	WaitForSingleObject(hCloseClientEvent, INFINITE);
 
-	//然后发送Setup信令
-	sendBuf = rtsp->encodeMsg(SETUP);
-	send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.size(), NULL);
+	CloseHandle(sendMsgThread);
+	CloseHandle(recvMsgThread);
+	CloseHandle(rtspHeartBeat);
 
-	//接收答复（求写成非阻塞）
-	recv(mySrv->getSocket(), (char *)recvBuf.data(), recvBuf.length(), NULL);
-	errCode = rtsp->decodeMsg(recvBuf);
-	if (errCode != 200)
-	{
-		cout << "Error:" << rtsp->getErrMsg(errCode) << endl;
-		SetEvent(hCloseClient);   //设置一个结束事件，结束，看是结束所有还是什么
-	}
+	//string sendBuf, recvBuf;        //收发缓存
+	//int errCode;                    //错误代码
+	//int bytesSent;
+	//recvBuf.resize(BUF_SIZE);
 
-	//然后是Play指令
-	sendBuf = rtsp->encodeMsg(PLAY);
-	send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.size(), NULL);
+	////考虑到阻塞和超时，回头在这里再开两个子线程，以便更好地控制。
+	////首先发送DESCRIBE信令
+	//sendBuf = rtsp->encodeMsg(DESCRIBE);
+	//bytesSent = send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.length(), NULL);
 
-	//接收答复（求写成非阻塞）
-	recv(mySrv->getSocket(), (char *)recvBuf.data(), recvBuf.length(), NULL);
-	errCode = rtsp->decodeMsg(recvBuf);
-	if (errCode != 200)
-	{
-		cout << "Error:" << rtsp->getErrMsg(errCode) << endl;
-		SetEvent(hCloseClient);   //设置一个结束事件，结束，看是结束所有还是什么
-	}
+	////接收答复（求写成非阻塞）
+	//recv(mySrv->getSocket(), (char *)recvBuf.data(), recvBuf.length(), NULL);
+	//errCode = rtsp->decodeMsg(recvBuf);
+	//if (errCode != 200)
+	//{
+	//	cout << "Error:" << rtsp->getErrMsg(errCode) << endl;
+	//	SetEvent(hCloseClientEvent);   //设置一个结束事件，结束，看是结束所有还是什么
+	//}
 
-	//正常的话，这里是心跳线程
+	////然后发送Setup信令
+	//sendBuf = rtsp->encodeMsg(SETUP);
+	//send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.size(), NULL);
+
+	////接收答复（求写成非阻塞）
+	//recv(mySrv->getSocket(), (char *)recvBuf.data(), recvBuf.length(), NULL);
+	//errCode = rtsp->decodeMsg(recvBuf);
+	//if (errCode != 200)
+	//{
+	//	cout << "Error:" << rtsp->getErrMsg(errCode) << endl;
+	//	SetEvent(hCloseClientEvent);   //设置一个结束事件，结束，看是结束所有还是什么
+	//}
+
+	////然后是Play指令
+	//sendBuf = rtsp->encodeMsg(PLAY);
+	//send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.size(), NULL);
+
+	////接收答复（求写成非阻塞）
+	//recv(mySrv->getSocket(), (char *)recvBuf.data(), recvBuf.length(), NULL);
+	//errCode = rtsp->decodeMsg(recvBuf);
+	//if (errCode != 200)
+	//{
+	//	cout << "Error:" << rtsp->getErrMsg(errCode) << endl;
+	//	SetEvent(hCloseClientEvent);   //设置一个结束事件，结束，看是结束所有还是什么
+	//}
+
+	////正常的话，这里是心跳线程
 
 	return 0;
 }
 
+//RTSP信令发送线程
+void sendMsgInThread(int msgType); //发送信令线程内的函数（一个小封装，编码->发送->错误处理）
 UINT sendMsgThread()
 {
+	//获取单例
+	Server *mySrv = Server::getInstance();
+	rtspHandler *rtsp = rtspHandler::getInstance();
+
 	//收发可以使用互斥信号量，并设置超时
 	sendRecvMutex = CreateMutex(NULL, TRUE, NULL);
 
+	string sendBuf, recvBuf;        //收发缓存
+	int bytesSent;                  //发送的字节数
+
+	sendMsgInThread(DESCRIBE);          //首先发送DESCRIBE信令
+
+	//互斥量
+	ReleaseMutex(sendRecvMutex);
+	WaitForSingleObject(sendRecvMutex, INFINITE);
+
+	sendMsgInThread(SETUP);             //然后发送Setup信令
+
+	//互斥量
+	ReleaseMutex(sendRecvMutex);
+	WaitForSingleObject(sendRecvMutex, INFINITE);
+
+	sendMsgInThread(PLAY);              //然后是Play指令
+
+	//互斥量
+	ReleaseMutex(sendRecvMutex);
+	WaitForSingleObject(sendRecvMutex, INFINITE);
+
+	//等待结束指令，挂起线程（不需要再发什么了）
+	WaitForSingleObject(hCloseClientEvent, INFINITE);
+	ReleaseMutex(sendRecvMutex);
+
+	sendMsgInThread(TEARDOWN);//TEARDOWN，断开连接
+
 	return 0;
 }
 
+//发送信令线程内的函数（一个小封装，编码->发送->错误处理）
+void sendMsgInThread(int msgType)
+{
+	//获取单例
+	Server *mySrv = Server::getInstance();
+	rtspHandler *rtsp = rtspHandler::getInstance();
+
+	string sendBuf, recvBuf;        //收发缓存
+	int bytesSent;                  //发送的字节数
+
+	sendBuf = rtsp->encodeMsg(msgType);
+	bytesSent = send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.length(), NULL);
+
+	if (bytesSent == 0)
+	{
+		cout << "Error in sending msg:" << sendBuf << endl;
+		SetEvent(hCloseClientEvent);                     //目前采用的方式是直接关闭客户端
+	}
+	else
+	{
+		cout << "Bytes sent:" << bytesSent << endl;
+		cout << "Msg sent:" << sendBuf << endl;
+	}
+}
+
+//RTSP信令接收线程
 UINT recvMsgThread()
 {
+	//获取单例
+	Server *mySrv = Server::getInstance();
+	rtspHandler *rtsp = rtspHandler::getInstance();
+
+	string recvBuf;        //收发缓存
+	int errCode;           //错误代码
+	recvBuf.resize(BUF_SIZE);
+
+	while (1)
+	{
+		WaitForSingleObject(sendRecvMutex, INFINITE);
+		WaitForSingleObject(hCloseClientEvent, 0);
+
+		//接收答复（目前通过设置超时避免阻塞过久）
+		recv(mySrv->getSocket(), (char *)recvBuf.data(), recvBuf.length(), NULL);
+		errCode = rtsp->decodeMsg(recvBuf);
+		if (errCode != 200)
+		{
+			cout << "Error:" << rtsp->getErrMsg(errCode) << endl;
+			SetEvent(hCloseClientEvent);   //设置一个结束事件，结束，看是结束所有还是什么
+			ReleaseMutex(sendRecvMutex);
+			break;
+		}
+
+		ReleaseMutex(sendRecvMutex);
+	}
+
 	return 0;
 }
 
+//RTSP心跳线程，30秒发送一次GET_PARAMETER信令直到结束客户端事件被设置
+//已完成
 UINT rtspHeartBeat()
 {
 	//等待启动信号
-
+	WaitForSingleObject(hBeatStartEvent, INFINITE);
 
 	//获取单例
 	Server *mySrv = Server::getInstance();
@@ -156,19 +258,21 @@ UINT rtspHeartBeat()
 
 	while (1)
 	{
-		if (WaitForSingleObject(hCloseClient, 0))break;              //检查是否需要结束	                  
-		if (!WaitForSingleObject(heartBeatTimer, 10000))continue;    //等待10秒
+		if (WaitForSingleObject(hCloseClientEvent, 0))break;     //检查是否需要结束	 
 
-		sendBuf = rtsp->encodeMsg(GET_PARAMETER);
-		errCode = send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.size(), NULL);
-
-		if (errCode != 200)
+		if (WaitForSingleObject(heartBeatTimer, 1000))           //每秒检查一次
 		{
-			//如果出错
-			cout << "心跳发送出错，错误代码：" << errCode << " " << rtsp->getErrMsg(errCode) << endl;
-		}
+			sendBuf = rtsp->encodeMsg(GET_PARAMETER);
+			errCode = send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.size(), NULL);
 
-		//不用收取回复了
+			if (errCode != 200)
+			{
+				//如果出错
+				cout << "心跳发送出错，错误代码：" << errCode << " " << rtsp->getErrMsg(errCode) << endl;
+			}
+
+			//不用收取回复了
+		}	
 	}
 
 	return 0;
