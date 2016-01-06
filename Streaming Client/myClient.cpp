@@ -21,6 +21,7 @@ UINT rtspHandleThread();              //rtsp交互线程
 
 HANDLE hCloseClientEvent = CreateEvent(NULL, TRUE, FALSE, NULL);      //事件：关闭客户端，初值为NULL
 HANDLE hRTSPBeginEvent = CreateEvent(NULL, TRUE, FALSE, NULL);        //事件：启动RTSP收发
+//HANDLE hBeatStartSema = CreateSemaphore();
 HANDLE hBeatStartEvent = CreateEvent(NULL, TRUE, FALSE, NULL);        //事件：启动RTSP心跳线程，初值为NULL
 HANDLE sendRecvMutex = NULL;             //rtsp收发互斥信号量
 
@@ -71,7 +72,7 @@ UINT rtspHandleThread()
 
 	//设置Socket接收超时，避免阻塞太久（嗯当然我们现在还是用阻塞模式，客户端么
 	int recvTimeMax = 5000;  //5s
-	setsockopt(mySrv->getSocket(), SOL_SOCKET, SO_RCVTIMEO, (char *)recvTimeMax, sizeof(int));
+	//setsockopt(mySrv->getSocket(), SOL_SOCKET, SO_RCVTIMEO, (char *)recvTimeMax, sizeof(int));
 
 	//启动收发和心跳线程
 	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)sendMsgThread, NULL, NULL, NULL);
@@ -81,58 +82,12 @@ UINT rtspHandleThread()
 	//启动线程
 	SetEvent(hRTSPBeginEvent);
 
+	//等待结束
 	WaitForSingleObject(hCloseClientEvent, INFINITE);
 
 	CloseHandle(sendMsgThread);
 	CloseHandle(recvMsgThread);
 	CloseHandle(rtspHeartBeat);
-
-	//string sendBuf, recvBuf;        //收发缓存
-	//int errCode;                    //错误代码
-	//int bytesSent;
-	//recvBuf.resize(BUF_SIZE);
-
-	////考虑到阻塞和超时，回头在这里再开两个子线程，以便更好地控制。
-	////首先发送DESCRIBE信令
-	//sendBuf = rtsp->encodeMsg(DESCRIBE);
-	//bytesSent = send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.length(), NULL);
-
-	////接收答复（求写成非阻塞）
-	//recv(mySrv->getSocket(), (char *)recvBuf.data(), recvBuf.length(), NULL);
-	//errCode = rtsp->decodeMsg(recvBuf);
-	//if (errCode != 200)
-	//{
-	//	cout << "Error:" << rtsp->getErrMsg(errCode) << endl;
-	//	SetEvent(hCloseClientEvent);   //设置一个结束事件，结束，看是结束所有还是什么
-	//}
-
-	////然后发送Setup信令
-	//sendBuf = rtsp->encodeMsg(SETUP);
-	//send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.size(), NULL);
-
-	////接收答复（求写成非阻塞）
-	//recv(mySrv->getSocket(), (char *)recvBuf.data(), recvBuf.length(), NULL);
-	//errCode = rtsp->decodeMsg(recvBuf);
-	//if (errCode != 200)
-	//{
-	//	cout << "Error:" << rtsp->getErrMsg(errCode) << endl;
-	//	SetEvent(hCloseClientEvent);   //设置一个结束事件，结束，看是结束所有还是什么
-	//}
-
-	////然后是Play指令
-	//sendBuf = rtsp->encodeMsg(PLAY);
-	//send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.size(), NULL);
-
-	////接收答复（求写成非阻塞）
-	//recv(mySrv->getSocket(), (char *)recvBuf.data(), recvBuf.length(), NULL);
-	//errCode = rtsp->decodeMsg(recvBuf);
-	//if (errCode != 200)
-	//{
-	//	cout << "Error:" << rtsp->getErrMsg(errCode) << endl;
-	//	SetEvent(hCloseClientEvent);   //设置一个结束事件，结束，看是结束所有还是什么
-	//}
-
-	////正常的话，这里是心跳线程
 
 	return 0;
 }
@@ -145,8 +100,8 @@ UINT sendMsgThread()
 	Server *mySrv = Server::getInstance();
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
-	//收发可以使用互斥信号量，并设置超时
-	sendRecvMutex = CreateMutex(NULL, TRUE, NULL);
+	sendRecvMutex = CreateMutex(NULL, TRUE, NULL);          //收发可以使用互斥信号量，并设置超时
+	WaitForSingleObject(hRTSPBeginEvent,INFINITE);          //等待开始指令    
 
 	string sendBuf, recvBuf;        //收发缓存
 	int bytesSent;                  //发送的字节数
@@ -155,18 +110,21 @@ UINT sendMsgThread()
 
 	//互斥量
 	ReleaseMutex(sendRecvMutex);
+	Sleep(1000);
 	WaitForSingleObject(sendRecvMutex, INFINITE);
 
 	sendMsgInThread(SETUP);             //然后发送Setup信令
 
 	//互斥量
 	ReleaseMutex(sendRecvMutex);
+	Sleep(1000);
 	WaitForSingleObject(sendRecvMutex, INFINITE);
 
 	sendMsgInThread(PLAY);              //然后是Play指令
 
 	//互斥量
 	ReleaseMutex(sendRecvMutex);
+	Sleep(1000);
 	WaitForSingleObject(sendRecvMutex, INFINITE);
 
 	//等待结束指令，挂起线程（不需要再发什么了）
@@ -199,7 +157,7 @@ void sendMsgInThread(int msgType)
 	else
 	{
 		cout << "Bytes sent:" << bytesSent << endl;
-		cout << "Msg sent:" << sendBuf << endl;
+		cout << "Msg sent:" << endl << sendBuf << endl;
 	}
 }
 
@@ -212,15 +170,20 @@ UINT recvMsgThread()
 
 	string recvBuf;        //收发缓存
 	int errCode;           //错误代码
-	recvBuf.resize(BUF_SIZE);
+	
+	WaitForSingleObject(hRTSPBeginEvent, INFINITE);         //等待线程开始事件
 
 	while (1)
 	{
-		WaitForSingleObject(sendRecvMutex, INFINITE);
-		WaitForSingleObject(hCloseClientEvent, 0);
+		WaitForSingleObject(sendRecvMutex, INFINITE);       //等待收发互斥量（一收一发）
+		WaitForSingleObject(hCloseClientEvent, 0);          //检查结束事件是否已被设置
+
+		recvBuf.clear();
+		recvBuf.resize(BUF_SIZE);
 
 		//接收答复（目前通过设置超时避免阻塞过久）
 		recv(mySrv->getSocket(), (char *)recvBuf.data(), recvBuf.length(), NULL);
+		recvBuf = recvBuf.substr(0, recvBuf.find('\0'));         //紧缩长度
 		errCode = rtsp->decodeMsg(recvBuf);
 		if (errCode != 200)
 		{
@@ -229,8 +192,10 @@ UINT recvMsgThread()
 			ReleaseMutex(sendRecvMutex);
 			break;
 		}
+		else cout << "Msg recv: " << endl << recvBuf << endl;
 
 		ReleaseMutex(sendRecvMutex);
+		Sleep(1000);
 	}
 
 	return 0;

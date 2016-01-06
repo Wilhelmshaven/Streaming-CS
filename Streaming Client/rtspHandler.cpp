@@ -14,7 +14,8 @@ rtspHandler* rtspHandler::getInstance()
 rtspHandler::rtspHandler()
 {
 	seqNum = 1;                   //初始化序列号为1
-	rtspVersion = MAKEWORD(1, 0);
+	//rtspVersion = MAKEWORD(1, 0);
+	rtspVersion = "1.0";
 	streamingPort = 8554;
 	enableUDP = false;
 }
@@ -57,11 +58,13 @@ string rtspHandler::getHandlerInfo()
 string rtspHandler::encodeMsg(int method)
 {
 	string msg;
+	msg.resize(BUF_SIZE);
 
 	//仅仅只是缩短代码而已……
 	string reqLine;
 	reqLine.resize(BUF_SIZE);
 	sprintf_s((char *)reqLine.data(), BUF_SIZE, " %s RTSP/%s\r\nCSeq:%d\r\n", URI.c_str(), rtspVersion.c_str(), seqNum);
+	reqLine = reqLine.substr(0, reqLine.rfind('\n'));    //去掉过长的空结尾，否则会影响字符拼接……
 
 	switch (method)
 	{
@@ -74,6 +77,7 @@ string rtspHandler::encodeMsg(int method)
 		Accept: application/sdp
 		*/
 		msg = "DESCRIBE" + reqLine + "Accept: application/sdp\r\n";
+
 		break;
 	}
 	case SETUP:
@@ -88,7 +92,9 @@ string rtspHandler::encodeMsg(int method)
 			enableUDP ? "" : "/TCP",
 			streamingPort,
 			streamingPort + 1);
+
 		msg = "SETUP" + reqLine + msg;
+
 		break;
 	}
 	case PLAY:
@@ -101,8 +107,10 @@ string rtspHandler::encodeMsg(int method)
 		Range: npt=0.000-
 		*/
 		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\nRange: npt=0.000-\r\n",
-			session);
+			session.c_str());
+
 		msg = "PLAY" + reqLine + msg;
+
 		break;
 	}
 	case TEARDOWN:
@@ -115,7 +123,9 @@ string rtspHandler::encodeMsg(int method)
 		*/
 		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\n",
 			session);
+
 		msg = "TEARDOWN" + reqLine + msg;
+
 		break;
 	}
 	case GET_PARAMETER:
@@ -127,8 +137,10 @@ string rtspHandler::encodeMsg(int method)
 		Session: 12345678
 		*/
 		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\n",
-			session);
+			session.c_str());
+
 		msg = "GET_PARAMETER" + reqLine + msg;
+
 		break;
 	}
 	default:
@@ -155,18 +167,19 @@ int rtspHandler::decodeMsg(string msg)
 	//提取错误码
 	buf = "RTSP/";
 	buf += rtspVersion;
-	buf = msg.substr(msg.find(buf) + 5, msg.find('\r') - 5);
+	buf = msg.substr(msg.find(buf) + buf.length() + 1, msg.find('\r') - buf.length());
+	buf = buf.substr(0, buf.find(' '));
 	errCode = atoi(buf.c_str());
 
 	//提取序列号
 	buf = msg.substr(msg.find("CSeq: "));
-	buf = buf.substr(0, buf.find("\r"));
+	buf = buf.substr(6, buf.find("\r") - 6);
 	sequence = atoi(buf.c_str());
 
 	//提取会话号（如果处理器的会话号为空则写入，否则校验）
 	if (session.empty())
 	{
-		if (msg.find("Session: ") != string::npos)session = msg.substr(msg.find("Session: "), 8);
+		if (msg.find("Session: ") != string::npos)session = msg.substr(msg.find("Session: ") + 9, 8);
 	}
 	else
 	{
@@ -220,8 +233,18 @@ void rtspErrHandler::buildErrList()
 //查表返回对应信息
 string rtspErrHandler::getErrMsg(int code)
 {
-	string msg = errCodeList.find(code)->second;
-	if (msg.empty())msg = "Invalid Error Code";
+	string msg;
+
+	map<int, string>::iterator iter = errCodeList.find(code);
+
+	if (iter != errCodeList.end())
+	{
+		msg = iter->second;
+	}
+	else
+	{
+		msg = "Invalid Error Code";
+	}
 
 	return msg;
 }
