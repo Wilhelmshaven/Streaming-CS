@@ -6,6 +6,7 @@
 
 // STL Headers
 #include <string>
+#include <vector>
 
 // Winsock Headers
 #include <WinSock2.h>

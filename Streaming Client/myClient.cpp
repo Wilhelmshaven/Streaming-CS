@@ -16,13 +16,13 @@ myMessage::myMessage()
 };
 const myMessage myMsg;
 
-
 UINT rtspHandleThread();              //rtsp交互线程
 
+//这里还要仔细考虑，现在更多的是一次性程序的感觉。
+//TODO：增加复位功能
 HANDLE hCloseClientEvent = CreateEvent(NULL, TRUE, FALSE, NULL);      //事件：关闭客户端，初值为NULL
 HANDLE hRTSPBeginEvent = CreateEvent(NULL, TRUE, FALSE, NULL);        //事件：启动RTSP收发
-//HANDLE hBeatStartSema = CreateSemaphore();
-HANDLE hBeatStartEvent = CreateEvent(NULL, TRUE, FALSE, NULL);        //事件：启动RTSP心跳线程，初值为NULL
+HANDLE hBeatStartEvent = NULL;                                        //事件：启动RTSP心跳线程，初值为NULL
 HANDLE sendRecvMutex = NULL;             //rtsp收发互斥信号量
 
 //================================= MAIN =================================//
@@ -106,11 +106,11 @@ UINT sendMsgThread()
 	string sendBuf, recvBuf;        //收发缓存
 	int bytesSent;                  //发送的字节数
 
-	sendMsgInThread(DESCRIBE);          //首先发送DESCRIBE信令
+	sendMsgInThread(DESCRIBE);      //首先发送DESCRIBE信令
 
 	//互斥量
 	ReleaseMutex(sendRecvMutex);
-	Sleep(1000);
+	Sleep(1000);                    //只是为了方便测试，下同
 	WaitForSingleObject(sendRecvMutex, INFINITE);
 
 	sendMsgInThread(SETUP);             //然后发送Setup信令
@@ -120,7 +120,8 @@ UINT sendMsgThread()
 	Sleep(1000);
 	WaitForSingleObject(sendRecvMutex, INFINITE);
 
-	sendMsgInThread(PLAY);              //然后是Play指令
+	sendMsgInThread(PLAY);                                   //然后是Play指令
+	hBeatStartEvent = CreateEvent(NULL, TRUE, FALSE, NULL);  //创建心跳事件
 
 	//互斥量
 	ReleaseMutex(sendRecvMutex);
@@ -143,19 +144,21 @@ void sendMsgInThread(int msgType)
 	Server *mySrv = Server::getInstance();
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
-	string sendBuf, recvBuf;        //收发缓存
-	int bytesSent;                  //发送的字节数
+	string sendBuf;        //收发缓存
+	int bytesSent;         //发送的字节数
 
 	sendBuf = rtsp->encodeMsg(msgType);
 	bytesSent = send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.length(), NULL);
 
 	if (bytesSent == 0)
 	{
+		//发送失败
 		cout << "Error in sending msg:" << sendBuf << endl;
-		SetEvent(hCloseClientEvent);                     //目前采用的方式是直接关闭客户端
+		SetEvent(hCloseClientEvent);           //目前采用的方式是直接关闭客户端；TODO：改成切换下一个服务器
 	}
 	else
 	{
+		//发送成功，报出相关信息
 		cout << "Bytes sent:" << bytesSent << endl;
 		cout << "Msg sent:" << endl << sendBuf << endl;
 	}
@@ -192,10 +195,16 @@ UINT recvMsgThread()
 			ReleaseMutex(sendRecvMutex);
 			break;
 		}
-		else cout << "Msg recv: " << endl << recvBuf << endl;
+		else
+		{
+			cout << "Msg recv: " << endl << recvBuf << endl;
+
+			//如果心跳事件被创建（发送了PLAY），这里OK，就设置启动
+			if (hBeatStartEvent != NULL)SetEvent(hBeatStartEvent);   
+		}
 
 		ReleaseMutex(sendRecvMutex);
-		Sleep(1000);
+		Sleep(1000);               //便于测试
 	}
 
 	return 0;

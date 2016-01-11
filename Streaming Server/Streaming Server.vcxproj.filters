@@ -18,7 +18,7 @@
     <ClCompile Include="myServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CompletionPort.cpp">
+    <ClCompile Include="cnctHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -29,8 +29,13 @@
     <ClInclude Include="CommonHeaders.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="CompletionPort.h">
+    <ClInclude Include="cnctHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="config\srvConfig.xml">
+      <Filter>资源文件</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

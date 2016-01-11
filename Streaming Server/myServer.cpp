@@ -1,5 +1,5 @@
 #include "myServer.h"
-#include "CompletionPort.h"
+#include "cnctHandler.h"
 
 // 专门输出前置提示信息
 myMessage::myMessage()
@@ -15,25 +15,30 @@ myMessage::myMessage()
 };
 const myMessage myMsg;
 
-UINT ListeningThread(LPVOID lpParam);                                                   //监听线程
-HANDLE workThread;                              // 线程句柄
 
+
+			
+
+//================================= MAIN =================================//
 int main(int argc, char *argv[])
-{
+{	
+	/*------------------------------建立连接--------------------------*/
 	//初始化Winsock，版本2.2
-	workThread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ListeningThread, NULL, 0, NULL);
+	WSADATA wsaData;
+	WSAStartup(MAKEWORD(2, 2), &wsaData);
+
+	//获得单例
+	cnctHandler *mySrv = cnctHandler::getInstance();
+
+
+
+
+
+
+
+
 
 
 	return 0;
 }
 
-//监听线程
-UINT ListeningThread(LPVOID lpParam)
-{
-	Comport cPort;                                  // Winsock完成端口对象
-	//cPort.SetPort(sp.port);
-	cPort.BindSocket();
-	cPort.StartListen();
-
-	return 0;
-}
