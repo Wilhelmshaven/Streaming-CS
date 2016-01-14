@@ -7,6 +7,7 @@
 // STL Headers
 #include <string>
 #include <vector>
+#include <queue>
 
 // Winsock Headers
 #include <WinSock2.h>
@@ -38,3 +39,5 @@ enum CustomDefine
 	BUF_SIZE = 8192,
 	RTP_PORT = 55778
 };
+
+#define imgVector vector<vector<vector<int>>>

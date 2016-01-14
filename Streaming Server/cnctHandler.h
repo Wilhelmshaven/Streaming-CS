@@ -1,10 +1,11 @@
-#pragma once在·
+#pragma once
 #include "CommonHeaders.h"
 
 //重叠I/O需要用到的类，临时记录IO数据，这个并没有统一标准
 typedef struct PER_IO_OPERATION_DATA
 {
 	WSAOVERLAPPED overlapped;  // 每一个重叠I/O网络操作都要有一个
+
 	WSABUF databuff;           // 
 	char buffer[BUF_SIZE];     // 对应WSABUF里的缓冲区
 	DWORD bytesRecv;           // 接收到的数据量
@@ -32,7 +33,7 @@ public:
 	static cnctHandler *getInstance();           //返回单例
 
 	//设置服务器参数
-	void srvConfig(string port);
+	int srvConfig(string port);
 
 	//启动服务器（直接进行到监听）
 	int startServer();
@@ -73,7 +74,7 @@ private:
 	static HANDLE completionPort;     //完成端口
 
 	//Function
-	void getSystemInfo();          //获取系统信息（最主要是CPU核数，以便创建Worker线程）
-	void buildThread();            //根据CPU核数建立工作者线程
+	int getSystemInfo();          //获取系统信息（最主要是CPU核数，以便创建Worker线程）
+	int buildThread();            //根据CPU核数建立工作者线程
 	bool isSocketAlive();
 };

@@ -67,14 +67,19 @@
   <ItemGroup>
     <ClCompile Include="cnctHandler.cpp" />
     <ClCompile Include="myServer.cpp" />
+    <ClCompile Include="imageQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cnctHandler.h" />
     <ClInclude Include="CommonHeaders.h" />
     <ClInclude Include="myServer.h" />
+    <ClInclude Include="imageQueue.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="config\srvConfig.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config\static\rtspErrCodeList.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

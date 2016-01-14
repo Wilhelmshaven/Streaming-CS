@@ -1,5 +1,6 @@
 #include "myServer.h"
 #include "cnctHandler.h"
+#include "imageQueue.h"
 
 // 专门输出前置提示信息
 myMessage::myMessage()
@@ -17,7 +18,7 @@ const myMessage myMsg;
 
 
 
-			
+UINT sendImgQueue();                   //发送图像线程？
 
 //================================= MAIN =================================//
 int main(int argc, char *argv[])

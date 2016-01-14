@@ -22,7 +22,7 @@ cnctHandler::cnctHandler()
 }
 cnctHandler::~cnctHandler()
 {
-	//清理工作
+	//退出完成端口
 	for (int i = 0; i < sysInfo.dwNumberOfProcessors * 2; i++)
 	{
 		PostQueuedCompletionStatus(completionPort, 0, 0, NULL);
@@ -44,15 +44,19 @@ cnctHandler* cnctHandler::getInstance()
 }
 
 //设置服务器
-void cnctHandler::srvConfig(string port)
+int cnctHandler::srvConfig(string port)
 {
 	srvPort = port;
+
+	return 0;
 }
 
 //获取系统信息
-void cnctHandler::getSystemInfo()
+int cnctHandler::getSystemInfo()
 {
 	GetSystemInfo(&sysInfo);
+
+	return 0;
 }
 
 //检查客户端是否活动
@@ -68,7 +72,7 @@ bool cnctHandler::isSocketAlive()
 }
 
 //建立工作者线程
-void cnctHandler::buildThread()
+int cnctHandler::buildThread()
 {
 	int cntThread = sysInfo.dwNumberOfProcessors * 2;
 
@@ -79,6 +83,8 @@ void cnctHandler::buildThread()
 		workerThread[i] = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)workerThreadFunc, completionPort, NULL, NULL);
 		CloseHandle(workerThread[i]);
 	}
+
+	return 0;
 }
 
 //启动服务器
@@ -86,7 +92,7 @@ int cnctHandler::startServer()
 {									 
 	listen(srvSocket, SOMAXCONN);        //将SOCKET设置为监听模式
 
-	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)acptThread, NULL, NULL, NULL);
+	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)acptThread, NULL, NULL, NULL);  //创建接收线程
 
 	return 0;
 }
@@ -133,9 +139,7 @@ UINT cnctHandler::workerThreadFunc()
 	SOCKET acptSocket = NULL;
 	PER_IO_OPERATION_DATA *PerIoData = NULL;
 	LPOVERLAPPED lpOverlapped = NULL;
-	char *FileName = new char[MAX_PATH];                       //Windows中最大文件名为260
-	char *buf = new char[BUF_SIZE];
-	BY_HANDLE_FILE_INFORMATION *FileInfo = new BY_HANDLE_FILE_INFORMATION;
+	string buf;
 
 	while (true)
 	{

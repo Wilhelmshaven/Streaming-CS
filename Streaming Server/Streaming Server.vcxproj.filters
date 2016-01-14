@@ -21,6 +21,9 @@
     <ClCompile Include="cnctHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="imageQueue.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myServer.h">
@@ -32,10 +35,18 @@
     <ClInclude Include="cnctHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="imageQueue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="config\srvConfig.xml">
       <Filter>资源文件</Filter>
     </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="config\static\rtspErrCodeList.csv">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>
