@@ -24,6 +24,9 @@
     <ClCompile Include="imageQueue.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="rtspHandler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myServer.h">
@@ -36,6 +39,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="imageQueue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="rtspHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

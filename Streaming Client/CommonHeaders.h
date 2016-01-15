@@ -34,7 +34,7 @@ enum ServerInfoDefine
 
 
 //RTSP·½·¨
-enum rtspMrthod
+enum rtspMethod
 {
 	rtspRsv = 0,
 	OPTIONS = 1,

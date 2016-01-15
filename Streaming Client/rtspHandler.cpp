@@ -1,6 +1,6 @@
 #include "rtspHandler.h"
 
-/*----------------------RTSP连接处理器：RTSP 错误码信息查询---------------------*/
+/*----------------------RTSP连接处理器---------------------*/
 //直接初始化
 rtspHandler *rtspHandler::instance = new rtspHandler();
 
@@ -168,13 +168,15 @@ int rtspHandler::decodeMsg(string msg)
 	buf = "RTSP/";
 	buf += rtspVersion;
 	buf = msg.substr(msg.find(buf) + buf.length() + 1, msg.find('\r') - buf.length());
-	buf = buf.substr(0, buf.find(' '));
-	errCode = atoi(buf.c_str());
+	//buf = buf.substr(0, buf.find(' '));
+	//errCode = atoi(buf.c_str());
+	errCode = stoi(buf, nullptr, 10);
 
 	//提取序列号
 	buf = msg.substr(msg.find("CSeq: "));
 	buf = buf.substr(6, buf.find("\r") - 6);
-	sequence = atoi(buf.c_str());
+	//sequence = atoi(buf.c_str());
+	sequence = stoi(buf, nullptr, 10);
 
 	//提取会话号（如果处理器的会话号为空则写入，否则校验）
 	if (session.empty())
@@ -222,8 +224,8 @@ void rtspErrHandler::buildErrList()
 
 			commaPos = buf.find(',');
 			code = buf.substr(0, commaPos);
-			msg = buf.substr(commaPos + 1, buf.length() - code.length());
-			errCode = atoi(code.c_str());
+			errCode = stoi(code, nullptr, 10);
+			msg = buf.substr(commaPos + 1, buf.length() - code.length());	
 
 			errCodeList.insert(make_pair(errCode, msg));
 		}

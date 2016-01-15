@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include <map>
+#include <random>
 
 // Winsock Headers
 #include <WinSock2.h>
@@ -19,25 +21,31 @@
 
 using namespace std;
 
-//RTSP信令
-enum RTSPmessage
+/*---------------------自定义常量区，少的话这里写，多的话，不如用map，例如rtsp错误信息--------------------*/
+//RTSP方法
+enum rtspMethod
 {
-	OPTION = 1,
+	rtspRsv = 0,
+	OPTIONS = 1,
 	DESCRIBE = 2,
 	SETUP = 3,
 	PLAY = 4,
 	GET_PARAMETER = 5,
 	PAUSE = 6,
-	STOP = 7,
-	TEARDOWN = 8,
-
-	//错误代码
+	TEARDOWN = 7,
+	ANNOUNCE = 8,
+	RECORD = 9,
+	REDIRECT = 10,
+	SET_PARAMETER = 11,
+	rtspMethodArgs = 12,
 };
 
 enum CustomDefine
 {
 	BUF_SIZE = 8192,
-	RTP_PORT = 55778
 };
 
+//defines...
 #define imgVector vector<vector<vector<int>>>
+
+const string rtspErrFile = "config/static/rtspErrCodeList.csv";    //rtsp错误消息

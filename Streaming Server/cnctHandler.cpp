@@ -15,7 +15,7 @@ cnctHandler::cnctHandler()
 	//获取并填写服务器信息：监听任意地址
 	srvAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
 	srvAddr.sin_family = AF_INET;
-	srvAddr.sin_port = htons(atoi(srvPort.c_str()));
+	srvAddr.sin_port = htons(stoi(srvPort, nullptr, 10));
 
 	// 建立流式套接字，由于要使用重叠I/O，这里必须要使用WSASocket来初始化Socket
 	srvSocket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);

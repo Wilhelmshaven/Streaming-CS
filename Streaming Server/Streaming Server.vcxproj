@@ -68,12 +68,14 @@
     <ClCompile Include="cnctHandler.cpp" />
     <ClCompile Include="myServer.cpp" />
     <ClCompile Include="imageQueue.cpp" />
+    <ClCompile Include="rtspHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cnctHandler.h" />
     <ClInclude Include="CommonHeaders.h" />
     <ClInclude Include="myServer.h" />
     <ClInclude Include="imageQueue.h" />
+    <ClInclude Include="rtspHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="config\srvConfig.xml" />

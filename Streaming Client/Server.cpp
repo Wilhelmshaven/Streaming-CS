@@ -166,7 +166,7 @@ int Server::connectServer()
 			//填写结构信息，端口自己写
 			//TMD， sockaddr和sockaddr_in是一回事，只不过前者更通用（直接把几个属性凑成字符串了）
 			sockaddr_in srvAddrTmp = *(sockaddr_in *)res->ai_addr;
-			srvAddrTmp.sin_port = htons(atoi(waitToCnct->getCfgByIndex(port).c_str()));
+			srvAddrTmp.sin_port = htons(stoi(waitToCnct->getCfgByIndex(port), nullptr, 10));
 
 			inet_ntop(srvAddrTmp.sin_family, &srvAddrTmp.sin_addr, (char *)waitToCnct->srvArgs[hostAddr].data(), 17); //回填解析结果
 
