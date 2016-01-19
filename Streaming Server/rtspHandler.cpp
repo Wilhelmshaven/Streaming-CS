@@ -170,6 +170,7 @@ sessionGenerator::sessionGenerator()
 {
 	session.resize(9);
 }
+
 //这里直接使用时间戳来作为会话号
 string sessionGenerator::getSessionID()
 {
@@ -178,6 +179,62 @@ string sessionGenerator::getSessionID()
 	sprintf_s((char *)session.data(), 9, "%X", time);
 
 	return session;
+}
+
+/*----------------------客户端信息维护---------------------*/
+//给一个默认设置
+clientList::clientList()
+{
+	PerClientData defaultData;
+	defaultData.streamingPort = 80;
+	defaultData.srvPort = 8554;
+	defaultData.enableUDP = false;
+
+	unsigned long session = 0x00000000;
+
+	client.insert(make_pair(session, defaultData));
+}
+
+//添加客户端信息
+int clientList::addClient(unsigned long session, PerClientData clientData)
+{
+	if(client.find(session)!=client.end())client.insert(make_pair(session, clientData));
+
+	return 0;
+}
+
+//查询客户端是否存在
+unsigned long clientList::searchClient(unsigned long session)
+{
+	map<unsigned long, PerClientData>::iterator iter;
+	iter = client.find(session);
+
+	if (iter != client.end())
+	{
+		return session;
+	}
+	else return 0;
+}
+
+//获取客户端信息
+PerClientData clientList::getClientInfo(unsigned long session)
+{
+	map<unsigned long, PerClientData>::iterator iter;
+	iter = client.find(session);
+
+	if (iter != client.end())
+	{
+		return iter->second;
+	}
+	else return client.begin()->second;
+}
+
+//删除客户端信息
+int clientList::removeClient(unsigned long session)
+{
+	if (client.find(session) != client.end())client.erase(session);
+
+	return 0;
 }
 
 /*----------------------RTSP连接处理器---------------------*/
@@ -207,7 +264,17 @@ rtspHandler::rtspHandler()
 	availableMethod[TEARDOWN] = true;
 }
 
-//一系列返回相关信息的函数
+//设置服务器属性
+//目前只需要设置端口号
+int rtspHandler::srvConfig(unsigned int srvPort)
+{
+	this->srvPort = srvPort;
+
+	return 0;
+}
+
+//++++++一系列返回相关信息的函数
+//返回实例
 rtspHandler* rtspHandler::getInstance()
 {
 	return instance;
@@ -258,7 +325,7 @@ string rtspHandler::msgCodec(string msg)
 	rtspVersion = tmp.substr(tmp.find(' '));
 	URI = tmp.substr(0, tmp.find(' '));
 
-	//Todo:检查URI是否合法，不合法则返回相应错误信息
+	//Todo:检查URI是否合法，不合法则返回相应错误信息（404,Not Found）
 
 	//3. Get sequence number
 	//直接复制整行就行，并不关心具体是多少，原样转回即可
@@ -278,7 +345,7 @@ string rtspHandler::msgCodec(string msg)
 		}
 	}
 
-	//---------------根据指令做出针对性解析与答复----------------//
+	//---------------5.根据指令做出针对性解析与答复----------------//
 
 	paddingMsg = msg.find(msg.find(seqNum) + seqNum.length());
 	int errCode;   //回令的错误码
@@ -397,26 +464,144 @@ string rtspHandler::msgCodec(string msg)
 	{
 		/*Example Message*/
 		/*
-		C->S: SETUP rtsp ://example.com/foo/bar/baz.rm RTSP/1.0
+		C->S: 
+		SETUP rtsp ://example.com/foo/bar/baz.rm RTSP/1.0
 		CSeq : 302
 		Transport : RTP / AVP; unicast; client_port = 4588 - 4589
 
-		S->C: RTSP / 1.0 200 OK
+		S->C: 
+		RTSP / 1.0 200 OK
 		CSeq : 302
 		Date : 23 Jan 1997 15 : 35 : 06 GMT
 		Session : 47112344
 		Transport : RTP / AVP; unicast;
 		client_port = 4588 - 4589; server_port = 6256 - 6257
 		*/
+		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
+		response = cmdLine + seqNum;
+
+		if (errCode != 200)break;
+
+		//填写日期
+		SYSTEMTIME sysTime;
+		GetSystemTime(&sysTime);
+
+		tmp.resize(BUF_SIZE);
+		sprintf_s((char *)tmp.data(), BUF_SIZE, "Date: %02d %s %s %02d:%02d:%02d GMT\r\n",
+			sysTime.wDay, sysTime.wMonth, sysTime.wYear, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
+		tmp = tmp.substr(0, tmp.rfind('\n'));
+
+		response += tmp;
+
+		//生成会话号Session
+		unsigned long session;
+		tmp = sessGenerator.getSessionID();
+		session = stol(tmp);
+		tmp = "Session: " + tmp + "\r\n";
+		response += tmp;
 
 		//首先解析客户端请求的传送方式和端口号，然后回发会话号
+		string transport = paddingMsg;
+
+		PerClientData clientData;
+
+		tmp = transport.substr(transport.rfind("="), transport.rfind("-"));
+		clientData.streamingPort = stoi(tmp);
+
+		if (transport.find("UDP") != string::npos)clientData.enableUDP = true;
+		else clientData.enableUDP = false;
+
+		transport = transport + "server_port: " + to_string(srvPort) + "-" + to_string(srvPort + 1) + "\r\n";
+		response += transport;
+
+		//以及，加入客户端列表
+		clientManager.addClient(session, clientData);
+		
+		break;
+	}
+	case PLAY:
+	{
+		/*Example Message*/
+		/*
+		C->S: 
+		PLAY rtsp://audio.example.com/meeting.en RTSP/1.0
+		CSeq: 835
+		Session: 12345678
+		Range: clock=19961108T142300Z-19961108T143520Z
+
+		S->C: 
+		RTSP/1.0 200 OK
+		CSeq: 835
+		Date: 23 Jan 1997 15:35:06 GMT
+		*/
+
+		//首先解析Session，判断是否合法，不合法返回相应错误454,Session Not Found
+		tmp = paddingMsg.substr(paddingMsg.find("Session:") + 8);
+		unsigned long session = stol(tmp);
+		session = clientManager.searchClient(session);
+		if (session != 0)
+		{
+			tmp = paddingMsg.substr(paddingMsg.find("Session"));
+			tmp = tmp.substr(0, tmp.find("\n"));
+		}
+		else errCode = 454;
+
+		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
+		response = cmdLine + seqNum;
+
+		if (errCode != 200)break;
+
+		//填写日期
+		SYSTEMTIME sysTime;
+		GetSystemTime(&sysTime);
+
+		tmp.resize(BUF_SIZE);
+		sprintf_s((char *)tmp.data(), BUF_SIZE, "Date: %02d %s %s %02d:%02d:%02d GMT\r\n",
+			sysTime.wDay, sysTime.wMonth, sysTime.wYear, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
+		tmp = tmp.substr(0, tmp.rfind('\n'));
+
+		response += tmp;
+
+		break;
+	}
+	case TEARDOWN:
+	{
+		/*Example Message*/
+		/*
+		C->S: 
+		TEARDOWN rtsp://example.com/fizzle/foo RTSP/1.0
+		CSeq: 892
+		Session: 12345678
+
+		S->C: 
+		RTSP/1.0 200 OK
+		CSeq: 892
+		*/
+
+		//断开连接
+		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
+		response = cmdLine + seqNum;
+
+		if (errCode != 200)break;
+
+		//移除客户端信息
+		unsigned long session;
+		session = stol(paddingMsg.substr(paddingMsg.find("session") + 8));
+		clientManager.removeClient(session);
 
 		break;
 	}
 	default:
+	{
+		//能进到这里说明方法不可用嘛，所以呢……405,Method Not Allowed
+		errCode = 405;
+
+		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
+		response = cmdLine + seqNum;
+
 		break;
+	}
 	}
 
 	return response;
 }
-

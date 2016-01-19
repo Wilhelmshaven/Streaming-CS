@@ -65,7 +65,7 @@ private:
 	//string moreSessionAttr;
 };
 
-//一个随机Session号生成器,气氛上我觉得直接用时间戳就好了……算了一下FFFFFFFF是足够的
+//一个随机Session号生成器,气氛上我觉得直接用时间戳就好了……算了一下0xFFFFFFFF是足够的
 class sessionGenerator
 {
 private:
@@ -77,6 +77,29 @@ public:
 	sessionGenerator();
 
 	string getSessionID();
+};
+
+//为每一个客户端存储对应数据
+typedef struct PerClientData
+{
+	int streamingPort;
+	bool enableUDP;
+	int srvPort;
+};
+
+//客户端列表
+class clientList
+{
+public:
+	int addClient(unsigned long session, PerClientData clientInfo);    //插入客户端
+	unsigned long searchClient(unsigned long session);                 //查询客户端是否存在
+	PerClientData getClientInfo(unsigned long session);                //获得客户端信息
+	int removeClient(unsigned long Session);                           //移除客户端
+	 
+	clientList();
+
+private:
+	map<unsigned long, PerClientData> client;
 };
 
 //RTSP消息的处理
@@ -93,18 +116,25 @@ public:
 	//只管编解码，不负责发送
 	string msgCodec(string msg);     //编解码一体，输入待解码信息，返回编码好的答复
 
+	//设置服务器属性
+	int srvConfig(unsigned int srvPort);
+
 private:
 	static rtspHandler *instance;              //单例
 	rtspHandler();                             //构造函数
 
 	string URI;                                //流媒体地址
 	string rtspVersion;                        //RTSP版本
+	unsigned int srvPort;                      //服务器端口
 
 	rtspErrHandler errHandler;                 //错误信息处理器
 	sdpEncoder sdpHandler;                     //SDP编码器
 
 	vector<string> rtspMethod;                 //服务器rtsp方法
 	vector<bool> availableMethod;              //可用的服务器rtsp方法
+
+	clientList clientManager;                  //一个Session与客户端参数的对应表  
+	sessionGenerator sessGenerator;            //会话号生成器
 
 	//禁止拷贝构造以及赋值
 	rtspHandler(const rtspHandler &);
