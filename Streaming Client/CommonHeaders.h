@@ -59,3 +59,5 @@ enum CustomDefine
 //配置文件
 const string srvSettingFile = "config/ServerInfo.xml";             //服务器信息配置文件
 const string rtspErrFile = "config/static/rtspErrCodeList.csv";    //rtsp错误消息
+
+//全局事件

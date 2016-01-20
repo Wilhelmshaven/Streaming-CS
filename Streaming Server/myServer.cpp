@@ -17,7 +17,6 @@ myMessage::myMessage()
 const myMessage myMsg;
 
 
-
 UINT sendImgQueue();                   //发送图像线程？
 
 //================================= MAIN =================================//
@@ -31,14 +30,13 @@ int main(int argc, char *argv[])
 	//获得单例
 	cnctHandler *mySrv = cnctHandler::getInstance();
 
+	mySrv->startServer();
 
 
 
 
 
-
-
-
+	WaitForSingleObject(hSrvShutdown, INFINITE);
 
 	return 0;
 }

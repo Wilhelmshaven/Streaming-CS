@@ -43,9 +43,15 @@ enum rtspMethod
 enum CustomDefine
 {
 	BUF_SIZE = 8192,
+	//下面是完成端口的操作模式标记
+	compRecv = 0,
+	compSend = 1,
 };
 
 //defines...
 #define imgVector vector<vector<vector<int>>>
 
 const string rtspErrFile = "config/static/rtspErrCodeList.csv";    //rtsp错误消息
+
+//全局事件
+HANDLE hSrvShutdown = CreateEvent(NULL, TRUE, FALSE, NULL);    //结束服务器的事件
