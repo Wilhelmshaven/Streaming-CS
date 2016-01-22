@@ -18,7 +18,9 @@ cnctHandler::cnctHandler()
 	srvAddr.sin_port = htons(stoi(srvPort, nullptr, 10));
 
 	// 建立流式套接字，由于要使用重叠I/O，这里必须要使用WSASocket来初始化Socket
-	srvSocket = WSASocket(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	srvSocket = WSASocketW(AF_INET, SOCK_STREAM, 0, NULL, 0, WSA_FLAG_OVERLAPPED);
+	
+	bind(srvSocket, (SOCKADDR *)&srvAddr, sizeof(srvAddr));
 }
 cnctHandler::~cnctHandler()
 {
@@ -29,7 +31,6 @@ cnctHandler::~cnctHandler()
 	}
 
 	CloseHandle(completionPort);
-	CloseHandle(acptThread);
 
 	shutdown(srvSocket, SD_BOTH);
 	closesocket(srvSocket);
@@ -80,9 +81,9 @@ int cnctHandler::buildThread()
 
 	for (int i = 0; i < (cntThread); i++) {
 		// 创建服务器工作器线程，并将完成端口传递到该线程
-		workerThread[i] = CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)workerThreadFunc, completionPort, NULL, NULL);
+		workerThread[i] = CreateThread(NULL, NULL, workerThreadFunc, completionPort, NULL, NULL);
 
-		CloseHandle(workerThread[i]);
+		//CloseHandle(workerThread[i]);
 	}
 
 	return 0;
@@ -90,17 +91,32 @@ int cnctHandler::buildThread()
 
 //启动服务器
 int cnctHandler::startServer()
-{									 
-	listen(srvSocket, SOMAXCONN);        //将SOCKET设置为监听模式
+{						
+	//真是傻逼了，前面那么多函数设计了都没调用……
+	//真应该搞个防呆设计
+	getSystemInfo();
+	buildThread();
 
-	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)acptThread, NULL, NULL, NULL);  //创建接收线程
+	listen(srvSocket, SOMAXCONN);                //将SOCKET设置为监听模式
+
+	acptThreadParam *param = new acptThreadParam;//徐行：这里必须NEW，否则创建线程后结构体被删除，就无法传入。线程中再删除
+	param->comp = completionPort;
+	param->sock = srvSocket;
+
+	CreateThread(NULL, NULL, acptThread, param, NULL, NULL);  //创建接收线程
 
 	return 0;
 }
 
 //============监听线程，专门用于接收传入连接=============//
-UINT cnctHandler::acptThread()
+DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 {
+	//处理传入参数
+	acptThreadParam *param = (acptThreadParam *)lparam;
+	HANDLE completionPort = param->comp;
+	SOCKET srvSocket = param->sock;
+	delete lparam;
+
 	LPPER_IO_DATA PerIoData;             //单IO数据
 	PER_HANDLE_DATA PerHandleData;       //单句柄数据
 
@@ -111,7 +127,7 @@ UINT cnctHandler::acptThread()
 
 	while (true)
 	{
-		if (WaitForSingleObject(hSrvShutdown, 0))break;  //这个到底有没有用是个问题
+		//if (WaitForSingleObject(hSrvShutdown, 0))break;  //这个到底有没有用是个问题
 
 		//接收连接
 		//TODO：考虑更换成AcceptEx()：accept、WSAAccept是同步操作，AcceptEx是异步操作
@@ -141,8 +157,12 @@ UINT cnctHandler::acptThread()
 }
 
 //==========工作者线程===========//
-UINT cnctHandler::workerThreadFunc()
+DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 {	
+	//处理传入参数
+	HANDLE completionPort = (HANDLE)lparam;
+	delete lparam;
+
 	SOCKET clientSocket;
 
 	DWORD bytesTransferred;

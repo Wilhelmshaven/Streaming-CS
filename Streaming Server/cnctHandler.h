@@ -39,9 +39,9 @@ public:
 	int startServer();
 
 	//线程相关
-	vector<HANDLE> workerThread;               //工作者线程，数量为CPU核数*2
-	static UINT workerThreadFunc();            //线程处理函数
-	static UINT acptThread();                  //用于专门负责处理传入请求的线程
+	vector<HANDLE> workerThread;                                    //工作者线程句柄，数量为CPU核数
+	static DWORD WINAPI workerThreadFunc(LPVOID lparam);            //线程处理函数
+	static DWORD WINAPI acptThread(LPVOID lparam);                  //用于专门负责处理传入请求的线程
 
 	~cnctHandler();                            //必要的清理工作还是要写出来的
 
@@ -49,7 +49,7 @@ private:
 	static cnctHandler *instance;              //单例
 	cnctHandler();                             //构造函数
 
-	static SOCKET srvSocket;                   //唯一的SOCKET，避免乱改
+	SOCKET srvSocket;                          //唯一的SOCKET，避免乱改
 
 	//禁止拷贝构造以及赋值
 	cnctHandler(const cnctHandler &);
@@ -71,12 +71,17 @@ private:
 	SYSTEM_INFO sysInfo;       //存储系统信息的结构	
 	SOCKADDR_IN srvAddr;       //服务器地址结构
 
-	static HANDLE completionPort;     //完成端口
+	HANDLE completionPort;     //完成端口
 
 	//Function
 	int getSystemInfo();                          //获取系统信息（最主要是CPU核数，以便创建Worker线程）
 	int buildThread();                            //根据CPU核数建立工作者线程
 	bool isSocketAlive(SOCKET clientSocket);      //检查某个套接字是否还活动
+};
 
-	
+//监听线程的参数结构体
+typedef struct acptThreadParam
+{
+	HANDLE comp;
+	SOCKET sock;
 };

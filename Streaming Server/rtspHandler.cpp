@@ -30,9 +30,11 @@ void rtspErrHandler::buildErrList()
 		{
 			getline(fileStream, buf);
 
+			//Bug fix：如果表尾有空行，后面会报错
+			if (buf.empty())break;
+
 			commaPos = buf.find(',');
-			code = buf.substr(0, commaPos);
-			errCode = stoi(code, nullptr, 10);
+			errCode = stoi(buf, nullptr, 10);
 
 			msg = buf.substr(commaPos + 1, buf.length() - code.length());
 
