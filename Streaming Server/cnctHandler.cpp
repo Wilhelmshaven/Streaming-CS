@@ -79,9 +79,9 @@ int cnctHandler::buildThread()
 
 	workerThread.resize(cntThread);
 
-	for (int i = 0; i < (cntThread); i++) {
+	for (int i = 0; i < cntThread; i++) {
 		// 创建服务器工作器线程，并将完成端口传递到该线程
-		workerThread[i] = CreateThread(NULL, NULL, workerThreadFunc, completionPort, NULL, NULL);
+		workerThread[i] = CreateThread(NULL, NULL, workerThreadFunc, (LPVOID)completionPort, NULL, NULL);
 
 		//CloseHandle(workerThread[i]);
 	}
@@ -99,7 +99,8 @@ int cnctHandler::startServer()
 
 	listen(srvSocket, SOMAXCONN);                //将SOCKET设置为监听模式
 
-	acptThreadParam *param = new acptThreadParam;//徐行：这里必须NEW，否则创建线程后结构体被删除，就无法传入。线程中再删除
+	//徐行：这里必须NEW，否则创建线程后结构体被删除，就无法传入。线程中再删除
+	acptThreadParam *param = new acptThreadParam;
 	param->comp = completionPort;
 	param->sock = srvSocket;
 
@@ -113,12 +114,12 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 {
 	//处理传入参数
 	acptThreadParam *param = (acptThreadParam *)lparam;
-	HANDLE completionPort = param->comp;
+	HANDLE hCompletionPort = param->comp;
 	SOCKET srvSocket = param->sock;
 	delete lparam;
 
 	LPPER_IO_DATA PerIoData;             //单IO数据
-	PER_HANDLE_DATA PerHandleData;       //单句柄数据
+	LPPER_HANDLE_DATA PerHandleData;       //单句柄数据
 
 	SOCKET acptSocket;                   //临时SOCKET
 
@@ -134,22 +135,23 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		acptSocket = accept(srvSocket, (SOCKADDR*)&clientAddr, &addrSize);
 
 		//保存客户端信息
-		PerHandleData.clientAddr = clientAddr;
-		PerHandleData.clientSocket = acptSocket;
+		PerHandleData = (LPPER_HANDLE_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(LPPER_HANDLE_DATA));
+		PerHandleData->clientAddr = clientAddr;
+		PerHandleData->clientSocket = acptSocket;
 
 		//将接受套接字和完成端口关联
-		CreateIoCompletionPort((HANDLE)acptSocket, completionPort, (DWORD)acptSocket, 0);
+		CreateIoCompletionPort((HANDLE)acptSocket, hCompletionPort, (DWORD)PerHandleData, 0);
 
 		//准备一个重叠I/O
 		PerIoData = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(LPPER_IO_DATA));	
-		ZeroMemory(PerIoData, sizeof(PerIoData));
+		ZeroMemory(&(PerIoData->overlapped), sizeof(OVERLAPPED));   //这个清零很重要！！否则会导致GetQueuedCompletionStatus不返回
 
 		PerIoData->wsaBuf.len = BUF_SIZE;              //缓存为最大
 		PerIoData->wsaBuf.buf = PerIoData->buffer;     //缓存
 		PerIoData->operationType = compRecv;	       //设置模式为接收
 			
 		//在新建的套接字上投递一个或多个异步WSARecv或WSASend请求，并立即返回
-		WSARecv(PerHandleData.clientSocket, &PerIoData->wsaBuf, 1, &PerIoData->bytesRecv, &PerIoData->flags,
+		WSARecv(PerHandleData->clientSocket, &PerIoData->wsaBuf, 1, &PerIoData->bytesRecv, &PerIoData->flags,
 			&(PerIoData->overlapped), NULL);
 	}
 
@@ -160,8 +162,7 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 {	
 	//处理传入参数
-	HANDLE completionPort = (HANDLE)lparam;
-	delete lparam;
+	HANDLE hCompletionPort = (HANDLE)lparam;
 
 	SOCKET clientSocket;
 
@@ -176,8 +177,8 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 	while (true)
 	{
 		//得到完成端口的状态
-		//相关数据已经在2-4的参数里面了
-		GetQueuedCompletionStatus(completionPort, &bytesTransferred, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
+		//相关数据已经在2-4的参数里面了：第二个指示收到的字节数，第三个是客户端信息，第四个是相关接收数据
+		GetQueuedCompletionStatus(hCompletionPort, &bytesTransferred, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
 
 		//结束服务器？
 		if (WaitForSingleObject(hSrvShutdown, 0))break;  //这个到底有没有用是个问题
