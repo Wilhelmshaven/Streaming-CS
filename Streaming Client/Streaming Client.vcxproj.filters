@@ -24,6 +24,9 @@
     <ClCompile Include="rtspHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="msgHandler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonHeaders.h">
@@ -38,8 +41,15 @@
     <ClInclude Include="rtspHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="msgHandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
+    <None Include="config\static\rtspErrCodeList.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="config\ServerInfo.xml" />
   </ItemGroup>
 </Project>
