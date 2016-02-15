@@ -1,32 +1,40 @@
 #pragma once
 #include "CommonHeaders.h"
 
-//图像结构
-//确定标准：三维数组，宽*长*通道数
-//imgVector: vector<vector<vector<int>>>
 typedef struct rayImage
 {
-	imgVector img;
-	string index;              //会话ID（Session）
+	string index;
+	vector<int> image;
 };
 
-//图像缓存（类）
+//图像缓存类
+//仿照OpenCV的MAT类重新设计，一个头部部分，一个数据部分，直接存储成一行就可以了
+//差异图可以作为稀疏矩阵传输
 class imgBuffer
 {
 public:
-	//初始化缓存大小
-	imgBuffer(int width, int height, int channel);   
+	imgBuffer();
 
-	void writeImage(rayImage img);     //写入图像
-	rayImage readImage();              //读取图像
+	//初始化缓存大小：宽，高，通道数
+	imgBuffer(int width, int height, int channel, string format); 
+
+	imgBuffer(const imgBuffer &C);
+
+	void writeImage(rayImage img);
+
+	int getWidth();
+	int getHeight();
+	int getChannel();
+	string getFormat();
+
+	rayImage getImage();
 
 private:
 	int width;
 	int height;
 	int channel;
 
-	//string format;           //图片格式（选填)
-	//string codec;            //编码器名称（选填）
+	string format;           //图片格式
 
 	rayImage image;
 };
@@ -38,8 +46,8 @@ class imageQueue
 public:
 	imageQueue(int maxQueue);
 
-	int pushQueue(rayImage img);    //图像入队
-	rayImage popQueue();            //图像出队
+	int pushQueue(imgBuffer img);    //图像入队
+	imgBuffer popQueue();            //图像出队
 
 	~imageQueue();
 
@@ -48,5 +56,5 @@ private:
 
 	HANDLE semaPhore;               //信号量
 
-	queue<rayImage> imgQueue;       //图像队列
+	queue<imgBuffer> imgQueue;       //图像队列
 };

@@ -1,6 +1,15 @@
 #include "myServer.h"
-#include "cnctHandler.h"
+
+/////加载各个模块/////
+
+//1.摄像头采集模块：采集图像
+#include "camCap.h"
+
+//2.图像队列模块（包括图片缓存）：把图像装入图像队列
 #include "imageQueue.h"
+
+//3.连接处理模块（Winsock）：发出图像，收发信令
+#include "cnctHandler.h"
 
 // 专门输出前置提示信息
 myMessage::myMessage()
@@ -24,15 +33,17 @@ int main(int argc, char *argv[])
 {	
 	/*------------------------------建立连接--------------------------*/
 	//初始化Winsock，版本2.2
-	WSADATA wsaData;
-	WSAStartup(MAKEWORD(2, 2), &wsaData);
+	//WSADATA wsaData;
+	//WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-	//获得单例
-	cnctHandler *mySrv = cnctHandler::getInstance();
+	////获得单例
+	//cnctHandler *mySrv = cnctHandler::getInstance();
 
-	mySrv->startServer();
+	//mySrv->startServer();
 
+	camCap test;
 
+	test.startCapture(20);
 
 
 

@@ -4,37 +4,43 @@
 imgBuffer：自定义图像缓存结构
 ****/
 
+imgBuffer::imgBuffer()
+{
+	width = 0;
+	height = 0;
+	channel = 0;
+};
+
 //初始化图像缓存大小
-imgBuffer::imgBuffer(int width, int height, int channel)
+imgBuffer::imgBuffer(int width, int height, int channel, string format)
 {
 	this->width = width;
 	this->height = height;
 	this->channel = channel;
+	this->format = format;
 
 	//校验数据合理性
-	if (this->width < 1)this->width = 1;
-	if (this->height < 1)this->height = 1;
-	if (this->channel < 1)this->channel = 1;
-	if (this->channel > 4)this->channel = 4;
+	//if (this->width < 1)this->width = 1;
+	//if (this->height < 1)this->height = 1;
+	//if (this->channel < 1)this->channel = 1;
+	//if (this->channel > 4)this->channel = 4;
+}
 
-	//初始化缓存大小
-	image.img.resize(width);
-	for (int i = 0; i < width; ++i)
-	{
-		image.img[i].resize(height);
-		for (int j = 0; j < height; ++j)
-		{
-			image.img[i][j].resize(channel);
-		}
-	}
+//拷贝构造函数
+imgBuffer::imgBuffer(const imgBuffer &C)
+{
+	width = C.width;
+	height = C.height;
+	channel = C.channel;
+	format = C.format;
+
+	image = C.image;
 }
 
 //写入图像数据到缓存
 void imgBuffer::writeImage(rayImage image)
 {
-	int width = image.img.size();
-	int height = image.img[0].size();
-	int channel = image.img[0][0].size();
+	this->image = image;
 
 	/**
 	***校验数据合理性：若图像比缓存大，那么只保存局部
@@ -42,27 +48,31 @@ void imgBuffer::writeImage(rayImage image)
 	***应该由使用者来保证，你需要多大的图像就创建多大的缓存
 	***如果需要多分辨率，那么你就应该创建多个不同大小的缓存
 	**/
-	if (width > this->width)width = this->width;
-	if (height > this->height)height = this->height;
-	if (channel > this->channel)channel = this->channel;
-
-	//拷贝数据
-	for (int i = 0; i < width; ++i)
-	{
-		for (int j = 0; j < height; ++j)
-		{
-			for (int k = 0; k < channel; ++k)
-			{
-				this->image.img[i][j][k] = image.img[i][j][k];
-			}
-		}
-	}
 }
 
-//读取缓存
-rayImage imgBuffer::readImage()
+int imgBuffer::getWidth()
 {
-	return this->image;
+	return width;
+}
+
+int imgBuffer::getHeight()
+{
+	return height;
+}
+
+int imgBuffer::getChannel()
+{
+	return channel;
+}
+
+string imgBuffer::getFormat()
+{
+	return format;
+}
+
+rayImage imgBuffer::getImage()
+{
+	return image;
 }
 
 /****
@@ -79,7 +89,7 @@ imageQueue::imageQueue(int maxQueue)
 }
 
 //向队列中推入图像
-int imageQueue::pushQueue(rayImage img)
+int imageQueue::pushQueue(imgBuffer img)
 {
 	imgQueue.push(img);
 
@@ -89,11 +99,11 @@ int imageQueue::pushQueue(rayImage img)
 }
 
 //返回队尾的图像
-rayImage imageQueue::popQueue()
+imgBuffer imageQueue::popQueue()
 {
 	WaitForSingleObject(semaPhore, INFINITE);   //如果wait到了，就会给信号量减一（待验证）
 
-	rayImage img;
+	imgBuffer img;
 
 	if (imgQueue.empty())
 	{

@@ -119,7 +119,7 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 	delete lparam;
 
 	LPPER_IO_DATA PerIoData;             //单IO数据
-	LPPER_HANDLE_DATA PerHandleData;       //单句柄数据
+	LPPER_HANDLE_DATA PerHandleData;     //单句柄数据
 
 	SOCKET acptSocket;                   //临时SOCKET
 

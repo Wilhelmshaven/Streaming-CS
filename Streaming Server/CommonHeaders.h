@@ -48,9 +48,6 @@ enum CustomDefine
 	compSend = 5,
 };
 
-//defines...
-#define imgVector vector<vector<vector<int>>>
-
 const string rtspErrFile = "config/static/rtspErrCodeList.csv";       //rtsp错误消息
 
 //全局事件

@@ -27,6 +27,9 @@
     <ClCompile Include="rtspHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="camCap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myServer.h">
@@ -42,6 +45,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="rtspHandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="camCap.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
