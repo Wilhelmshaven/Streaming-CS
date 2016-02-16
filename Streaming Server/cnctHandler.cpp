@@ -99,7 +99,7 @@ int cnctHandler::startServer()
 
 	listen(srvSocket, SOMAXCONN);                //将SOCKET设置为监听模式
 
-	//徐行：这里必须NEW，否则创建线程后结构体被删除，就无法传入。线程中再删除
+	//徐行：这里必须NEW，否则创建线程后结构体被删除，就无法传入。线程中再删除（如果不再使用）
 	acptThreadParam *param = new acptThreadParam;
 	param->comp = completionPort;
 	param->sock = srvSocket;

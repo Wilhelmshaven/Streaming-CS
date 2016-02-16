@@ -41,10 +41,21 @@ int main(int argc, char *argv[])
 
 	//mySrv->startServer();
 
-	camCap test;
+	camCap *test = camCap::getInstance();
 
-	test.startCapture(20);
+	test->startCapture();
 
+	while (1)
+	{
+		Sleep(5000);
+		test->showImg();
+	}
+
+	test->stopCapture();
+
+	//vector<int> img;
+
+	//test->writeBuf(&img);
 
 
 	WaitForSingleObject(hSrvShutdown, INFINITE);
