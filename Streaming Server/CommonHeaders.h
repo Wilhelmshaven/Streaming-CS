@@ -48,7 +48,5 @@ enum CustomDefine
 	compSend = 5,
 };
 
-const string rtspErrFile = "config/static/rtspErrCodeList.csv";       //rtsp错误消息
-
 //全局事件
 static HANDLE hSrvShutdown = CreateEvent(NULL, TRUE, FALSE, NULL);    //结束服务器的事件

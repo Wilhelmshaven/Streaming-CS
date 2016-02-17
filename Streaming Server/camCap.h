@@ -32,23 +32,23 @@ static HANDLE hEventShutDown;    //结束线程事件
 static HANDLE hEventShowImg;     //展示帧事件
 
 //基础矩阵结构（帧）
-static Mat frame;
+static Mat cvFrame;
 
 /*
 	摄像头处理类
 
 	使用方法：
-		void camCap::startCapture()：开启摄像头；
-		void camCap::stopCapture()：关闭摄像头；
+	void camCap::startCapture()：开启摄像头；
+	void camCap::stopCapture()：关闭摄像头；
 
-		void camCap::changeFrameRate(double frameRate)：改变帧率，单位为每秒帧数
+	void camCap::changeFrameRate(double frameRate)：改变帧率，单位为每秒帧数
 
-		int camCap::getHeight()：得到当前帧的高度
-		int camCap::getWidth()：得到当前帧的宽度
+	int camCap::getHeight()：得到当前帧的高度
+	int camCap::getWidth()：得到当前帧的宽度
 
-		void camCap::writeBuf(vector<int> *vec)：写缓存，传入vector<int>类型的缓存以供写入
+	void camCap::writeBuf(vector<int> *vec)：写缓存，传入vector<int>类型的缓存以供写入
 
-		void camCap::showImg()：开启/关闭视频窗口，若开则关，若关则开
+	void camCap::showImg()：开启/关闭视频窗口，若开则关，若关则开。初始状态为开启。
 */
 class camCap
 {
@@ -56,15 +56,10 @@ public:
 	//摄像头处理类单例
 	static camCap *getInstance();
 
-	/*
-		抓取摄像头的处理线程
-		参数：通过captureThreadParam结构体传入
-	*/
-	static DWORD WINAPI captureThread(LPVOID lparam);
-	captureThreadParam *capParam;
-
-	//开启和关闭摄像头
+	//开启摄像头
 	void startCapture();
+
+	//关闭摄像头
 	void stopCapture();
 
 	//改变帧率
@@ -83,6 +78,13 @@ public:
 	~camCap();
 
 private:
+	/*
+		抓取摄像头的处理线程
+		参数：通过captureThreadParam结构体传入
+	*/
+	static DWORD WINAPI captureThread(LPVOID lparam);
+	captureThreadParam *capParam;
+
 	/*
 		单例模式相关
 	*/

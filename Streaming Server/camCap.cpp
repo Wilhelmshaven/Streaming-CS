@@ -1,3 +1,5 @@
+/*--Author：李宏杰--*/
+
 #include "camCap.h"
 
 /*
@@ -14,10 +16,10 @@ camCap::camCap()
 	capParam->capRate = 50;
 
 	/*
-		初始化事件：手工重置，初值为FALSE
+		初始化事件：手工重置模式
 	*/
 	hEventStartCap = CreateEvent(NULL, TRUE, FALSE, NULL);
-	hEventShowImg = CreateEvent(NULL, TRUE, TRUE, NULL);
+	hEventShowImg = CreateEvent(NULL, TRUE, FALSE, NULL);
 	hEventShutDown = CreateEvent(NULL, TRUE, FALSE, NULL);
 
 	/*
@@ -27,17 +29,27 @@ camCap::camCap()
 }
 
 /*
-	函数：启动/关闭摄像头
+	函数：启动摄像头
 */
 void camCap::startCapture()
 {
 	//使用开始事件控制线程的进行
 	SetEvent(hEventStartCap);
+
+	//显示图像
+	SetEvent(hEventShowImg);
 }
+
+/*
+	函数：关闭摄像头
+*/
 void camCap::stopCapture()
 {
 	//使用开始事件控制线程的进行
 	ResetEvent(hEventStartCap);
+
+	//复位显示图像事件
+	ResetEvent(hEventShowImg);
 }
 
 /*
@@ -54,7 +66,7 @@ void camCap::changeFrameRate(double frameRate)
 */
 int camCap::getHeight()
 {
-	return frame.rows;
+	return cvFrame.rows;
 }
 
 /*
@@ -62,7 +74,7 @@ int camCap::getHeight()
 */
 int camCap::getWidth()
 {
-	return frame.cols;
+	return cvFrame.cols;
 }
 
 /*
@@ -79,7 +91,7 @@ void camCap::writeBuf(vector<int> *vec)
 		矩阵迭代器，直接指定是3通道模式了
 		这里的迭代器的使用方法和Mat的操作方法需要参考OpenCV
 	*/
-	Mat thisFrame = frame;
+	Mat thisFrame = cvFrame;
 
 	MatIterator_<Vec3b> iter, end;
 	end = thisFrame.end<Vec3b>();
@@ -158,12 +170,12 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 			if (WaitForSingleObject(hEventStartCap, 0) != WAIT_OBJECT_0)break;
 
 			//从设备中取出当前帧
-			capture >> frame;
+			capture >> cvFrame;
 
 			//若显示图像事件被设置，则显示图像
 			if (WaitForSingleObject(hEventShowImg, 0) == WAIT_OBJECT_0)
 			{
-				imshow("Camera Live!", frame);
+				imshow("Camera Live!", cvFrame);
 			}
 			else
 			{

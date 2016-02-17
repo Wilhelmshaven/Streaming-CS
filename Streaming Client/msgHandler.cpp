@@ -1,3 +1,5 @@
+/*--Author£∫¿Ó∫ÍΩ‹--*/
+
 #include "msgHandler.h"
 
 int sdlCrtlMsgHandler::fillHead(int ctrlMsgType)

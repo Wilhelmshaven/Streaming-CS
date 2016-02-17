@@ -1,17 +1,20 @@
+/*--Author：李宏杰--*/
+
 #include "myServer.h"
 
-/////加载各个模块/////
-
+/*
+	加载各个模块
+*/
 //1.摄像头采集模块：采集图像
 #include "camCap.h"
-
 //2.图像队列模块（包括图片缓存）：把图像装入图像队列
 #include "imageQueue.h"
-
 //3.连接处理模块（Winsock）：发出图像，收发信令
 #include "cnctHandler.h"
 
-// 专门输出前置提示信息
+/*
+	专门输出前置提示信息
+*/
 myMessage::myMessage()
 {
 	cout << "================================================" << endl;
@@ -44,15 +47,17 @@ int main(int argc, char *argv[])
 	camCap *test = camCap::getInstance();
 
 	test->startCapture();
-
-	while (1)
-	{
-		Sleep(5000);
-		test->showImg();
-	}
-
+	//Sleep(5000);
+	//test->showImg();
+	Sleep(5000);
+	cout << test->getHeight();
 	test->stopCapture();
-
+	Sleep(5000);
+	test->startCapture();
+	Sleep(5000);
+	test->showImg();
+	Sleep(5000);
+	test->stopCapture();
 	//vector<int> img;
 
 	//test->writeBuf(&img);

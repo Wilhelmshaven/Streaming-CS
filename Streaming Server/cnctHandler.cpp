@@ -1,16 +1,30 @@
+/*--Author：李宏杰--*/
+
 #include "cnctHandler.h"
 
 //直接初始化
 cnctHandler *cnctHandler::instance = new cnctHandler;
 
-//构造和析构
+/*
+	构造函数
+
+	值：
+	开启Winsock
+	服务器默认端口为8554
+	建立完成端口
+	初始化服务器监听地址为任意地址
+	初始化Socket
+	绑定
+*/
 cnctHandler::cnctHandler()
 {
-	//VAR init
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
-	srvPort = "8554";         //默认端口
 
-	completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);   //建立完成端口
+	//默认端口
+	srvPort = "8554";        
+
+	//建立完成端口
+	completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);   
 
 	//获取并填写服务器信息：监听任意地址
 	srvAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
@@ -22,8 +36,14 @@ cnctHandler::cnctHandler()
 	
 	bind(srvSocket, (SOCKADDR *)&srvAddr, sizeof(srvAddr));
 }
+
+/*
+	析构函数
+*/
 cnctHandler::~cnctHandler()
 {
+	delete param;
+
 	//退出完成端口
 	for (int i = 0; i < sysInfo.dwNumberOfProcessors; i++)
 	{
@@ -38,13 +58,16 @@ cnctHandler::~cnctHandler()
 	WSACleanup();
 }
 
-//一系列返回信息的函数
 cnctHandler* cnctHandler::getInstance()
 {
 	return instance;
 }
 
-//设置服务器
+/*
+	设置服务器：输入端口号，返回值为0
+
+	TODO：返回值为错误码
+*/
 int cnctHandler::srvConfig(string port)
 {
 	srvPort = port;
@@ -52,15 +75,9 @@ int cnctHandler::srvConfig(string port)
 	return 0;
 }
 
-//获取系统信息
-int cnctHandler::getSystemInfo()
-{
-	GetSystemInfo(&sysInfo);
-
-	return 0;
-}
-
-//检查客户端是否活动
+/*
+	检查客户端是否活动，输入Socket，返回布尔值
+*/
 bool cnctHandler::isSocketAlive(SOCKET clientSocket)
 {
 	string msg = "isAlive?";
@@ -68,18 +85,30 @@ bool cnctHandler::isSocketAlive(SOCKET clientSocket)
 
 	byteSent = send(clientSocket, msg.c_str(), msg.size(), NULL);
 
-	if (byteSent == -1)return false;
-	else return true;
+	if (byteSent == -1)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }
 
-//建立工作者线程
+/*
+	函数：建立工作者线程，返回0
+*/
 int cnctHandler::buildThread()
 {
+	//获取系统信息（最主要是CPU核数，以便创建Worker线程）
+	GetSystemInfo(&sysInfo);
+
 	int cntThread = sysInfo.dwNumberOfProcessors;
 
 	workerThread.resize(cntThread);
 
 	for (int i = 0; i < cntThread; i++) {
+
 		// 创建服务器工作器线程，并将完成端口传递到该线程
 		workerThread[i] = CreateThread(NULL, NULL, workerThreadFunc, (LPVOID)completionPort, NULL, NULL);
 
@@ -89,39 +118,49 @@ int cnctHandler::buildThread()
 	return 0;
 }
 
-//启动服务器
+/*
+	函数：启动服务器
+*/
 int cnctHandler::startServer()
 {						
 	//真是傻逼了，前面那么多函数设计了都没调用……
 	//真应该搞个防呆设计
-	getSystemInfo();
+	//以及，封装过度也不是什么好事情
+
 	buildThread();
 
-	listen(srvSocket, SOMAXCONN);                //将SOCKET设置为监听模式
+	//将SOCKET设置为监听模式
+	listen(srvSocket, SOMAXCONN);                
 
-	//徐行：这里必须NEW，否则创建线程后结构体被删除，就无法传入。线程中再删除（如果不再使用）
-	acptThreadParam *param = new acptThreadParam;
+	//徐行指导说：这里必须NEW，否则创建线程后结构体被删除，就无法传入。线程中再删除（如果不再使用）
+	param = new acptThreadParam;
 	param->comp = completionPort;
 	param->sock = srvSocket;
 
-	CreateThread(NULL, NULL, acptThread, param, NULL, NULL);  //创建接收线程
+	//创建接收线程
+	CreateThread(NULL, NULL, acptThread, param, NULL, NULL);  
 
 	return 0;
 }
 
-//============监听线程，专门用于接收传入连接=============//
+/*
+	监听线程，专门用于接收传入连接
+*/
 DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 {
 	//处理传入参数
 	acptThreadParam *param = (acptThreadParam *)lparam;
 	HANDLE hCompletionPort = param->comp;
 	SOCKET srvSocket = param->sock;
-	delete lparam;
 
-	LPPER_IO_DATA PerIoData;             //单IO数据
-	LPPER_HANDLE_DATA PerHandleData;     //单句柄数据
+	//单IO数据
+	LPPER_IO_DATA PerIoData;         
 
-	SOCKET acptSocket;                   //临时SOCKET
+	//单句柄数据
+	LPPER_HANDLE_DATA PerHandleData;     
+
+	//临时SOCKET
+	SOCKET acptSocket;    
 
 	SOCKADDR_IN clientAddr;
 	int addrSize = sizeof(clientAddr);
@@ -130,8 +169,10 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 	{
 		//if (WaitForSingleObject(hSrvShutdown, 0))break;  //这个到底有没有用是个问题
 
-		//接收连接
-		//TODO：考虑更换成AcceptEx()：accept、WSAAccept是同步操作，AcceptEx是异步操作
+		/*
+			接收连接
+			TODO：考虑更换成AcceptEx()：accept、WSAAccept是同步操作，AcceptEx是异步操作
+		*/
 		acptSocket = accept(srvSocket, (SOCKADDR*)&clientAddr, &addrSize);
 
 		//保存客户端信息
@@ -142,23 +183,35 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		//将接受套接字和完成端口关联
 		CreateIoCompletionPort((HANDLE)acptSocket, hCompletionPort, (DWORD)PerHandleData, 0);
 
-		//准备一个重叠I/O
+		/*
+			准备一个重叠I/O
+		*/
 		PerIoData = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(LPPER_IO_DATA));	
-		ZeroMemory(&(PerIoData->overlapped), sizeof(OVERLAPPED));   //这个清零很重要！！否则会导致GetQueuedCompletionStatus不返回
 
-		PerIoData->wsaBuf.len = BUF_SIZE;              //缓存为最大
-		PerIoData->wsaBuf.buf = PerIoData->buffer;     //缓存
-		PerIoData->operationType = compRecv;	       //设置模式为接收
+		//这个清零很重要！！否则会导致GetQueuedCompletionStatus不返回
+		ZeroMemory(&(PerIoData->overlapped), sizeof(OVERLAPPED));   
+
+		//缓存为最大
+		PerIoData->wsaBuf.len = BUF_SIZE;         
+
+		PerIoData->wsaBuf.buf = PerIoData->buffer; 
+
+		//设置模式为接收
+		PerIoData->operationType = compRecv;	       
 			
 		//在新建的套接字上投递一个或多个异步WSARecv或WSASend请求，并立即返回
 		WSARecv(PerHandleData->clientSocket, &PerIoData->wsaBuf, 1, &PerIoData->bytesRecv, &PerIoData->flags,
 			&(PerIoData->overlapped), NULL);
 	}
 
+	delete param;
+
 	return 0;
 }
 
-//==========工作者线程===========//
+/*
+	工作者线程
+*/
 DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 {	
 	//处理传入参数
@@ -199,9 +252,13 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		ioInfo = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(LPPER_IO_DATA));
 		ZeroMemory(ioInfo, sizeof(ioInfo));
 
-		ioInfo->wsaBuf.len = BUF_SIZE;             //缓存为最大
-		ioInfo->wsaBuf.buf = ioInfo->buffer;       //缓存
-		ioInfo->operationType = compRecv;	       //设置模式为接收
+		//缓存为最大
+		ioInfo->wsaBuf.len = BUF_SIZE;    
+
+		ioInfo->wsaBuf.buf = ioInfo->buffer; 
+
+		//设置模式为接收
+		ioInfo->operationType = compRecv;	       
 
 		WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
 	}

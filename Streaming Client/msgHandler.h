@@ -1,6 +1,8 @@
+/*--Author：李宏杰--*/
+
 /*
-信令处理器
-信令的结构固定，编解码等
+	信令处理器
+	信令的结构固定，编解码等
 */
 #pragma once
 #include "CommonHeaders.h"

@@ -1,19 +1,29 @@
+/*--Author：李宏杰--*/
+
 #include "rtspHandler.h"
 
 /*----------------------RTSP错误信息处理器：RTSP 错误码信息查询---------------------*/
-//构造函数：写入文件名，建立错误列表
+/*
+	构造函数：写入文件名，建立错误列表
+*/
 rtspErrHandler::rtspErrHandler()
 {
 	settingFile = rtspErrFile;    //To do: change var->rtspErrFile
 	buildErrList();
 }
 
-//建表
+/*
+	函数：建立RTSP错误信息表
+	
+	错误映射表用CSV格式存储
+	CSV格式数据逗号分隔，非常方便，极其好扩展，直接EXCEL编辑即可
+*/
 void rtspErrHandler::buildErrList()
 {
-	//错误映射表用CSV格式存储的
-	//逗号分隔，非常方便，极其好扩展，直接EXCEL编辑即可
+	//文件流对象
 	fstream fileStream;
+
+	//以只读方式打开文件
 	fileStream.open(settingFile.c_str(), ios_base::in);
 
 	string buf, code, msg;
@@ -26,6 +36,8 @@ void rtspErrHandler::buildErrList()
 	}
 	else
 	{
+		//成功打开文件，一直读取到文件结束
+		//按行读取并解析
 		while (!fileStream.eof())
 		{
 			getline(fileStream, buf);
@@ -43,7 +55,9 @@ void rtspErrHandler::buildErrList()
 	}
 }
 
-//查表返回对应信息
+/*
+	输入错误码，通过查表(std::map)的方式返回错误信息字符串
+*/
 string rtspErrHandler::getErrMsg(int code)
 {
 	string msg;
@@ -63,7 +77,10 @@ string rtspErrHandler::getErrMsg(int code)
 }
 
 /*----------------------NTP时间戳获取类---------------------*/
-//获取NTP时间（距1900.1.1 00:00:00）
+/*
+	函数：获取NTP时间（距1900.1.1 00:00:00）
+	返回unsigned long格式的时间（单位：秒）
+*/
 unsigned long NTPTime::getNTPTime()
 {
 	SYSTEMTIME sysTime;
@@ -91,7 +108,10 @@ unsigned long NTPTime::getNTPTime()
 	return time;
 }
 
-//获取NTP时间（Unix版本）（距1970.1.1 00:00:00）
+/*
+	获取NTP时间（Unix版本）（距1970.1.1 00:00:00）
+	返回unsigned long格式的时间（单位：秒）
+*/
 unsigned long NTPTime::getNTPTimeUnix()
 {
 	unsigned long time = 0;
@@ -104,56 +124,67 @@ unsigned long NTPTime::getNTPTimeUnix()
 }
 
 /*----------------------SDP编码器---------------------*/
+/*
+	构造函数
+	这里就写一个文件头
+*/
 sdpEncoder::sdpEncoder()
 {
 	proVer = "v=0\r\n";
 }
 
+/*
+	SDP编码函数
+	SDP协议细节，请参阅RFC2327文档：http://tools.ietf.org/html/rfc2327
+*/
 string sdpEncoder::encodeMsg()
 {
-	//  Session description
-	//	v = (protocol version)
-	//	o = (owner / creator and session identifier).
-	//	s = (session name)
-	//	i = *(session information)
-	//	u = *(URI of description)
-	//	e = *(email address)
-	//	p = *(phone number)
-	//	c = *(connection information - not required if included in all media)
-	//	b = *(bandwidth information)
-	//	One or more time descriptions(see below)
-	//	z = *(time zone adjustments)
-	//	k = *(encryption key)
-	//	a = *(zero or more session attribute lines)
-	//	Zero or more media descriptions(see below)
+	/*
+		Session description
+		v = (protocol version)
+		o = (owner / creator and session identifier).
+		s = (session name)
+		i = *(session information)
+		u = *(URI of description)
+		e = *(email address)
+		p = *(phone number)
+		c = *(connection information - not required if included in all media)
+		b = *(bandwidth information)
+		One or more time descriptions(see below)
+		z = *(time zone adjustments)
+		k = *(encryption key)
+		a = *(zero or more session attribute lines)
+		Zero or more media descriptions(see below)
 
-	//	Time description
-	//	t = (time the session is active)
-	//	r = *(zero or more repeat times)
+		Time description
+		t = (time the session is active)
+		r = *(zero or more repeat times)
 
-	//	Media description
-	//	m = (media name and transport address)
-	//	i = *(media title)
-	//	c = *(connection information - optional if included at session - level)
-	//	b = *(bandwidth information)
-	//	k = *(encryption key)
-	//	a = *(zero or more media attribute lines)
+		Media description
+		m = (media name and transport address)
+		i = *(media title)
+		c = *(connection information - optional if included at session - level)
+		b = *(bandwidth information)
+		k = *(encryption key)
+		a = *(zero or more media attribute lines)
 
-	//An example SDP description is :
+		An example SDP description is :
 
-	//v = 0
-	//o = mhandley 2890844526 2890842807 IN IP4 126.16.64.4
-	//s = SDP Seminar
-	//i = A Seminar on the session description protocol
-	//u = http://www.cs.ucl.ac.uk/staff/M.Handley/sdp.03.ps
-	//e = mjh@isi.edu(Mark Handley)
-	//c = IN IP4 224.2.17.12 / 127
-	//t = 2873397496 2873404696
-	//a = recvonly
-	//m = audio 49170 RTP / AVP 0
-	//m = video 51372 RTP / AVP 31
-	//m = application 32416 udp wb
-	//a = orient:portrait
+		v = 0
+		o = mhandley 2890844526 2890842807 IN IP4 126.16.64.4
+		s = SDP Seminar
+		i = A Seminar on the session description protocol
+		u = http://www.cs.ucl.ac.uk/staff/M.Handley/sdp.03.ps
+		e = mjh@isi.edu(Mark Handley)
+		c = IN IP4 224.2.17.12 / 127
+		t = 2873397496 2873404696
+		a = recvonly
+		m = audio 49170 RTP / AVP 0
+		m = video 51372 RTP / AVP 31
+		m = application 32416 udp wb
+		a = orient:portrait
+	*/
+
 	string tmp;
 
 	owner = "o=guest " + to_string(ntpTime.getNTPTimeUnix()) + " " + to_string(ntpTime.getNTPTimeUnix()) + " " + "IN IP4 www.rayion.com\r\n";
@@ -168,23 +199,40 @@ string sdpEncoder::encodeMsg()
 }
 
 /*----------------------随机会话号生成器---------------------*/
+//初始化
 sessionGenerator::sessionGenerator()
 {
 	session.resize(9);
 }
 
-//这里直接使用时间戳来作为会话号
+/*
+	会话号生成函数
+	这里直接使用NTP时间戳来作为会话号
+
+	TODO：
+	使用时间戳是否合理？时间戳能保证唯一性么？是否有必要写个真正的随机？
+	临时的措施是：使用Sleep(1000)来保证唯一，但是这样1秒就只能分配一个会话号了
+*/
 string sessionGenerator::getSessionID()
 {
 	unsigned long time = ntpTime.getNTPTimeUnix();
 
 	sprintf_s((char *)session.data(), 9, "%X", time);
 
+	//临时措施，保证会话号唯一
+	Sleep(1000);
+
 	return session;
 }
 
 /*----------------------客户端信息维护---------------------*/
-//给一个默认设置
+/*
+	构造函数：给一个默认设置
+
+	默认端口号：80（信令），8554（RTSP）
+	默认不开启UDP（即使用TCP）
+	客户端列表首值定为（0x00000000， NULL）
+*/
 clientList::clientList()
 {
 	PerClientData defaultData;
@@ -197,28 +245,47 @@ clientList::clientList()
 	client.insert(make_pair(session, defaultData));
 }
 
-//添加客户端信息
+/*
+	函数：添加客户端信息，返回值为0
+	首先查询是否已存在，若不存在则插入
+
+	TODO：返回值设为错误码
+*/
 int clientList::addClient(unsigned long session, PerClientData clientData)
 {
-	if(client.find(session)!=client.end())client.insert(make_pair(session, clientData));
+	if (client.find(session) != client.end())
+	{
+		client.insert(make_pair(session, clientData));
+	}
 
 	return 0;
 }
 
-//查询客户端是否存在
+/*
+	函数：查询客户端是否存在，若不存在则返回值为0，否则返回会话号
+
+	TODO：返回值加入错误码
+*/
 unsigned long clientList::searchClient(unsigned long session)
 {
 	map<unsigned long, PerClientData>::iterator iter;
+
 	iter = client.find(session);
 
 	if (iter != client.end())
 	{
 		return session;
 	}
-	else return 0;
+	else
+	{
+		return 0;
+	}
 }
 
-//获取客户端信息
+/*
+	函数：获取客户端信息
+	首先查找，若存在则返回客户端信息结构体，否则返回空（即列表的第一个值）
+*/
 PerClientData clientList::getClientInfo(unsigned long session)
 {
 	map<unsigned long, PerClientData>::iterator iter;
@@ -228,13 +295,23 @@ PerClientData clientList::getClientInfo(unsigned long session)
 	{
 		return iter->second;
 	}
-	else return client.begin()->second;
+	else
+	{
+		return client.begin()->second;
+	}
 }
 
-//删除客户端信息
+/*
+	函数：删除客户端信息，返回值为0
+
+	TODO：返回值设为错误码
+*/
 int clientList::removeClient(unsigned long session)
 {
-	if (client.find(session) != client.end())client.erase(session);
+	if (client.find(session) != client.end())
+	{
+		client.erase(session);
+	}
 
 	return 0;
 }
@@ -243,7 +320,14 @@ int clientList::removeClient(unsigned long session)
 //直接初始化
 rtspHandler *rtspHandler::instance = new rtspHandler();
 
-//RTSP处理器构造函数
+/*
+	构造函数
+
+	默认值：
+	RTSP版本号为1.0
+	可用RTSP方法，直接写死了
+	目前可用的方法是，OPTIONS，DESCRIBE，SETUP，PLAY，GET_PARAMETER，TEARDOWN
+*/
 rtspHandler::rtspHandler()
 {
 	//版本号固定好
@@ -258,6 +342,7 @@ rtspHandler::rtspHandler()
 	for (int i = 0; i < availableMethod.size(); ++i)availableMethod[i] = false;
 
 	//开始设置可用的方法
+	//TODO：增删这里的条目，已设置可用方法，或是写一个函数设置
 	availableMethod[OPTIONS] = true;
 	availableMethod[DESCRIBE] = true;
 	availableMethod[SETUP] = true;
@@ -266,8 +351,10 @@ rtspHandler::rtspHandler()
 	availableMethod[TEARDOWN] = true;
 }
 
-//设置服务器属性
-//目前只需要设置端口号
+/*
+	函数：设置服务器属性，返回值为0
+	目前只需要设置端口号
+*/
 int rtspHandler::srvConfig(unsigned int srvPort)
 {
 	this->srvPort = srvPort;
@@ -275,28 +362,35 @@ int rtspHandler::srvConfig(unsigned int srvPort)
 	return 0;
 }
 
-//++++++一系列返回相关信息的函数
-//返回实例
 rtspHandler* rtspHandler::getInstance()
 {
 	return instance;
 }
 
-//返回错误信息
+/*
+	函数：返回错误信息，返回值为错误信息字符串
+*/
 string rtspHandler::getErrMsg(int code)
 {
 	return errHandler.getErrMsg(code);
 }
 
-//返回rtsp处理器的当前信息
+/*
+	函数：返回rtsp处理器的当前信息，即“RTSP版本：[版本号]”
+	如：RTSP版本：1.0
+*/
 string rtspHandler::getHandlerInfo()
 {
 	string msg;
+
 	sprintf_s((char *)msg.data(), BUF_SIZE, "RTSP版本：%s\r\n", rtspVersion);
+
 	return msg;
 }
 
-//编解码器
+/*
+	函数：编解码
+*/
 string rtspHandler::msgCodec(string msg)
 {
 	string response;
@@ -305,38 +399,46 @@ string rtspHandler::msgCodec(string msg)
 	string paddingMsg;
 	string tmp;
 
-	/*Example Input Message*/
+	/*样例信息*/
 	/*
-	PLAY rtsp://example.com/test.mp3 RTSP/1.0
-	CSeq: 302
-	Session: 12345678
-	Range: npt=0.000-
+		PLAY rtsp://example.com/test.mp3 RTSP/1.0
+		CSeq: 302
+		Session: 12345678
+		Range: npt=0.000-
 
-	that is->
+		that is->
 
-	CMD URI Version
-	CSeq: int
-	MSG PADDING
+		CMD URI Version
+		CSeq: int
+		MSG PADDING
 	*/
 
-	//1. Get CMD
+	/*
+		1.获得指令
+	*/
 	request = msg.substr(0, msg.find(' '));
 	
-	//2. Get URI and rtsp version
+	/*
+		2.获得URI地址和RTSP版本号
+	*/
 	tmp = msg.substr(request.length());
 	rtspVersion = tmp.substr(tmp.find(' '));
 	URI = tmp.substr(0, tmp.find(' '));
 
 	//Todo:检查URI是否合法，不合法则返回相应错误信息（404,Not Found）
 
-	//3. Get sequence number
-	//直接复制整行就行，并不关心具体是多少，原样转回即可
-	//注意要留下\r\n（当然也可以要么就都不留，改成find \r，而不是find \n + 1)\）
+	/*
+		3. 获得会话号
+		直接复制整行就行，并不关心具体是多少，原样转回即可
+		注意要留下\r\n（当然也可以要么就都不留，改成find \r，而不是find \n + 1)\）
+	*/
 	tmp = msg.find("CSeq");
 	seqNum = tmp.substr(0, tmp.find('\n') + 1);
 
-	//4. Get PADDING MESSAGE
-	//首先把指令转成数字
+	/*
+		4. 获得PADDING信息
+		把指令转成数字
+	*/
 	int req;
 	for (int i = 0; i < rtspMethod.size(); ++i)
 	{
@@ -347,16 +449,21 @@ string rtspHandler::msgCodec(string msg)
 		}
 	}
 
-	//---------------5.根据指令做出针对性解析与答复----------------//
+	/*
+		5.根据指令做出针对性解析与答复
+	*/
+
+	//回令的错误码，初始化为200：OK
+	int errCode;   
+	errCode = 200; 
 
 	paddingMsg = msg.find(msg.find(seqNum) + seqNum.length());
-	int errCode;   //回令的错误码
-	errCode = 200; //初始化为200：OK
-
+	
 	//先写命令行，版本号加错误代码和错误消息
 	string cmdLine;
 	cmdLine = "RTSP/" + rtspVersion + " ";
 
+	//根据指令分类处理
 	switch (req)
 	{
 	case OPTIONS:
@@ -365,16 +472,16 @@ string rtspHandler::msgCodec(string msg)
 
 		/*Example Message*/
 		/* 
-		C->S
-		OPTIONS * RTSP/1.0
-		CSeq: 1
-		Require: implicit-play
-		Proxy-Require: gzipped-messages
+			C->S
+			OPTIONS * RTSP/1.0
+			CSeq: 1
+			Require: implicit-play
+			Proxy-Require: gzipped-messages
 
-		S->C
-		RTSP/1.0 200 OK
-		CSeq: 1
-		Public: DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE
+			S->C
+			RTSP/1.0 200 OK
+			CSeq: 1
+			Public: DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE
 		*/
 		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
 		response = cmdLine + seqNum;
@@ -388,6 +495,7 @@ string rtspHandler::msgCodec(string msg)
 				tmp = tmp + rtspMethod[i] + ", ";
 			}
 		}
+
 		//去掉末尾多余的逗号和空格
 		tmp.pop_back();
 		tmp.pop_back(); 
@@ -402,31 +510,31 @@ string rtspHandler::msgCodec(string msg)
 		//返回媒体描述信息（SDP）
 		/*Example Message*/
 		/*
-		C->S
-		DESCRIBE rtsp://server.example.com/fizzle/foo RTSP/1.0
-		CSeq: 312
-		Accept: application/sdp, application/rtsl, application/mheg
+			C->S
+			DESCRIBE rtsp://server.example.com/fizzle/foo RTSP/1.0
+			CSeq: 312
+			Accept: application/sdp, application/rtsl, application/mheg
 
-		S->C
-		RTSP/1.0 200 OK
-		CSeq: 312
-		Date: 23 Jan 1997 15:35:06 GMT
-		Content-Type: application/sdp
-		Content-Length: 376
+			S->C
+			RTSP/1.0 200 OK
+			CSeq: 312
+			Date: 23 Jan 1997 15:35:06 GMT
+			Content-Type: application/sdp
+			Content-Length: 376
 
-		v=0
-		o=mhandley 2890844526 2890842807 IN IP4 126.16.64.4
-		s=SDP Seminar
-		i=A Seminar on the session description protocol
-		u=http://www.cs.ucl.ac.uk/staff/M.Handley/sdp.03.ps
-		e=mjh@isi.edu (Mark Handley)
-		c=IN IP4 224.2.17.12/127
-		t=2873397496 2873404696
-		a=recvonly
-		m=audio 3456 RTP/AVP 0
-		m=video 2232 RTP/AVP 31
-		m=whiteboard 32416 UDP WB
-		a=orient:portrait
+			v=0
+			o=mhandley 2890844526 2890842807 IN IP4 126.16.64.4
+			s=SDP Seminar
+			i=A Seminar on the session description protocol
+			u=http://www.cs.ucl.ac.uk/staff/M.Handley/sdp.03.ps
+			e=mjh@isi.edu (Mark Handley)
+			c=IN IP4 224.2.17.12/127
+			t=2873397496 2873404696
+			a=recvonly
+			m=audio 3456 RTP/AVP 0
+			m=video 2232 RTP/AVP 31
+			m=whiteboard 32416 UDP WB
+			a=orient:portrait
 		*/
 
 		//首先检查资源是否存在，这块写一个函数
@@ -442,7 +550,7 @@ string rtspHandler::msgCodec(string msg)
 
 		//下面是正常的信息内容
 
-		//日期，类型，长度  Date: 23 Jan 1997 15:35:06 GMT
+		//日期，类型，长度  “Date: 23 Jan 1997 15:35:06 GMT”
 		SYSTEMTIME sysTime;
 		GetSystemTime(&sysTime);
 
@@ -466,18 +574,18 @@ string rtspHandler::msgCodec(string msg)
 	{
 		/*Example Message*/
 		/*
-		C->S: 
-		SETUP rtsp ://example.com/foo/bar/baz.rm RTSP/1.0
-		CSeq : 302
-		Transport : RTP / AVP; unicast; client_port = 4588 - 4589
+			C->S: 
+			SETUP rtsp ://example.com/foo/bar/baz.rm RTSP/1.0
+			CSeq : 302
+			Transport : RTP / AVP; unicast; client_port = 4588 - 4589
 
-		S->C: 
-		RTSP / 1.0 200 OK
-		CSeq : 302
-		Date : 23 Jan 1997 15 : 35 : 06 GMT
-		Session : 47112344
-		Transport : RTP / AVP; unicast;
-		client_port = 4588 - 4589; server_port = 6256 - 6257
+			S->C: 
+			RTSP / 1.0 200 OK
+			CSeq : 302
+			Date : 23 Jan 1997 15 : 35 : 06 GMT
+			Session : 47112344
+			Transport : RTP / AVP; unicast;
+			client_port = 4588 - 4589; server_port = 6256 - 6257
 		*/
 		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
 		response = cmdLine + seqNum;
@@ -525,16 +633,16 @@ string rtspHandler::msgCodec(string msg)
 	{
 		/*Example Message*/
 		/*
-		C->S: 
-		PLAY rtsp://audio.example.com/meeting.en RTSP/1.0
-		CSeq: 835
-		Session: 12345678
-		Range: clock=19961108T142300Z-19961108T143520Z
+			C->S: 
+			PLAY rtsp://audio.example.com/meeting.en RTSP/1.0
+			CSeq: 835
+			Session: 12345678
+			Range: clock=19961108T142300Z-19961108T143520Z
 
-		S->C: 
-		RTSP/1.0 200 OK
-		CSeq: 835
-		Date: 23 Jan 1997 15:35:06 GMT
+			S->C: 
+			RTSP/1.0 200 OK
+			CSeq: 835
+			Date: 23 Jan 1997 15:35:06 GMT
 		*/
 
 		//首先解析Session，判断是否合法，不合法返回相应错误454,Session Not Found
@@ -570,14 +678,14 @@ string rtspHandler::msgCodec(string msg)
 	{
 		/*Example Message*/
 		/*
-		C->S: 
-		TEARDOWN rtsp://example.com/fizzle/foo RTSP/1.0
-		CSeq: 892
-		Session: 12345678
+			C->S: 
+			TEARDOWN rtsp://example.com/fizzle/foo RTSP/1.0
+			CSeq: 892
+			Session: 12345678
 
-		S->C: 
-		RTSP/1.0 200 OK
-		CSeq: 892
+			S->C: 
+			RTSP/1.0 200 OK
+			CSeq: 892
 		*/
 
 		//断开连接
