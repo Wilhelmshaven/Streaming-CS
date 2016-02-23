@@ -1,4 +1,4 @@
-#include "Server.h"
+#include "cnctHandler.h"
 #include "myClient.h"
 #include "rtspHandler.h"
 
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 
 	//ªÒµ√∑˛ŒÒ∆˜ µ¿˝
-	Server *mySrv = Server::getInstance();
+	cnctHandler *mySrv = cnctHandler::getInstance();
 
 	//Connect to server
 	if (mySrv->connectServer() == 0)
@@ -55,7 +55,7 @@ UINT rtspHandleThread()
 	UINT rtspHeartBeat();       //–ƒÃ¯
 	
 	//ªÒ»°µ•¿˝
-	Server *mySrv = Server::getInstance();
+	cnctHandler *mySrv = cnctHandler::getInstance();
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
 	//≤¢”√∑˛ŒÒ∆˜–≈œ¢…Ë÷√rtsp¥¶¿Ì∆˜
@@ -88,7 +88,7 @@ void sendMsgInThread(int msgType); //∑¢ÀÕ–≈¡Óœﬂ≥Ãƒ⁄µƒ∫Ø ˝£®“ª∏ˆ–°∑‚◊∞£¨±‡¬Î->∑¢À
 UINT sendMsgThread()
 {
 	//ªÒ»°µ•¿˝
-	Server *mySrv = Server::getInstance();
+	cnctHandler *mySrv = cnctHandler::getInstance();
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
 	sendRecvMutex = CreateMutex(NULL, TRUE, NULL);          // ’∑¢ø…“‘ π”√ª•≥‚–≈∫≈¡ø£¨≤¢…Ë÷√≥¨ ±
@@ -132,7 +132,7 @@ UINT sendMsgThread()
 void sendMsgInThread(int msgType)
 {
 	//ªÒ»°µ•¿˝
-	Server *mySrv = Server::getInstance();
+	cnctHandler *mySrv = cnctHandler::getInstance();
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
 	string sendBuf;        // ’∑¢ª∫¥Ê
@@ -159,7 +159,7 @@ void sendMsgInThread(int msgType)
 UINT recvMsgThread()
 {
 	//ªÒ»°µ•¿˝
-	Server *mySrv = Server::getInstance();
+	cnctHandler *mySrv = cnctHandler::getInstance();
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
 	string recvBuf;        // ’∑¢ª∫¥Ê
@@ -209,7 +209,7 @@ UINT rtspHeartBeat()
 	WaitForSingleObject(hBeatStartEvent, INFINITE);
 
 	//ªÒ»°µ•¿˝
-	Server *mySrv = Server::getInstance();
+	cnctHandler *mySrv = cnctHandler::getInstance();
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
 	//º∆ ±∆˜œ‡πÿ

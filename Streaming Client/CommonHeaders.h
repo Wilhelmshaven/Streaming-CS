@@ -7,6 +7,7 @@
 // STL Headers
 #include <string>
 #include <map>
+#include <queue>
 
 // Winsock Headers
 #include <WinSock2.h>

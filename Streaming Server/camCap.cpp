@@ -2,6 +2,12 @@
 
 #include "camCap.h"
 
+//类内静态成员变量定义
+HANDLE camCap::hEventStartCap;
+HANDLE camCap::hEventShutDown;
+HANDLE camCap::hEventShowImg;
+Mat camCap::cvFrame;
+
 /*
 	初始化摄像头处理模块的单例
 */
@@ -78,6 +84,22 @@ int camCap::getWidth()
 }
 
 /*
+	函数：返回通道数
+*/
+int camCap::getChannels()
+{
+	return cvFrame.channels();
+}
+
+/*
+	函数：返回矩阵类型
+*/
+int camCap::getType()
+{
+	return cvFrame.type();
+}
+
+/*
 	函数：写入缓存
 	描述：
 		将OpenCV里Mat结构的图像写入到传入的一维数组里。
@@ -88,22 +110,11 @@ int camCap::getWidth()
 void camCap::writeBuf(vector<int> *vec)
 {
 	/*
-		矩阵迭代器，直接指定是3通道模式了
-		这里的迭代器的使用方法和Mat的操作方法需要参考OpenCV
+		逐像素复制会消耗很大的时间，所以需要采取整块内存复制的形式
+		这里我们把矩阵转为了N*1的矩阵，所以一定是连续的，就不需要进行连续性检测了
+		连续性：有时行末会补上一定的间隙，以满足譬如是4或者8的倍数的要求（内存对齐）
 	*/
-	Mat thisFrame = cvFrame;
-
-	MatIterator_<Vec3b> iter, end;
-	end = thisFrame.end<Vec3b>();
-	
-	for (iter = thisFrame.begin<Vec3b>(); iter < end; ++iter)
-	{
-		//对于每一个像素，读取其RGB值存入数组
-		for (int i = 0; i < 3; ++i)
-		{
-			vec->push_back((*iter)[i]);
-		}
-	}
+	*vec = cvFrame.reshape(1, 1);
 }
 
 /*
