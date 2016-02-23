@@ -5,23 +5,35 @@
 cnctHandler *cnctHandler::instance = new cnctHandler(srvSettingFile);
 
 /*
-	构造函数
-
-	初值：
-	1、文件名设为全局值（见公共头）
-	2、启动Winsock
-	3、把服务器信息设为本地（LOCALHOST）
-	4、读取服务器配置文件
+	构造函数（传入文件名为参数，否则读取公共头中指定的文件路径）
 */
 cnctHandler::cnctHandler(string file)
 {
 	fileName = file;
 
+	defaultSettings();
+}
+
+cnctHandler::cnctHandler()
+{
+	fileName = srvSettingFile;
+
+	defaultSettings();
+}
+
+/*
+	默认设置：
+	1、启动Winsock
+	2、把服务器信息设为本地（LOCALHOST）
+	3、读取服务器配置文件
+*/
+void cnctHandler::defaultSettings()
+{
 	mySrvList = new serverList;
 
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 	srvSocket = socket(AF_INET, SOCK_STREAM, 0);
-	
+
 	srvAddr.sin_family = AF_INET;
 	inet_pton(AF_INET, "127.0.0.1", &srvAddr.sin_addr);
 	srvAddr.sin_port = htons(80);
@@ -35,7 +47,7 @@ cnctHandler::cnctHandler(string file)
 	{
 		cout << "读取配置文件失败！" << endl;
 	}
-};
+}
 
 /*
 	连接服务器：自动从头开始选择第一个可用的（能连接上）的服务器进行连接

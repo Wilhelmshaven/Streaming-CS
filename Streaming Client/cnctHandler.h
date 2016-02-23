@@ -97,7 +97,13 @@ private:
 	/*
 		以下为单例模式相关
 	*/
+
+	//构造函数，输入为存储有服务器信息的XML格式配置文件
 	cnctHandler(string file);
+	cnctHandler();
+
+	//仅在构造函数调用，完成构造工作
+	void defaultSettings();
 
 	static cnctHandler *instance; 
 
