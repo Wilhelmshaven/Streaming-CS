@@ -59,7 +59,7 @@ UINT rtspHandleThread()
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
 	//并用服务器信息设置rtsp处理器
-	rtsp->setHandler(mySrv->getDisplayAddr(), MAKEWORD(1, 0), mySrv->getStreamPort(), true);
+	rtsp->setHandler(mySrv->getDisplayAddr(), "1.0", mySrv->getStreamPort(), true);
 
 	//设置Socket接收超时，避免阻塞太久（嗯当然我们现在还是用阻塞模式，客户端么
 	int recvTimeMax = 5000;  //5s

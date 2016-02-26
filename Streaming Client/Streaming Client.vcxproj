@@ -69,6 +69,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="cvPlayer.cpp" />
+    <ClCompile Include="imageQueue.cpp" />
     <ClCompile Include="msgHandler.cpp" />
     <ClCompile Include="myClient.cpp" />
     <ClCompile Include="rtspHandler.cpp" />
@@ -77,6 +78,7 @@
   <ItemGroup>
     <ClInclude Include="CommonHeaders.h" />
     <ClInclude Include="cvPlayer.h" />
+    <ClInclude Include="imageQueue.h" />
     <ClInclude Include="msgHandler.h" />
     <ClInclude Include="myClient.h" />
     <ClInclude Include="rtspHandler.h" />

@@ -91,7 +91,7 @@ rtspHandler::rtspHandler()
 	seqNum = 1;                   
 }
 
-bool rtspHandler::setHandler(string URI, string rtspVer = "1.0", int port = 8554, bool enableUDP = false)
+bool rtspHandler::setHandler(string URI, string rtspVer, int port, bool enableUDP)
 {
 	this->URI = URI;
 	this->rtspVersion = rtspVersion;
