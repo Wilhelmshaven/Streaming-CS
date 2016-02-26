@@ -9,6 +9,11 @@ imgBuffer *imgBuffer::getInstance()
 	return instance;
 }
 
+imgBuffer::imgBuffer()
+{
+
+}
+
 /*
 	完成类型转换并入队
 	使用图像头的数据来将一维数组恢复回Mat矩阵格式
@@ -27,9 +32,18 @@ void imgBuffer::pushBuffer(imgHead head, vector<int> img)
 
 bool imgBuffer::popBuffer(Mat &img)
 {
-	img = imgQueue.front();
+	if (isBufEmpty())
+	{
+		return false;
+	}
+	else
+	{
+		img = imgQueue.front();
 
-	imgQueue.pop();
+		imgQueue.pop();
+
+		return true;
+	}
 }
 
 bool imgBuffer::isBufEmpty()

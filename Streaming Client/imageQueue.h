@@ -12,6 +12,7 @@ using namespace cv;
 	图像缓存模块
 	统一入口/出口：vector<int>，Mat
 	客户端完成的是vector<int> -> Mat的工作
+	服务端完成的是Mat -> vector<int>的工作
 */
 
 /*
