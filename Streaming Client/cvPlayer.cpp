@@ -2,6 +2,9 @@
 
 #include "cvPlayer.h"
 
+//加载中间件
+#include "middleWare.h"
+
 //类内静态成员变量定义
 HANDLE cvPlayer::hEventStart;
 HANDLE cvPlayer::hEventShutdown;
@@ -46,12 +49,13 @@ cvPlayer::~cvPlayer()
 
 DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 {
+	imgBuffer *imgBuf = imgBuffer::getInstance();
+
+	mwPlayCtrl *midWare = mwPlayCtrl::getInstance();
+
 	while (1)
 	{
 		WaitForSingleObject(hEventStart, INFINITE);
-
-		//获取图像缓存单例
-		imgBuffer *imgBuf = imgBuffer::getInstance();
 
 		/*
 			创建一个空白图像用来显示
@@ -99,14 +103,8 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 			int key = waitKey(frameRate);
 			if (key != -1)
 			{
-				//有输入，转发指令
-				//TODO：播放器和指令模块之间需要一个中间件
-				//按键队列，我这里入队，那边检测到有之后出队
-
-
-
-
-
+				//有输入，转发指令，通过中间件实现
+				midWare->pushCtrlKey(key);
 			}
 		}
 

@@ -33,6 +33,9 @@
     <ClCompile Include="imageQueue.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="middleWare.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonHeaders.h">
@@ -54,6 +57,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="imageQueue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="middleWare.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
