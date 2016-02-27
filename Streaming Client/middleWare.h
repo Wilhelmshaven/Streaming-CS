@@ -14,6 +14,13 @@
 /*
 	播放器到控制信令处理器的中间件
 	由于要保证两个模块都在使用同一个数据交换区，所以也是单例
+
+	使用：
+
+	void pushCtrlKey(char unicode)：播放器模块向中间件输入Unicode形式的按键
+
+	char getCtrlKey()：向信令控制模块返回Unicode形式的按键
+
 */
 class mwPlayCtrl
 {
@@ -21,29 +28,25 @@ public:
 	
 	static mwPlayCtrl* getInstance();
 
-	void pushCtrlKey(char key);
+	//注意，输入为Unicode
+	void pushCtrlKey(char unicode);
 
 	char getCtrlKey();
-
-	~mwPlayCtrl();
 
 private:
 
 	queue<char> ctrlKeyQueue;
 
-	static HANDLE hSemaphore;
-
 	/*
 		单例模式相关
 	*/
 
-	static mwPlayCtrl *instance;
-
 	mwPlayCtrl();
+
+	static mwPlayCtrl *instance;
 
 	mwPlayCtrl(const mwPlayCtrl &);
 	mwPlayCtrl &operator=(const mwPlayCtrl &);
-
 	class CGarbo
 	{
 	public:

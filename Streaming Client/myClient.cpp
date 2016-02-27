@@ -1,6 +1,15 @@
-#include "cnctHandler.h"
+/*--Author：李宏杰--*/
+
 #include "myClient.h"
+
+//加载各模块
+#include "cnctHandler.h"
 #include "rtspHandler.h"
+#include "rtpHandler.h"
+#include "imageQueue.h"
+#include "cvPlayer.h"
+#include "middleWare.h"
+#include "msgHandler.h"
 
 // 专门输出前置提示信息
 myMessage::myMessage()
@@ -20,21 +29,25 @@ const myMessage myMsg;
 int main(int argc, char *argv[])
 {
 	/*------------------------------建立连接--------------------------*/
-	//初始化Winsock
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 
-	//获得服务器实例
 	cnctHandler *mySrv = cnctHandler::getInstance();
 
-	//Connect to server
 	if (mySrv->connectServer() == 0)
 	{
-		/*------------------------------RTSP交互--------------------------*/
-		//这个必然是要放在子线程里了
-		//所以首先新建两个线程。一个是控制交互，一个是心跳（作为交互的子线程就好），维持连接的
-		//线程不需要参数了，单例里面要什么有什么
-		CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)rtspHandleThread, NULL, NULL, NULL);          //rtsp交互线程
+		//成功连接服务器
+
+		/*
+			1.RTSP交互
+
+			这个必然是要放在子线程里了
+			所以首先新建两个线程。一个是控制交互，一个是心跳（作为交互的子线程就好），维持连接的
+			线程不需要参数了，单例里面要什么有什么
+		*/
+
+		//rtsp交互线程
+		CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)rtspHandleThread, NULL, NULL, NULL);          
 	}
 	else
 	{

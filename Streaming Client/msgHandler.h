@@ -1,70 +1,55 @@
 /*--Author：李宏杰--*/
 
-/*
-	信令处理器
-	信令的结构固定，编解码等
-*/
 #pragma once
 #include "CommonHeaders.h"
 
-typedef struct msgHead
+enum keyboardLayout
 {
-	WORD msgSize;
-	BYTE payloadType;
-	BYTE checksum;
+	KB_ENG = 1,
 };
 
-typedef struct sdlMsgHead
+enum keyboardState
 {
-	WORD msgSize;
-	BYTE msgType;
-	BYTE reserve;
+	KB_PRESS = 1,
+	KB_RELEASE = 2,
+	KB_CLICK = 3,
 };
 
-typedef struct sdlKeyboardMsg
+/*
+	控制信令处理模块（在客户端，目前只负责编码）
+	注意：目前不实现鼠标信令编码（对于毕设没必要）
+	额，毫无疑问的，单例
+
+	TODO：其它语言的键盘键位映射表
+*/
+
+class msgHandler
 {
-	WORD msgSize;
-	BYTE msgType;
-	BYTE reserve;
-
-	BYTE isPressed;
-	BYTE empty;
-	WORD scancode;
-
-	DWORD sdlKey;
-
-	DWORD unicode;
-
-	WORD sdlMode;
-};
-
-typedef struct sdlMouseMsg
-{
-	WORD msgSize;
-	BYTE msgType;
-	BYTE reserve;
-
-	BYTE isPressed;
-	BYTE mouseButton;
-	BYTE mouseState;
-	BYTE relativeMode;
-
-	WORD pointerX;
-	WORD pointerY;
-};
-
-//SDL控制信令编码器，嗯其实就是对固定结构的填充
-class sdlCrtlMsgHandler
-{
-private:
-	msgHead publicHead;
-	sdlMsgHead sdlPublicHead;
-	sdlKeyboardMsg keyboardMsg;
-	sdlMouseMsg mouseMsg;
-
-	int fillHead(int ctrlMsgType);  //填充信令头和SDL信令头，返回值为（？）
-
 public:
 
-	int fillPayload();   //这个看怎么设计？
+	static msgHandler* getInstance();
+
+	string ctrlMsgEncode();
+
+private:
+
+	/*
+		单例模式
+	*/
+
+	static msgHandler *instance;
+
+	msgHandler();
+
+	msgHandler(const msgHandler&);
+	msgHandler &operator =(const msgHandler &);
+	class CGarbo
+	{
+	public:
+		CGarbo()
+		{
+			if (instance)delete instance;
+		}
+	};
+	static CGarbo garbo;
 };

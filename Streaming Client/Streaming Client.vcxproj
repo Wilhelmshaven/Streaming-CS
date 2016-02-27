@@ -73,6 +73,7 @@
     <ClCompile Include="middleWare.cpp" />
     <ClCompile Include="msgHandler.cpp" />
     <ClCompile Include="myClient.cpp" />
+    <ClCompile Include="rtpHandler.cpp" />
     <ClCompile Include="rtspHandler.cpp" />
     <ClCompile Include="cnctHandler.cpp" />
   </ItemGroup>
@@ -83,6 +84,7 @@
     <ClInclude Include="middleWare.h" />
     <ClInclude Include="msgHandler.h" />
     <ClInclude Include="myClient.h" />
+    <ClInclude Include="rtpHandler.h" />
     <ClInclude Include="rtspHandler.h" />
     <ClInclude Include="cnctHandler.h" />
   </ItemGroup>

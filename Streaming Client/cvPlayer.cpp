@@ -105,6 +105,8 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 			{
 				//有输入，转发指令，通过中间件实现
 				midWare->pushCtrlKey(key);
+
+				ReleaseSemaphore(hsPlayer, 1, NULL);
 			}
 		}
 
