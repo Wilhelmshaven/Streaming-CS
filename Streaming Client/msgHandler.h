@@ -21,6 +21,12 @@ enum keyboardState
 	额，毫无疑问的，单例
 
 	TODO：其它语言的键盘键位映射表
+
+	使用：
+
+	string keyboardMsgEncode()：编码键盘信令
+
+	string mouseMsgEncode()：编码鼠标信令
 */
 
 class msgHandler
@@ -29,7 +35,9 @@ public:
 
 	static msgHandler* getInstance();
 
-	string ctrlMsgEncode();
+	string keyboardMsgEncode();
+
+	string mouseMsgEncode();
 
 private:
 

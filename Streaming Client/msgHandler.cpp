@@ -12,7 +12,7 @@ msgHandler * msgHandler::getInstance()
 	return instance;
 }
 
-string msgHandler::ctrlMsgEncode()
+string msgHandler::keyboardMsgEncode()
 {
 	string msg;
 
@@ -48,6 +48,15 @@ string msgHandler::ctrlMsgEncode()
 
 	//Todo：主机字节序转为网络字节序
 	//其实如果两边都不转……也没啥事……
+
+	return msg;
+}
+
+string msgHandler::mouseMsgEncode()
+{
+	string msg;
+
+	//TODO：鼠标信令编码实现
 
 	return msg;
 }
