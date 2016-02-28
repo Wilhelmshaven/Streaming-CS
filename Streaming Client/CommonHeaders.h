@@ -78,6 +78,7 @@ const string rtspErrFile = "config/static/rtspErrCodeList.csv";    //rtsp´íÎóÏûÏ
 
 	TODO£ºÒÔºó¿ÉÒÔ¸Ä³É×¨ÃÅµÄCtrl CenterÀ´¹ÜÀí
 */
-static HANDLE hsPlayer = CreateSemaphore(NULL, 1, BUF_SIZE, NULL);
-static HANDLE hsMiddleWare = CreateSemaphore(NULL, 1, BUF_SIZE, NULL);
-static HANDLE hsMsgHandler = CreateSemaphore(NULL, 1, BUF_SIZE, NULL);
+static HANDLE hsPlayer = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+static HANDLE hsMiddleWare = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+static HANDLE hsMsgHandler = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+static HANDLE hsMonitor = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

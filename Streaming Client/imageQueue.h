@@ -30,19 +30,20 @@ using namespace cv;
 
 	//int matrixType£∫æÿ’Û¿‡–Õ
 */
+
 typedef struct imgHead
 {
-	union
+	union Y_Axis
 	{
 		int height;
 		int rows;
-	};
+	}yAxis;
 
-	union
+	union X_Axis
 	{
 		int width;
 		int cols;
-	};
+	}xAxis;
 
 	int channels;
 

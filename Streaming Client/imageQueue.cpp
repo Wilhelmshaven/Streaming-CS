@@ -23,7 +23,7 @@ imgBuffer::imgBuffer()
 */
 void imgBuffer::pushBuffer(imgHead head, vector<int> img)
 {
-	Mat matrix = Mat(img).reshape(head.channels, head.cols);
+	Mat matrix = Mat(img).reshape(head.channels, head.xAxis.cols);
 
 	matrix.convertTo(matrix, head.imgType);
 
