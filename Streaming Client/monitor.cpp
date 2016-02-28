@@ -23,6 +23,8 @@ monitor * monitor::getInstance()
 void monitor::initMonitor(int threshold)
 {
 	timingThreshold = threshold + 100;
+
+	if (timingThreshold > 2000)timingThreshold = 2000;
 }
 
 void monitor::beginTiming()
@@ -49,6 +51,7 @@ monitor::~monitor()
 	CloseHandle(hEventShutdown);
 }
 
+//这里只判断了毫秒差
 bool monitor::isTimeout(int clockID)
 {
 	int diff = 0;
@@ -56,10 +59,26 @@ bool monitor::isTimeout(int clockID)
 
 	clock tmp = myClock[clockID];
 
+	//秒差绝对值大于1的话，那不用玩了，大大的超了
+	int s = tmp.endTime.wSecond - tmp.beginTime.wSecond;
+	if (s > 1 || s < -1)
+	{
+		cout << " Timeout!" << endl;
+		return flag;
+	}
+
 	diff += tmp.endTime.wMilliseconds - tmp.beginTime.wMilliseconds;
 	if (diff < 0)diff += 1000;
 
-	if (diff > timingThreshold)flag = true;
+	if (diff > timingThreshold)
+	{
+		flag = true;
+		cout << " Timeout!" << endl;
+	}
+	else
+	{
+		cout << "Delay: " << diff << "ms" << endl;
+	}
 
 	return flag;
 }

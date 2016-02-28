@@ -13,7 +13,7 @@
 
 	使用：
 
-	void initMonitor(int timingThreshold = 200)：设置超时阈值
+	void initMonitor(int timingThreshold = 200)：设置超时阈值，单位毫秒。注意，这个值的设置大于等于2000时失效。
 
 	void beginTiming()：开始计时
 
