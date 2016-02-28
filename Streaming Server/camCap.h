@@ -29,8 +29,6 @@ using namespace cv;
 	int camCap::getChannels()：获取帧的通道数
 	int camCap::getType()：获取帧的类型（即矩阵类型）（参见cvdef.h）
 
-	void camCap::writeBuf(vector<int> *vec)：写缓存，传入vector<int>类型的缓存以供写入
-
 	void camCap::showImg()：开启/关闭视频窗口，若开则关，若关则开。初始状态为开启。
 */
 class camCap
@@ -59,9 +57,6 @@ public:
 
 	//获取帧的类型（即矩阵类型）（参见cvdef.h）
 	int getType();
-
-	//取出图像写入缓存
-	void writeBuf(vector<int> *vec);
 
 	//是否需要观看摄像头图像？如果未显示，调用则显示，否则取消显示
 	void showImg();

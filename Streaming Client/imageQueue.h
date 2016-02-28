@@ -28,7 +28,7 @@ using namespace cv;
 
 	int imgType：图像类型，如RGB、BGR、YUV之类（但这些值目前未实现）
 
-	//int matrixType：矩阵类型
+	//int matrixType：矩阵类型，用于区分是否是稀疏矩阵。目前都传完整数据，暂时注释未实现。
 */
 
 typedef struct imgHead

@@ -2,6 +2,9 @@
 
 #include "camCap.h"
 
+//加载图像缓存模块（中间件）
+#include "imageQueue.h"
+
 //类内静态成员变量定义
 HANDLE camCap::hEventStartCap;
 HANDLE camCap::hEventShutDown;
@@ -100,24 +103,6 @@ int camCap::getType()
 }
 
 /*
-	函数：写入缓存
-	描述：
-		将OpenCV里Mat结构的图像写入到传入的一维数组里。
-
-		目前不设置扩展功能，默认（指定）帧是三通道的，值为RGB。
-		直接存储成一行。
-*/
-void camCap::writeBuf(vector<int> *vec)
-{
-	/*
-		逐像素复制会消耗很大的时间，所以需要采取整块内存复制的形式
-		这里我们把矩阵转为了N*1的矩阵，所以一定是连续的，就不需要进行连续性检测了
-		连续性：有时行末会补上一定的间隙，以满足譬如是4或者8的倍数的要求（内存对齐）
-	*/
-	*vec = cvFrame.reshape(1, 1);
-}
-
-/*
 	函数：展示图像
 	描述：通过设置事件和重置事件的方式，改变线程中的情况
 */
@@ -136,6 +121,8 @@ void camCap::showImg()
 camCap::~camCap()
 {
 	SetEvent(hEventShutDown);
+
+	Sleep(50);
 
 	delete(capParam);
 
@@ -166,6 +153,8 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 {
 	captureThreadParam *param = (captureThreadParam *)lparam;
 
+	imgBuffer *imgBuf = imgBuffer::getInstance();
+
 	while (1)
 	{
 		//等待开始信号
@@ -191,6 +180,18 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 			else
 			{
 				destroyWindow("Camera Live!");
+			}
+
+			/*
+				Important!是不停的发送还是客户端操控后才发送？
+				按照VR的模式，客户没有转变视角时，可以暂停发送的
+				这里就按照这个实现
+				接收到客户端指令后，推出图像
+				通过信号量控制
+			*/
+			if (WaitForSingleObject(hsMsgHandler, 0) == WAIT_OBJECT_0)
+			{
+				imgBuf->pushBuffer(cvFrame);
 			}
 
 			//等待时间间隔

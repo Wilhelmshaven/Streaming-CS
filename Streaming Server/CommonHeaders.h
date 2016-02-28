@@ -50,3 +50,6 @@ enum CustomDefine
 
 //全局事件
 static HANDLE hSrvShutdown = CreateEvent(NULL, TRUE, FALSE, NULL);    //结束服务器的事件
+
+static HANDLE hsMsgHandler = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+static HANDLE hsCamCap = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

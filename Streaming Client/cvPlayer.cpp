@@ -84,15 +84,23 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 			读取缓存->播放，循环
 		*/
 
-		Mat frame;
+		Mat frame, preFrame;
+
+		preFrame = blankImg;
 
 		while (1)
 		{
-			//成功获取到图像则继续，否则检查退出事件
+			//成功获取到图像则播放，否则检查退出事件
 			if (imgBuf->popBuffer(frame))
 			{
-				imshow(windowName, frame);
+				preFrame = frame;
 			}
+			else
+			{
+				//重要！若没有新的一帧，则使用上一帧来播放画面
+			}
+
+			imshow(windowName, preFrame);
 
 			if (WaitForSingleObject(hEventShutdown, 0) == WAIT_OBJECT_0)
 			{
