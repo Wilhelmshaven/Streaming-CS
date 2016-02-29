@@ -80,6 +80,8 @@ public:
 
 	bool isBufEmpty();
 
+	int dropFrame(int cnt);
+
 private:
 
 	typedef struct myImg

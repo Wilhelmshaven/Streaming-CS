@@ -220,4 +220,3 @@ private:
 	};
 	static CGarbo Garbo;
 };
-

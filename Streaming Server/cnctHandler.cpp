@@ -68,9 +68,9 @@ cnctHandler* cnctHandler::getInstance()
 
 	TODO：返回值为错误码
 */
-int cnctHandler::srvConfig(string port)
+int cnctHandler::srvConfig(int port)
 {
-	srvPort = port;
+	srvPort = to_string(port);
 
 	return 0;
 }
@@ -96,9 +96,9 @@ bool cnctHandler::isSocketAlive(SOCKET clientSocket)
 }
 
 /*
-	函数：建立工作者线程，返回0
+	函数：建立工作者线程
 */
-int cnctHandler::buildThread()
+void cnctHandler::buildThread()
 {
 	//获取系统信息（最主要是CPU核数，以便创建Worker线程）
 	GetSystemInfo(&sysInfo);
@@ -114,15 +114,15 @@ int cnctHandler::buildThread()
 
 		//CloseHandle(workerThread[i]);
 	}
-
-	return 0;
 }
 
 /*
 	函数：启动服务器
 */
 int cnctHandler::startServer()
-{						
+{	
+	int status = 0;
+
 	//真是傻逼了，前面那么多函数设计了都没调用……
 	//真应该搞个防呆设计
 	//以及，封装过度也不是什么好事情
@@ -130,7 +130,7 @@ int cnctHandler::startServer()
 	buildThread();
 
 	//将SOCKET设置为监听模式
-	listen(srvSocket, SOMAXCONN);                
+	status = listen(srvSocket, SOMAXCONN);                
 
 	//徐行指导说：这里必须NEW，否则创建线程后结构体被删除，就无法传入。线程中再删除（如果不再使用）
 	param = new acptThreadParam;
@@ -140,7 +140,7 @@ int cnctHandler::startServer()
 	//创建接收线程
 	CreateThread(NULL, NULL, acptThread, param, NULL, NULL);  
 
-	return 0;
+	return status;
 }
 
 /*
@@ -229,8 +229,10 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 
 	while (true)
 	{
-		//得到完成端口的状态
-		//相关数据已经在2-4的参数里面了：第二个指示收到的字节数，第三个是客户端信息，第四个是相关接收数据
+		/*
+			得到完成端口的状态
+			相关数据已经在2-4的参数里面了：第二个指示收到的字节数，第三个是客户端信息，第四个是相关接收数据
+		*/
 		GetQueuedCompletionStatus(hCompletionPort, &bytesTransferred, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
 
 		//结束服务器？
@@ -238,16 +240,23 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 
 		clientSocket = handleInfo->clientSocket;
 
-		//首先解析收到的信息
-		//首先确认，这个是控制信令，还是流媒体信令
-		//TODO：那么我需要设计控制指令了
+		/*
+			TODO：把收到的信令交给其他模块处理
+
+			原文：
+			首先解析收到的信息
+			首先确认，这个是控制信令，还是流媒体信令
+
+			放弃，这个不是网络模块要做的事情
+			直接把信令塞到一个中间件里就可以了
+		*/
 
 
 
 
 
 
-		//准备下一个，投递一个WSARecv
+		//准备下一个连接，投递一个WSARecv
 		//准备一个重叠I/O
 		ioInfo = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(LPPER_IO_DATA));
 		ZeroMemory(ioInfo, sizeof(ioInfo));

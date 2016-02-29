@@ -45,11 +45,13 @@ typedef struct acptThreadParam
 /*
 	连接处理器（单例）
 
-	函数：
-	
-	int srvConfig(string port)：设置服务器参数
+	功能：
 
-	int startServer()：启动服务器并开始监听
+	使用：
+	
+	int srvConfig(int port)：设置服务器参数，默认返回值为0
+
+	int startServer()：启动服务器并监听传入连接，返回值为winsock中listen函数的返回值
 */
 class cnctHandler
 {
@@ -59,43 +61,59 @@ public:
 	static cnctHandler *getInstance();           //返回单例
 
 	//设置服务器参数
-	int srvConfig(string port);
+	int srvConfig(int port = 8554);
 
-	//启动服务器（直接进行到监听）
+	//启动服务器并监听传入连接
 	int startServer();
 
-	~cnctHandler();                            //必要的清理工作还是要写出来的
+	//检查某个套接字是否还活动
+	bool isSocketAlive(SOCKET clientSocket);
+
+	~cnctHandler();                           
 
 private:
-	//线程相关
-	vector<HANDLE> workerThread;                                    //工作者线程句柄，数量为CPU核数
-	static DWORD WINAPI workerThreadFunc(LPVOID lparam);            //线程处理函数
-	static DWORD WINAPI acptThread(LPVOID lparam);                  //用于专门负责处理传入请求的线程
 
-	string srvPort;            //指定服务器端口
-	SYSTEM_INFO sysInfo;       //存储系统信息的结构	
-	SOCKADDR_IN srvAddr;       //服务器地址结构
+	/*
+		线程相关
+	*/
 
-	HANDLE completionPort;     //完成端口
+	//工作者线程句柄，数量为CPU核数
+	vector<HANDLE> workerThread;          
 
-	int buildThread();                            //根据CPU核数建立工作者线程
-	bool isSocketAlive(SOCKET clientSocket);      //检查某个套接字是否还活动
+	//线程处理函数
+	static DWORD WINAPI workerThreadFunc(LPVOID lparam);     
 
-	SOCKET srvSocket;							  //唯一的SOCKET
+	//用于专门负责处理传入请求的线程
+	static DWORD WINAPI acptThread(LPVOID lparam);                  
+
+	//指定服务器端口
+	string srvPort;  
+
+	//存储系统信息的结构
+	SYSTEM_INFO sysInfo;  
+
+	//服务器地址结构
+	SOCKADDR_IN srvAddr;    
+
+	//完成端口
+	HANDLE completionPort; 
+
+	//唯一的SOCKET
+	SOCKET srvSocket;	
+
+	//根据CPU核数建立工作者线程
+	void buildThread();        
 
 	acptThreadParam *param;
 
 	/*
 		单例模式
 	*/
-	static cnctHandler *instance;              //单例
-	cnctHandler();                             //构造函数
+	static cnctHandler *instance;            
+	cnctHandler();                          
 
-	//禁止拷贝构造以及赋值
 	cnctHandler(const cnctHandler &);
 	cnctHandler & operator = (const cnctHandler &);
-
-	//析构处理
 	class CGarbo
 	{
 	public:
