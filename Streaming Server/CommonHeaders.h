@@ -19,6 +19,8 @@
 //
 #include <stdlib.h>
 
+#include <WinUser.h>
+
 using namespace std;
 
 /*---------------------自定义常量区，少的话这里写，多的话，不如用map，例如rtsp错误信息--------------------*/
@@ -53,3 +55,6 @@ static HANDLE hSrvShutdown = CreateEvent(NULL, TRUE, FALSE, NULL);    //结束服务
 
 static HANDLE hsMsgHandler = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
 static HANDLE hsCamCap = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+
+//消息中间件使用，标记着有新的信令信息来到
+static HANDLE hsMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

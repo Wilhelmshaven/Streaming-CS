@@ -70,6 +70,8 @@
   <ItemGroup>
     <ClCompile Include="camCap.cpp" />
     <ClCompile Include="cnctHandler.cpp" />
+    <ClCompile Include="crtlMsgHandler.cpp" />
+    <ClCompile Include="middleWare.cpp" />
     <ClCompile Include="myServer.cpp" />
     <ClCompile Include="imageQueue.cpp" />
     <ClCompile Include="rtspHandler.cpp" />
@@ -78,6 +80,8 @@
     <ClInclude Include="camCap.h" />
     <ClInclude Include="cnctHandler.h" />
     <ClInclude Include="CommonHeaders.h" />
+    <ClInclude Include="crtlMsgHandler.h" />
+    <ClInclude Include="middleWare.h" />
     <ClInclude Include="myServer.h" />
     <ClInclude Include="imageQueue.h" />
     <ClInclude Include="rtspHandler.h" />

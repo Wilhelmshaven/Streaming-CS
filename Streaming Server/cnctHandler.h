@@ -9,24 +9,37 @@
 */
 typedef struct
 {
-	WSAOVERLAPPED overlapped;  // 每一个重叠I/O网络操作都要有一个
+	// 每一个重叠I/O网络操作都要有一个
+	WSAOVERLAPPED overlapped;  
 
-	WSABUF wsaBuf;             // 
-	char buffer[BUF_SIZE];     // 对应WSABUF里的缓冲区
-	DWORD bytesRecv;           // 接收到的数据量
-	DWORD flags;               //
-	int operationType;         // 标志这个重叠I/O操作是做什么的，例如Accept/Recv等
+	WSABUF wsaBuf;   
+
+	// 对应WSABUF里的缓冲区
+	char buffer[BUF_SIZE];     
+
+	// 接收到的数据量
+	DWORD bytesRecv;        
+
+	DWORD flags;   
+
+	// 标志这个重叠I/O操作是做什么的，例如Accept/Recv等
+	int operationType;         
+
 } PER_IO_DATA, *LPPER_IO_DATA;
 
 /*
 	结构体名称：PER_HANDLE_DATA
 	结构体存储：记录单个套接字的数据，包括了套接字的变量及套接字的对应的客户端的地址。
 	结构体作用：当服务器连接上客户端时，信息存储到该结构体中，知道客户端的地址以便于回访。
-**/
+*/
 typedef struct
 {
-	SOCKET clientSocket;       // 这个I/O操作所使用的Socket
-	SOCKADDR_IN clientAddr;    // ...地址信息
+	// 这个I/O操作所使用的Socket
+	SOCKET clientSocket; 
+
+	// ...地址信息
+	SOCKADDR_IN clientAddr; 
+
 }PER_HANDLE_DATA, *LPPER_HANDLE_DATA;
 
 /*

@@ -2,7 +2,9 @@
 
 #include "cnctHandler.h"
 
-//直接初始化
+//加载消息中间件模块
+#include "middleWare.h"
+
 cnctHandler *cnctHandler::instance = new cnctHandler;
 
 /*
@@ -214,6 +216,8 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 */
 DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 {	
+	mwMsg *mwMsgHandler = mwMsg::getInstance();
+
 	//处理传入参数
 	HANDLE hCompletionPort = (HANDLE)lparam;
 
@@ -226,6 +230,8 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 	LPPER_IO_DATA ioInfo;
 	
 	string buf;
+
+	int status;
 
 	while (true)
 	{
@@ -241,20 +247,24 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		clientSocket = handleInfo->clientSocket;
 
 		/*
-			TODO：把收到的信令交给其他模块处理
+			处理信令
 
-			原文：
-			首先解析收到的信息
-			首先确认，这个是控制信令，还是流媒体信令
-
-			放弃，这个不是网络模块要做的事情
-			直接把信令塞到一个中间件里就可以了
+			这里还是要进行初步解析
+			首先解析是流媒体还是控制
+			控制的话直接塞走
+			流媒体的话解析回发
 		*/
+		status = mwMsgHandler->msgIn(ioInfo->buffer);
 
-
-
-
-
+		if (status == 1)
+		{
+			/*
+				TODO:获取回令并转发
+				1、获取回令（这么写不行，重来）
+				2、调用网络模块的发送方法发掉（这个还没写）
+			*/
+			buf = mwMsgHandler->msgOut();
+		}
 
 		//准备下一个连接，投递一个WSARecv
 		//准备一个重叠I/O
