@@ -58,13 +58,23 @@ typedef struct acptThreadParam
 /*
 	连接处理器（单例）
 
-	功能：
+	功能：负责处理传入连接与信息发出
 
 	使用：
 	
 	int srvConfig(int port)：设置服务器参数，默认返回值为0
 
 	int startServer()：启动服务器并监听传入连接，返回值为winsock中listen函数的返回值
+
+	static string getRTSPMsg()：出口，获取RTSP信令。请监听hsRTSPMsgArrived信号量。
+
+	static string getCtrlMsg()：出口，获取控制信令。请监听hsCtrlMsgArrived信号量。
+
+	static SOCKET getSocket()：出口，获取SOCKET，与另外两个出口配合使用。
+
+	int sendMessage(SOCKET socket, string msg)：入口，（单纯）发送给定信息
+
+	bool isSocketAlive(SOCKET clientSocket)：检查某个套接字是否还活动
 */
 class cnctHandler
 {
@@ -79,12 +89,34 @@ public:
 	//启动服务器并监听传入连接
 	int startServer();
 
+	//出口：获取RTSP信令。请监听hsRTSPMsgArrived信号量。
+	static string getRTSPMsg();
+
+	//出口：获取控制信令。请监听hsCtrlMsgArrived信号量。
+	static string getCtrlMsg();
+
+	//出口：获取SOCKET，与另外两个出口配合使用。
+	static SOCKET getSocket();
+
+	//入口：（单纯）发送给定信息
+	int sendMessage(SOCKET socket, string msg);
+
 	//检查某个套接字是否还活动
 	bool isSocketAlive(SOCKET clientSocket);
 
 	~cnctHandler();                           
 
 private:
+
+	/*
+		临时队列，接收到的信令按类别入队
+		对于无意义（不符合格式的）消息，丢弃之
+	*/
+
+	static queue<string> rtspQueue, ctrlQueue;
+
+	//还有一个关键的队列……SOCKET队列
+	static queue<SOCKET> socketQueue;
 
 	/*
 		线程相关
@@ -137,3 +169,9 @@ private:
 	};
 	static CGarbo Garbo;
 };
+
+//网络模块：标记有新的RTSP信令信息来到
+static HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+
+//网络模块：标记有新的控制信令信息来到
+static HANDLE hsCtrlMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

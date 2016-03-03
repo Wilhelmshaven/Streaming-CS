@@ -56,5 +56,16 @@ static HANDLE hSrvShutdown = CreateEvent(NULL, TRUE, FALSE, NULL);    //结束服务
 static HANDLE hsMsgHandler = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
 static HANDLE hsCamCap = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
 
-//消息中间件使用，标记着有新的信令信息来到
-static HANDLE hsMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+/*
+	EXTERN 信号量
+
+	各模块的信号量写在各模块的头部，这里只是为了方便使用
+
+	不在这里声明是因为这样违反组件化规则……
+*/
+
+//网络模块：标记有新的RTSP信令信息来到
+extern HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+
+//网络模块：标记有新的控制信令信息来到
+extern HANDLE hsCtrlMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

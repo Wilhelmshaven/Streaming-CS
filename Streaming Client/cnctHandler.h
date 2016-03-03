@@ -56,9 +56,12 @@ public:
 
 	int connectServer();             
 	
-	SOCKET getSocket(); 	
+	SOCKET getSocket(); 
+
 	string getDisplayAddr();
+
 	int getStreamPort();
+
 	serverList* getSrvStruct();
 
 	void showSrvInfo();                 
@@ -66,9 +69,11 @@ public:
 	~cnctHandler();
 
 private:
+
 	/*
 		服务器配置表处理部分
 	*/
+
 	serverList *mySrvList;  
 
 	//配置文件的文件名
@@ -86,6 +91,7 @@ private:
 	/*
 		当前正在使用的服务器信息
 	*/
+
 	SOCKET srvSocket;
 
 	//地址结构（ipv4/6，IP，端口）

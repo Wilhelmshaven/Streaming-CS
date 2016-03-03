@@ -7,6 +7,9 @@
 
 cnctHandler *cnctHandler::instance = new cnctHandler;
 
+queue<string> cnctHandler::rtspQueue, cnctHandler::ctrlQueue;
+queue<SOCKET> cnctHandler::socketQueue;
+
 /*
 	构造函数
 
@@ -145,6 +148,55 @@ int cnctHandler::startServer()
 	return status;
 }
 
+string cnctHandler::getRTSPMsg()
+{
+	string msg;
+
+	if (!rtspQueue.empty())
+	{
+		msg = rtspQueue.front();
+		rtspQueue.pop();
+	}
+
+	return msg;
+}
+
+string cnctHandler::getCtrlMsg()
+{
+	string msg;
+
+	if (!ctrlQueue.empty())
+	{
+		msg = ctrlQueue.front();
+		ctrlQueue.pop();
+	}
+
+	return msg;
+}
+
+SOCKET cnctHandler::getSocket()
+{
+	SOCKET soc;
+
+	if (!socketQueue.empty())
+	{
+		soc = socketQueue.front();
+
+		socketQueue.pop();
+	}
+
+	return soc;
+}
+
+int cnctHandler::sendMessage(SOCKET socket, string msg)
+{
+	int bytesSent;
+
+	bytesSent = send(socket, msg.c_str(), msg.length(), NULL);
+
+	return bytesSent;
+}
+
 /*
 	监听线程，专门用于接收传入连接
 */
@@ -231,8 +283,6 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 	
 	string buf;
 
-	int status;
-
 	while (true)
 	{
 		/*
@@ -248,25 +298,33 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 
 		/*
 			处理信令
-
-			这里还是要进行初步解析
-			首先解析是流媒体还是控制
-			控制的话直接塞走
-			流媒体的话解析回发
+			首先解析是流媒体还是控制，然后塞到对应队列中，最后激活信号量
+			注意把SOCKET一起丢进去……要不然回发，回给谁啊？？？！
 		*/
-		status = mwMsgHandler->msgIn(ioInfo->buffer);
 
-		if (status == 1)
+		buf = ioInfo->buffer;
+
+		if (buf.find("RTSP"))
 		{
-			/*
-				TODO:获取回令并转发
-				1、获取回令（这么写不行，重来）
-				2、调用网络模块的发送方法发掉（这个还没写）
-			*/
-			buf = mwMsgHandler->msgOut();
+			rtspQueue.push(buf);
+
+			socketQueue.push(handleInfo->clientSocket);
+
+			ReleaseSemaphore(hsRTSPMsgArrived, 1, NULL);
+		}
+		else
+		{
+			ctrlQueue.push(buf);
+
+			socketQueue.push(handleInfo->clientSocket);
+
+			ReleaseSemaphore(hsCtrlMsgArrived, 1, NULL);
 		}
 
-		//准备下一个连接，投递一个WSARecv
+		/*
+			准备下一个连接，投递一个WSARecv
+		*/
+
 		//准备一个重叠I/O
 		ioInfo = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(LPPER_IO_DATA));
 		ZeroMemory(ioInfo, sizeof(ioInfo));
