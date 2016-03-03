@@ -16,8 +16,6 @@ class rtspErrHandler
 {
 public:
 
-	rtspErrHandler();
-
 	rtspErrHandler(string filePath = "config/static/rtspErrCodeList.csv");
 
 	//输出错误信息：输入错误码，返回错误信息字符串
@@ -126,12 +124,17 @@ private:
 	NTPTimeGenerator ntpTime;
 };
 
-//为每一个客户端存储对应数据的结构体
+/*
+	为每一个会话存储对应数据的结构体
+	包括：套接字，端口号，传输模式（TCP/UDP）
+*/
 typedef struct PerClientData
 {
+	SOCKET socket;
+
 	int streamingPort;
+
 	bool enableUDP;
-	int srvPort;
 };
 
 /*
@@ -161,7 +164,7 @@ public:
 	PerClientData getClientInfo(unsigned long session);                
 
 	//移除客户端
-	int removeClient(unsigned long Session);                          
+	int removeClient(unsigned long session);                          
 	 
 	clientList();
 
@@ -198,7 +201,7 @@ public:
 	static rtspHandler *getInstance();
 
 	//编解码一体，输入待解码信息，返回编码好的答复，不负责发送
-	string msgCodec(string msg);
+	string msgCodec(SOCKET socket, string msg);
 
 	//返回错误代码所表示的信息
 	string getErrMsg(int code);      
@@ -209,10 +212,17 @@ public:
 	//设置服务器属性
 	int srvConfig(string URI = "", unsigned int srvPort = 8554);
 
-	//一个Session与客户端参数的对应表 
-	clientList clientManager;
+	unsigned long getWaitingSession();
+
+	SOCKET getWaitingSocket(unsigned long session);
 
 private:
+
+	//等待RTP处理的会话序列
+	queue<unsigned long> waitingQueue;
+
+	//一个Session与客户端参数的对应表 
+	clientList clientManager;
 
 	//服务器RTSP方法
 	vector<string> rtspMethod;                 
@@ -258,8 +268,9 @@ private:
 		单例模式
 	*/
 
-	static rtspHandler *instance;              //单例
-	rtspHandler();                             //构造函数
+	rtspHandler();
+
+	static rtspHandler *instance;                  
 
 	//禁止拷贝构造以及赋值
 	rtspHandler(const rtspHandler &);
@@ -276,3 +287,7 @@ private:
 	};
 	static CGarbo Garbo;
 };
+
+//流媒体信令模块：标记有新的播放/停止播放请求，请RTP模块拿走会话号
+HANDLE hsPlaySession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+HANDLE hsStopSession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

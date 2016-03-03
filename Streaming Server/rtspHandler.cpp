@@ -6,13 +6,6 @@
 /*
 	构造函数：写入文件名，建立错误列表
 */
-rtspErrHandler::rtspErrHandler()
-{
-	settingFile = "config/static/rtspErrCodeList.csv";
-
-	buildErrList();
-}
-
 rtspErrHandler::rtspErrHandler(string filePath)
 {
 	settingFile = filePath;
@@ -256,8 +249,9 @@ string sessionGenerator::getSessionID()
 clientList::clientList()
 {
 	PerClientData defaultData;
+
+	defaultData.socket = 0;
 	defaultData.streamingPort = 80;
-	defaultData.srvPort = 8554;
 	defaultData.enableUDP = false;
 
 	unsigned long session = 0x00000000;
@@ -339,7 +333,7 @@ int clientList::removeClient(unsigned long session)
 
 /*----------------------RTSP连接处理器---------------------*/
 
-rtspHandler *rtspHandler::instance = new rtspHandler();
+rtspHandler *rtspHandler::instance = new rtspHandler;
 
 /*
 	构造函数
@@ -420,7 +414,7 @@ string rtspHandler::getHandlerInfo()
 
 	160303，核验确认逻辑上没有任何问题
 */
-string rtspHandler::msgCodec(string msg)
+string rtspHandler::msgCodec(SOCKET socket, string msg)
 {
 	string response;
 
@@ -686,6 +680,8 @@ string rtspHandler::msgCodec(string msg)
 			clientData.enableUDP = false;
 		}
 
+		clientData.socket = socket;
+
 		//把客户端加入列表中
 		clientManager.addClient(session, clientData);
 
@@ -719,12 +715,13 @@ string rtspHandler::msgCodec(string msg)
 		if (clientManager.searchClient(session) != 0)
 		{
 			/*
-				TODO：会话号正确，这里就应该调用播放器播放了
-
-				在现在的设计下，PLAY信令的含义为，使得服务端能够与该客户端进行播放行为，响应按键放图
-				所以这里TMD啥都不用写……事实上SETUP之后就可以交互了……
+				会话号正确，这里就应该调用播放器播放了
+				通知RTP模块处理
 			*/
 
+			waitingQueue.push(session);
+
+			ReleaseSemaphore(hsPlaySession, 1, NULL);
 		}
 		else
 		{
@@ -762,11 +759,21 @@ string rtspHandler::msgCodec(string msg)
 			454,Session Not Found
 		*/
 
-		unsigned long session = stol(msg.substr(paddingMsg.find("session") + 8));
+		unsigned long session = stol(msg.substr(msg.find("session") + 8));
 
 		if (clientManager.searchClient(session) == 0)
 		{
 			errCode = 454;
+		}
+		else
+		{
+			/*
+				通知RTP模块停止播放
+			*/
+
+			waitingQueue.push(session);
+
+			ReleaseSemaphore(hsStopSession, 1, NULL);
 		}
 
 		response = generateCMDLine(errCode) + seqNum;
@@ -777,7 +784,38 @@ string rtspHandler::msgCodec(string msg)
 		}
 
 		//移除客户端信息
+		Sleep(100);
 		clientManager.removeClient(session);
+
+		break;
+	}
+	case GET_PARAMETER:
+	{
+		/*Example Message*/
+		/*
+			C->S:
+			GET_PARAMETER rtsp://example.com/fizzle/foo RTSP/1.0
+			CSeq: 892
+			Session: 12345678
+
+			S->C:
+			RTSP/1.0 200 OK
+			CSeq: 892
+		*/
+
+		unsigned long session = stol(msg.substr(msg.find("session") + 8));
+
+		if (clientManager.searchClient(session) == 0)
+		{
+			errCode = 454;
+		}
+		else
+		{
+			//TODO：Nothing to do...
+
+		}
+
+		response = generateCMDLine(errCode) + seqNum;
 
 		break;
 	}

@@ -77,7 +77,7 @@ DWORD mwMsg::mwRTSPMsgThread(LPVOID lparam)
 		clientSocket = netModule->getSocket();
 
 		//3.调用流媒体信令处理模块解码并获得答令
-		rtspMsg = rtspModule->msgCodec(rtspMsg);
+		rtspMsg = rtspModule->msgCodec(clientSocket, rtspMsg);
 
 		//4.调用网络模块发送答令
 		bytesSent = netModule->sendMessage(clientSocket, rtspMsg);

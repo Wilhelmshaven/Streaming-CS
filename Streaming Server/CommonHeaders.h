@@ -69,3 +69,10 @@ extern HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
 
 //网络模块：标记有新的控制信令信息来到
 extern HANDLE hsCtrlMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+
+//流媒体信令处理模块：标记有新的播放/停止播放请求，请RTP模块拿走会话号
+extern HANDLE hsPlaySession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+extern HANDLE hsStopSession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+
+//控制信令处理模块：标记信令解码完毕，请中间件拿走转给渲染器
+extern HANDLE hsKBCtrlMsg = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

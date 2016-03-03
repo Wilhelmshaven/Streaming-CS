@@ -13,6 +13,10 @@
 	
 	void decodeMsg(string msg)：解码信令，输入待解码信令即可，不需要关心后续处理
 
+	char getKBCtrlKey()：获取键盘操作情况
+
+	char getMouseCtrlKey();获取鼠标操作情况
+
 */
 
 class ctrlMsgHandler
@@ -23,7 +27,13 @@ public:
 
 	void decodeMsg(int msgType, string msg);
 
+	char getKBCtrlKey();
+
+	char getMouseCtrlKey();
+
 private:
+
+	queue<char> KBQueue;
 
 	/*
 		单例模式
@@ -44,3 +54,6 @@ private:
 	};
 	static CGarbo garbo;
 };
+
+//控制信令处理模块：标记信令解码完毕，请中间件拿走转给渲染器
+static HANDLE hsKBCtrlMsg = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
