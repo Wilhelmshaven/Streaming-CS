@@ -30,10 +30,10 @@
     <ClCompile Include="camCap.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="crtlMsgHandler.cpp">
+    <ClCompile Include="middleWare.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="middleWare.cpp">
+    <ClCompile Include="ctrlMsgHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,10 +56,10 @@
     <ClInclude Include="camCap.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="crtlMsgHandler.h">
+    <ClInclude Include="middleWare.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="middleWare.h">
+    <ClInclude Include="ctrlMsgHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

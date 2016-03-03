@@ -65,14 +65,63 @@ static HANDLE hsCamCap = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
 */
 
 //网络模块：标记有新的RTSP信令信息来到
-extern HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+extern HANDLE hsRTSPMsgArrived;
 
 //网络模块：标记有新的控制信令信息来到
-extern HANDLE hsCtrlMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+extern HANDLE hsCtrlMsgArrived;
 
 //流媒体信令处理模块：标记有新的播放/停止播放请求，请RTP模块拿走会话号
-extern HANDLE hsPlaySession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
-extern HANDLE hsStopSession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+extern HANDLE hsPlaySession;
+extern HANDLE hsStopSession;
 
 //控制信令处理模块：标记信令解码完毕，请中间件拿走转给渲染器
-extern HANDLE hsKBCtrlMsg = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+extern HANDLE hsCtrlMsg;
+
+/*
+	各信令结构体与对应的常量表
+*/
+
+typedef struct allMsgHead
+{
+	WORD msgSize;
+	BYTE payloadType;
+	BYTE cks;
+	DWORD session;
+};
+
+enum payloadType
+{
+	KB_MSG = 1,
+	MOUSE_MSG = 2,
+	IMG_MSG = 3,
+};
+
+typedef struct mouseMsg
+{
+	BYTE msgType;
+	BYTE relativeMode;
+	BYTE isPressed;
+	BYTE mouseBtn;
+	WORD pointerX;
+	WORD pointerY;
+};
+
+typedef struct keyboardMsg
+{
+	BYTE msgType;
+	BYTE isPressed;
+	WORD virtualCode;
+	DWORD unicode;
+};
+
+typedef struct imgMsgHead
+{
+	WORD msgSize;
+	BYTE msgType;
+	BYTE msgFlag;
+	WORD imgRows;
+	WORD imgCols;
+	WORD imgChannels;
+	BYTE imgType;
+	BYTE payloadType;
+};

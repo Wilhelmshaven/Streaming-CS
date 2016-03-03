@@ -289,5 +289,6 @@ private:
 };
 
 //流媒体信令模块：标记有新的播放/停止播放请求，请RTP模块拿走会话号
-HANDLE hsPlaySession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
-HANDLE hsStopSession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+static HANDLE hsPlaySession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+
+static HANDLE hsStopSession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

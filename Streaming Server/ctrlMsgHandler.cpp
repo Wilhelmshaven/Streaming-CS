@@ -1,9 +1,6 @@
 /*--Author：李宏杰--*/
 
-#include "crtlMsgHandler.h"
-
-//加载中间件
-#include "middleWare.h"
+#include "ctrlMsgHandler.h"
 
 ctrlMsgHandler* ctrlMsgHandler::instance = new ctrlMsgHandler;
 
@@ -15,8 +12,23 @@ ctrlMsgHandler * ctrlMsgHandler::getInstance()
 /*
 	解码
 */
-void ctrlMsgHandler::decodeMsg(int msgType, string msg)
+void ctrlMsgHandler::decodeMsg(string msg)
 {
+	int msgType;
+
+	/*
+		先区分是键盘信令还是鼠标信令
+	*/
+
+	allMsgHead *publicHead = (allMsgHead *)&msg;
+
+	msgType = publicHead->payloadType;
+
+	delete(publicHead);
+
+	/*
+		根据信令类型处理
+	*/
 	switch (msgType)
 	{
 	case KB_MSG:
@@ -31,9 +43,11 @@ void ctrlMsgHandler::decodeMsg(int msgType, string msg)
 			发送字符给中间件转给渲染器
 		*/
 
-		KBQueue.push(key);
+		ctrlKeyQueue.push(key);
 
-		ReleaseSemaphore(hsKBCtrlMsg, 1, NULL);
+		ReleaseSemaphore(hsCtrlMsg, 1, NULL);
+
+		delete(kbMsg);
 
 		break;
 	}
@@ -48,23 +62,21 @@ void ctrlMsgHandler::decodeMsg(int msgType, string msg)
 	}
 }
 
-char ctrlMsgHandler::getKBCtrlKey()
+char ctrlMsgHandler::getCtrlKey()
 {
 	char key = 0;
 
-	if (!KBQueue.empty())
+	if (!ctrlKeyQueue.empty())
 	{
-		key = KBQueue.front();
+		key = ctrlKeyQueue.front();
 
-		KBQueue.pop();
+		ctrlKeyQueue.pop();
 	}
 
 	return key;
 }
 
-char ctrlMsgHandler::getMouseCtrlKey()
+ctrlMsgHandler::ctrlMsgHandler()
 {
-	//TODO：反正我现在不写……
 
-	return 0;
 }

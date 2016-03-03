@@ -4,55 +4,6 @@
 #include "CommonHeaders.h"
 
 /*
-	各信令结构体与对应的常量表
-*/
-
-typedef struct allMsgHead
-{
-	WORD msgSize;
-	BYTE payloadType;
-	BYTE cks;
-	DWORD session;
-};
-
-enum payloadType
-{
-	KB_MSG = 1,
-	MOUSE_MSG = 2,
-	IMG_MSG = 3,
-};
-
-typedef struct mouseMsg
-{
-	BYTE msgType;
-	BYTE relativeMode;
-	BYTE isPressed;
-	BYTE mouseBtn;
-	WORD pointerX;
-	WORD pointerY;
-};
-
-typedef struct keyboardMsg
-{
-	BYTE msgType;
-	BYTE isPressed;
-	WORD virtualCode;
-	DWORD unicode;
-};
-
-typedef struct imgHead
-{
-	WORD msgSize;
-	BYTE msgType;
-	BYTE msgFlag;
-	WORD imgRows;
-	WORD imgCols;
-	WORD imgChannels;
-	BYTE imgType;
-	BYTE payloadType;
-};
-
-/*
 	消息中间件
 	
 	使用：
@@ -79,9 +30,10 @@ private:
 		单例模式
 	*/
 
-	static mwMsg* instance;
 	mwMsg();
 
+	static mwMsg* instance;
+	
 	mwMsg(const mwMsg&);
 	mwMsg &operator=(const mwMsg&);
 	class CGarbo

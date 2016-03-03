@@ -13,7 +13,9 @@
 #include "rtspHandler.h"
 
 //加载控制信令处理模块
-#include "crtlMsgHandler.h"
+#include "ctrlMsgHandler.h"
+
+mwMsg* mwMsg::instance = new mwMsg;
 
 mwMsg * mwMsg::getInstance()
 {
@@ -29,6 +31,12 @@ void mwMsg::startMiddleWare()
 
 DWORD mwMsg::mwCtrlMsgThread(LPVOID lparam)
 {
+	cnctHandler *netModule = cnctHandler::getInstance();
+
+	ctrlMsgHandler *ctrlMsgModule = ctrlMsgHandler::getInstance();
+
+	string ctrlMsg;
+	char key;
 
 	while (1)
 	{
@@ -39,7 +47,21 @@ DWORD mwMsg::mwCtrlMsgThread(LPVOID lparam)
 			break;
 		}
 
-		//TODO：处理控制信令
+		//1.从网络模块拿信令
+		ctrlMsg = netModule->getCtrlMsg();
+
+		//2.丢给控制信令处理模块
+		ctrlMsgModule->decodeMsg(ctrlMsg);
+
+		//3.等解码好了，拿回来
+		key = 0;
+		if (WaitForSingleObject(hsCtrlMsg, INFINITE) == WAIT_OBJECT_0)
+		{
+			key = ctrlMsgModule->getCtrlKey();
+		}
+
+		//TODO!! 4.然后塞给渲染器
+
 	}
 
 	return 0;
@@ -84,4 +106,9 @@ DWORD mwMsg::mwRTSPMsgThread(LPVOID lparam)
 	}
 
 	return 0;
+}
+
+mwMsg::mwMsg()
+{
+
 }
