@@ -5,40 +5,51 @@
 
 /*
 	RTSP错误信息翻译器
+
 	使用：
+
+	rtspErrHandler(string filePath = "config/static/rtspErrCodeList.csv")：（可选）指定错误表相对地址创建翻译器
+
 	string getErrMsg(int code)：输入错误码，返回错误信息
 */
 class rtspErrHandler
 {
 public:
+
 	rtspErrHandler();
+
+	rtspErrHandler(string filePath = "config/static/rtspErrCodeList.csv");
 
 	//输出错误信息：输入错误码，返回错误信息字符串
 	string getErrMsg(int code);      
 
 private:
-	/*
-		rtsp错误消息文件的文件地址（相对地址）
-		TODO：可修改这里，以另行指定位置
-	*/
-	const string rtspErrFile = "config/static/rtspErrCodeList.csv";       
 
+	//rtsp错误消息文件的文件地址（相对地址）  
 	string settingFile;
-	void buildErrList();             //建立错误链接表，不考虑文件不存在或者内容不合格式了，只是为了减少代码量而已，也不多
 
-	map<int, string> errCodeList;    //错误链接表
+	//建立错误链接表，暂时就不考虑内容不合格式了
+	void buildErrList();             
+
+	//错误链接表：Key-Value Map
+	map<int, string> errCodeList;    
 };
 
 /*
 	NTP时间获取类
+
 	使用：
+
 	unsigned long getNTPTime()：返回NTP时间（距1900.1.1 00:00）
+
 	unsigned long getNTPTimeUnix()：返回UNIX版NTP时间（距1970.1.1 00:00）
 */
-class NTPTime
+class NTPTimeGenerator
 {
 public:
+
 	unsigned long getNTPTime();
+
 	unsigned long getNTPTimeUnix();
 };
 
@@ -57,7 +68,9 @@ public:
 	sdpEncoder();
 
 private:
-	NTPTime ntpTime;
+
+	NTPTimeGenerator ntpTime;
+
 	string sdpMsg;
 
 	//--Session description
@@ -101,17 +114,19 @@ private:
 class sessionGenerator
 {
 public:
+
 	sessionGenerator();
 
 	string getSessionID();
 
 private:
+
 	string session;
 	
-	NTPTime ntpTime;
+	NTPTimeGenerator ntpTime;
 };
 
-//为每一个客户端存储对应数据
+//为每一个客户端存储对应数据的结构体
 typedef struct PerClientData
 {
 	int streamingPort;
@@ -122,7 +137,8 @@ typedef struct PerClientData
 /*
 	客户端列表类
 
-	函数：
+	使用：
+
 	int addClient(unsigned long session, PerClientData clientInfo)：插入客户端，输入会话号和客户端信息结构体
 
 	unsigned long searchClient(unsigned long session)：查询客户端是否存在，输入会话号，返回会话号或0（不存在）
@@ -150,58 +166,98 @@ public:
 	clientList();
 
 private:
+
+	//Key-Value MAP
 	map<unsigned long, PerClientData> client;
 };
 
 /*
 	RTSP消息处理类
 
-	函数：
-	string getErrMsg(int code)：错误信息翻译器，输入错误码，返回错误代码所表示的信息
+	使用：
 
-	string getHandlerInfo()：获取rtsp处理器的相关信息，返回信息字符串
+	int srvConfig(string URI = "", unsigned int srvPort = 8554)：服务器设置函数，目前只能设置连接使用的端口号
 
 	string msgCodec(string msg)：编解码一体函数，输入客户端来的待解码信息，返回编码好的答复信息
 
-	int srvConfig(unsigned int srvPort)：服务器设置函数，目前只能设置连接使用的端口号
+	string getHandlerInfo()：获取rtsp处理器的相关信息，返回信息字符串
+
+	string getErrMsg(int code)：错误信息翻译器，输入错误码，返回错误代码所表示的信息
 
 	ps.
 	编码依赖解码结果，这与客户端有着比较大的区别
 	每个客户端的请求都不一样，所以要编解码一体（先这样吧，虽然我觉得还是可以拆开的）
+	也可以考虑用工厂模式处理
 
 	TODO：太多TODO了……
 */
 class rtspHandler
 {
 public:
+
 	static rtspHandler *getInstance();
 
-	string getErrMsg(int code);      //返回错误代码所表示的信息
-	string getHandlerInfo();         //获取rtsp处理器的相关信息
+	//编解码一体，输入待解码信息，返回编码好的答复，不负责发送
+	string msgCodec(string msg);
 
-	//只管编解码，不负责发送
-	string msgCodec(string msg);     //编解码一体，输入待解码信息，返回编码好的答复
+	//返回错误代码所表示的信息
+	string getErrMsg(int code);      
+
+	//获取rtsp处理器的相关信息
+	string getHandlerInfo();         
 
 	//设置服务器属性
-	int srvConfig(unsigned int srvPort);
+	int srvConfig(string URI = "", unsigned int srvPort = 8554);
+
+	//一个Session与客户端参数的对应表 
+	clientList clientManager;
 
 private:
-	string URI;                                //流媒体地址
-	string rtspVersion;                        //RTSP版本
-	unsigned int srvPort;                      //服务器端口
 
-	rtspErrHandler errHandler;                 //错误信息处理器
-	sdpEncoder sdpHandler;                     //SDP编码器
+	//服务器RTSP方法
+	vector<string> rtspMethod;                 
+	
+	//可用的服务器RTSP方法，与服务器RTSP方法数组对应
+	vector<bool> availableMethod;              	
 
-	vector<string> rtspMethod;                 //服务器rtsp方法
-	vector<bool> availableMethod;              //可用的服务器rtsp方法
+	/*
+		处理器信息（其实就是流媒体服务器信息了）
+	*/
 
-	clientList clientManager;                  //一个Session与客户端参数的对应表  
-	sessionGenerator sessGenerator;            //会话号生成器
+	//流媒体地址（！！目前没用上，不知道填啥）
+	string URI;   
+
+	//RTSP版本
+	string rtspVersion;  
+
+	//服务器端口
+	unsigned int srvPort;                      
+
+	/*
+		挂载其它小模块
+	*/
+
+	//错误信息处理器
+	rtspErrHandler errHandler;  
+
+	//SDP编码器
+	sdpEncoder sdpHandler;                             
+
+	//会话号生成器
+	sessionGenerator sessGenerator;            
+
+	/*
+		封装编码过程中重复的代码段/功能
+	*/
+
+	string generateCMDLine(int errCode);
+
+	string generateTimeLine();
 
 	/*
 		单例模式
 	*/
+
 	static rtspHandler *instance;              //单例
 	rtspHandler();                             //构造函数
 

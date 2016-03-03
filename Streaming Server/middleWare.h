@@ -53,24 +53,27 @@ typedef struct imgHead
 };
 
 /*
-	消息中间件：
-	从网络模块中取出消息，预处理后转给RTSP处理模块或控制信令处理模块
-	从RTSP处理模块中取出编码结果，交给网络模块
+	消息中间件
+	
+	使用：
+
+	请务必先调用startMiddleWare()启动本模块
+	关闭依赖于服务器关闭事件
 */
 
 class mwMsg
 {
 public:
+
 	static mwMsg* getInstance();
 
-	//统一的入口，返回值为0则表示不需要继续处理，否则表示还需要调用msgOut()方法获取回发需要的信令
-	int msgIn(string msg);
-
-	string msgOut();
+	void startMiddleWare();
 
 private:
 
+	static DWORD WINAPI mwCtrlMsgThread(LPVOID lparam);
 
+	static DWORD WINAPI mwRTSPMsgThread(LPVOID lparam);
 
 	/*
 		单例模式

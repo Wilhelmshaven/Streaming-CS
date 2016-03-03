@@ -8,7 +8,15 @@
 */
 rtspErrHandler::rtspErrHandler()
 {
-	settingFile = rtspErrFile;    //To do: change var->rtspErrFile
+	settingFile = "config/static/rtspErrCodeList.csv";
+
+	buildErrList();
+}
+
+rtspErrHandler::rtspErrHandler(string filePath)
+{
+	settingFile = filePath;
+
 	buildErrList();
 }
 
@@ -36,20 +44,31 @@ void rtspErrHandler::buildErrList()
 	}
 	else
 	{
-		//成功打开文件，一直读取到文件结束
-		//按行读取并解析
+		/*
+			成功打开文件，则一直读取到文件结束
+			按行读取并解析
+		*/
 		while (!fileStream.eof())
 		{
 			getline(fileStream, buf);
 
-			//Bug fix：如果表尾有空行，后面会报错
-			if (buf.empty())break;
+			//已修复：如果表尾有空行，后面会报错
+			if (buf.empty() || buf.find_first_not_of(' ') == string::npos)
+			{
+				break;
+			}
+
+			/*
+				有内容，则解析之，先找逗号位置，前后分别处理
+			*/
 
 			commaPos = buf.find(',');
-			errCode = stoi(buf, nullptr, 10);
 
-			msg = buf.substr(commaPos + 1, buf.length() - code.length());
+			errCode = stoi(buf.substr(0, commaPos), nullptr, 10);
 
+			msg = buf.substr(commaPos + 1, buf.length() - commaPos);
+
+			//插入Key-Value对
 			errCodeList.insert(make_pair(errCode, msg));
 		}
 	}
@@ -81,7 +100,7 @@ string rtspErrHandler::getErrMsg(int code)
 	函数：获取NTP时间（距1900.1.1 00:00:00）
 	返回unsigned long格式的时间（单位：秒）
 */
-unsigned long NTPTime::getNTPTime()
+unsigned long NTPTimeGenerator::getNTPTime()
 {
 	SYSTEMTIME sysTime;
 	GetSystemTime(&sysTime);
@@ -112,7 +131,7 @@ unsigned long NTPTime::getNTPTime()
 	获取NTP时间（Unix版本）（距1970.1.1 00:00:00）
 	返回unsigned long格式的时间（单位：秒）
 */
-unsigned long NTPTime::getNTPTimeUnix()
+unsigned long NTPTimeGenerator::getNTPTimeUnix()
 {
 	unsigned long time = 0;
 
@@ -168,7 +187,7 @@ string sdpEncoder::encodeMsg()
 		k = *(encryption key)
 		a = *(zero or more media attribute lines)
 
-		An example SDP description is :
+		*****An example SDP description is :*****
 
 		v = 0
 		o = mhandley 2890844526 2890842807 IN IP4 126.16.64.4
@@ -185,21 +204,21 @@ string sdpEncoder::encodeMsg()
 		a = orient:portrait
 	*/
 
-	string tmp;
-
 	owner = "o=guest " + to_string(ntpTime.getNTPTimeUnix()) + " " + to_string(ntpTime.getNTPTimeUnix()) + " " + "IN IP4 www.rayion.com\r\n";
 
 	sessionName = "s=streaming Test\r\n";
 
-	timeActive = "t=" + to_string(ntpTime.getNTPTimeUnix()) + " 0\r\n";
+	timeActive = "t=" + to_string(ntpTime.getNTPTimeUnix()) + " \r\n";
 
 	sdpMsg = proVer + owner + sessionName + timeActive;
+
+	//去掉末尾多余的空格
+	sdpMsg = sdpMsg.substr(0, sdpMsg.rfind('\n'));
 
 	return sdpMsg;
 }
 
 /*----------------------随机会话号生成器---------------------*/
-//初始化
 sessionGenerator::sessionGenerator()
 {
 	session.resize(9);
@@ -211,16 +230,17 @@ sessionGenerator::sessionGenerator()
 
 	TODO：
 	使用时间戳是否合理？时间戳能保证唯一性么？是否有必要写个真正的随机？
-	临时的措施是：使用Sleep(1000)来保证唯一，但是这样1秒就只能分配一个会话号了
+	临时的措施是：使用Sleep(X)来保证唯一，但是这样每个X秒才能分配一个会话号了
 */
 string sessionGenerator::getSessionID()
 {
 	unsigned long time = ntpTime.getNTPTimeUnix();
 
+	//要进行进制转换，必然是得sprintf_s的节奏？
 	sprintf_s((char *)session.data(), 9, "%X", time);
 
 	//临时措施，保证会话号唯一
-	Sleep(1000);
+	Sleep(50);
 
 	return session;
 }
@@ -289,6 +309,7 @@ unsigned long clientList::searchClient(unsigned long session)
 PerClientData clientList::getClientInfo(unsigned long session)
 {
 	map<unsigned long, PerClientData>::iterator iter;
+
 	iter = client.find(session);
 
 	if (iter != client.end())
@@ -317,14 +338,14 @@ int clientList::removeClient(unsigned long session)
 }
 
 /*----------------------RTSP连接处理器---------------------*/
-//直接初始化
+
 rtspHandler *rtspHandler::instance = new rtspHandler();
 
 /*
 	构造函数
 
 	默认值：
-	RTSP版本号为1.0
+	RTSP版本号为1.0，端口号为8554
 	可用RTSP方法，直接写死了
 	目前可用的方法是，OPTIONS，DESCRIBE，SETUP，PLAY，GET_PARAMETER，TEARDOWN
 */
@@ -336,13 +357,19 @@ rtspHandler::rtspHandler()
 	//URI要固定下来，直接获取服务器地址信息并设定好，用于解码校验
 	//URI = "";
 
-	//可用的RTSP方法，不人工设置了，直接写死可好？
+	srvPort = 8554;
+
+	/*
+		可用的RTSP方法，不人工设置了，直接写死可好？
+		先全部设置为假，后面把可用的调为真
+		TODO：增删这里的条目，已设置可用方法，或是写一个函数设置
+	*/
+
 	rtspMethod = { "", "OPTIONS","DESCRIBE","SETUP","PLAY","GET_PARAMETER","PAUSE","TEARDOWN","ANNOUNCE","RECORD","REDIRECT","SET_PARAMETER" };
 	availableMethod.resize(rtspMethod.size());
+
 	for (int i = 0; i < availableMethod.size(); ++i)availableMethod[i] = false;
 
-	//开始设置可用的方法
-	//TODO：增删这里的条目，已设置可用方法，或是写一个函数设置
 	availableMethod[OPTIONS] = true;
 	availableMethod[DESCRIBE] = true;
 	availableMethod[SETUP] = true;
@@ -355,7 +382,7 @@ rtspHandler::rtspHandler()
 	函数：设置服务器属性，返回值为0
 	目前只需要设置端口号
 */
-int rtspHandler::srvConfig(unsigned int srvPort)
+int rtspHandler::srvConfig(string URI, unsigned int srvPort)
 {
 	this->srvPort = srvPort;
 
@@ -389,24 +416,27 @@ string rtspHandler::getHandlerInfo()
 }
 
 /*
-	函数：编解码
+	编解码方法
+
+	160303，核验确认逻辑上没有任何问题
 */
 string rtspHandler::msgCodec(string msg)
 {
 	string response;
 
 	string request, URI, rtspVersion, seqNum;
-	string paddingMsg;
-	string tmp;
 
-	/*样例信息*/
+	string paddingMsg, tmp;
+
 	/*
+		样例信息：
+
 		PLAY rtsp://example.com/test.mp3 RTSP/1.0
 		CSeq: 302
 		Session: 12345678
 		Range: npt=0.000-
 
-		that is->
+		结构可归纳为：
 
 		CMD URI Version
 		CSeq: int
@@ -414,32 +444,22 @@ string rtspHandler::msgCodec(string msg)
 	*/
 
 	/*
-		1.获得指令
+		循环解析大法：截取信令第一个字段->去掉第一个字段
+
+		info = msg.substr(0,msg.find(空格或换行);
+		msg=msg.substr(info.length()+1或者2);
 	*/
+
+	/*
+		1.获得指令，并且转为数字编号
+	*/
+
 	request = msg.substr(0, msg.find(' '));
 	
-	/*
-		2.获得URI地址和RTSP版本号
-	*/
-	tmp = msg.substr(request.length());
-	rtspVersion = tmp.substr(tmp.find(' '));
-	URI = tmp.substr(0, tmp.find(' '));
+	msg = msg.substr(request.length() + 1);
 
-	//Todo:检查URI是否合法，不合法则返回相应错误信息（404,Not Found）
-
-	/*
-		3. 获得会话号
-		直接复制整行就行，并不关心具体是多少，原样转回即可
-		注意要留下\r\n（当然也可以要么就都不留，改成find \r，而不是find \n + 1)\）
-	*/
-	tmp = msg.find("CSeq");
-	seqNum = tmp.substr(0, tmp.find('\n') + 1);
-
-	/*
-		4. 获得PADDING信息
-		把指令转成数字
-	*/
 	int req;
+
 	for (int i = 0; i < rtspMethod.size(); ++i)
 	{
 		if (request == rtspMethod[i])
@@ -450,18 +470,41 @@ string rtspHandler::msgCodec(string msg)
 	}
 
 	/*
-		5.根据指令做出针对性解析与答复
+		2.获得URI地址和RTSP版本号
+		残余部分到第一个空格之间为URI
+		裁掉URI，残余部分到第一个换行之间为版本号
+
+		Todo:
+		检查URI是否合法，不合法则返回相应错误信息（404,Not Found）
+	*/
+
+	URI = msg.substr(0, msg.find(' '));
+
+	msg = msg.substr(URI.length() + 1);
+
+	rtspVersion = msg.substr(0, msg.find('\r'));
+
+	msg = msg.substr(rtspVersion.length() + 2);
+
+	/*
+		3. 获得序列号
+		注意：服务器其实根本不需要具体编号为多少，只需要把这一行原样返回即可
+		所以整行复制
+	*/
+
+	seqNum = msg.substr(0, msg.find('\n') + 1);
+
+	msg = msg.substr(seqNum.length());
+
+	/*
+		4. 获得PADDING信息，根据指令类型做出针对性解析与答复
+		!!也就是说，下面编解码一起了
 	*/
 
 	//回令的错误码，初始化为200：OK
-	int errCode;   
-	errCode = 200; 
+	int errCode = 200; 
 
-	paddingMsg = msg.find(msg.find(seqNum) + seqNum.length());
-	
-	//先写命令行，版本号加错误代码和错误消息
-	string cmdLine;
-	cmdLine = "RTSP/" + rtspVersion + " ";
+	paddingMsg = msg;
 
 	//根据指令分类处理
 	switch (req)
@@ -483,8 +526,15 @@ string rtspHandler::msgCodec(string msg)
 			CSeq: 1
 			Public: DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE
 		*/
-		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
-		response = cmdLine + seqNum;
+
+		//TODO：其它错误情况？
+
+		response = generateCMDLine(errCode) + seqNum;
+
+		if (errCode != 200)
+		{
+			break;
+		}
 		
 		//返回可用方法
 		tmp = "Public: ";
@@ -537,36 +587,40 @@ string rtspHandler::msgCodec(string msg)
 			a=orient:portrait
 		*/
 
-		//首先检查资源是否存在，这块写一个函数
+		/*
+			TODO：首先检查资源是否存在，这块就在这里一个函数
+		*/
 
-		//然后解析客户端是否接受SDP
-		//不接受就直接返回错误，接受就编码回发SDP信息
-		if (paddingMsg.find("sdp") == string::npos)errCode = 406;  //406: Not Acceptable
+		/*
+			然后解析客户端是否接受SDP
+			不接受就直接返回错误，接受就编码回发SDP信息
+		*/
 
-		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
-		response = cmdLine + seqNum;
+		if (paddingMsg.find("sdp") == string::npos)
+		{
+			//406: Not Acceptable
+			errCode = 406;  
+		}
 
-		if (errCode != 200)break;
+		response = generateCMDLine(errCode) + seqNum;
+
+		if (errCode != 200)
+		{
+			break;
+		}
 
 		//下面是正常的信息内容
 
-		//日期，类型，长度  “Date: 23 Jan 1997 15:35:06 GMT”
-		SYSTEMTIME sysTime;
-		GetSystemTime(&sysTime);
+		//填写日期
+		response += generateTimeLine();
 
-		tmp.resize(BUF_SIZE);
-		sprintf_s((char *)tmp.data(), BUF_SIZE, "Date: %02d %s %s %02d:%02d:%02d GMT\r\n",
-			sysTime.wDay, sysTime.wMonth, sysTime.wYear, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
-		tmp = tmp.substr(0, tmp.rfind('\n'));
-		tmp += "Content-Type: application/sdp\r\nContent-Length: ";
+		/*
+			下面是SDP信息
+		*/
 
-		response += tmp;
-
-		//下面是SDP信息
 		tmp = sdpHandler.encodeMsg();
-		response = response + to_string(tmp.length()) + "\r\n\r\n";
 
-		response += tmp;
+		response = response + "Content-Type: application/sdp\r\nContent-Length: " + to_string(tmp.length()) + "\r\n\r\n" + tmp;
 
 		break;
 	}
@@ -587,45 +641,55 @@ string rtspHandler::msgCodec(string msg)
 			Transport : RTP / AVP; unicast;
 			client_port = 4588 - 4589; server_port = 6256 - 6257
 		*/
-		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
-		response = cmdLine + seqNum;
 
-		if (errCode != 200)break;
+		//TODO：其它错误情况？
+
+		response = generateCMDLine(errCode) + seqNum;
+
+		if (errCode != 200)
+		{
+			break;
+		}
 
 		//填写日期
-		SYSTEMTIME sysTime;
-		GetSystemTime(&sysTime);
+		response += generateTimeLine();
 
-		tmp.resize(BUF_SIZE);
-		sprintf_s((char *)tmp.data(), BUF_SIZE, "Date: %02d %s %s %02d:%02d:%02d GMT\r\n",
-			sysTime.wDay, sysTime.wMonth, sysTime.wYear, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
-		tmp = tmp.substr(0, tmp.rfind('\n'));
+		/*
+			生成会话号Session
+		*/
 
-		response += tmp;
-
-		//生成会话号Session
-		unsigned long session;
 		tmp = sessGenerator.getSessionID();
-		session = stol(tmp);
-		tmp = "Session: " + tmp + "\r\n";
-		response += tmp;
 
-		//首先解析客户端请求的传送方式和端口号，然后回发会话号
-		string transport = paddingMsg;
+		unsigned long session = stol(tmp);
+
+		response = response + "Session: " + tmp + "\r\n";
+
+		/*
+			首先解析客户端请求的传送方式和端口号，保存客户端连接信息，然后回发会话号
+			还有个关键是……
+			解析的信息是RTP包才用的，不过现在不用了，先存着吧
+			然后，这里作为信令部分，整行复制返回即可
+		*/
 
 		PerClientData clientData;
 
-		tmp = transport.substr(transport.rfind("="), transport.rfind("-"));
-		clientData.streamingPort = stoi(tmp);
+		//解析出客户端端口
+		clientData.streamingPort = stoi(msg.substr(msg.rfind("="), msg.rfind("-")));
 
-		if (transport.find("UDP") != string::npos)clientData.enableUDP = true;
-		else clientData.enableUDP = false;
+		//确定是否用UDP
+		if (msg.find("UDP") != string::npos)
+		{
+			clientData.enableUDP = true;
+		}
+		else
+		{
+			clientData.enableUDP = false;
+		}
 
-		transport = transport + "server_port: " + to_string(srvPort) + "-" + to_string(srvPort + 1) + "\r\n";
-		response += transport;
-
-		//以及，加入客户端列表
+		//把客户端加入列表中
 		clientManager.addClient(session, clientData);
+
+		response = response + msg + "; server_port: " + to_string(srvPort) + "-" + to_string(srvPort + 1) + "\r\n";		
 		
 		break;
 	}
@@ -645,32 +709,37 @@ string rtspHandler::msgCodec(string msg)
 			Date: 23 Jan 1997 15:35:06 GMT
 		*/
 
-		//首先解析Session，判断是否合法，不合法返回相应错误454,Session Not Found
-		tmp = paddingMsg.substr(paddingMsg.find("Session:") + 8);
-		unsigned long session = stol(tmp);
-		session = clientManager.searchClient(session);
-		if (session != 0)
+		/*
+			首先解析Session，判断是否合法
+			不合法返回相应错误：454,Session Not Found
+		*/
+
+		unsigned long session = stol(msg.substr(msg.find("Session:") + 8));
+
+		if (clientManager.searchClient(session) != 0)
 		{
-			tmp = paddingMsg.substr(paddingMsg.find("Session"));
-			tmp = tmp.substr(0, tmp.find("\n"));
+			/*
+				TODO：会话号正确，这里就应该调用播放器播放了
+
+				在现在的设计下，PLAY信令的含义为，使得服务端能够与该客户端进行播放行为，响应按键放图
+				所以这里TMD啥都不用写……事实上SETUP之后就可以交互了……
+			*/
+
 		}
-		else errCode = 454;
+		else
+		{
+			errCode = 454;
+		}
 
-		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
-		response = cmdLine + seqNum;
+		response = generateCMDLine(errCode) + seqNum;
 
-		if (errCode != 200)break;
+		if (errCode != 200)
+		{
+			break;
+		}
 
 		//填写日期
-		SYSTEMTIME sysTime;
-		GetSystemTime(&sysTime);
-
-		tmp.resize(BUF_SIZE);
-		sprintf_s((char *)tmp.data(), BUF_SIZE, "Date: %02d %s %s %02d:%02d:%02d GMT\r\n",
-			sysTime.wDay, sysTime.wMonth, sysTime.wYear, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
-		tmp = tmp.substr(0, tmp.rfind('\n'));
-
-		response += tmp;
+		response += generateTimeLine();
 
 		break;
 	}
@@ -688,15 +757,26 @@ string rtspHandler::msgCodec(string msg)
 			CSeq: 892
 		*/
 
-		//断开连接
-		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
-		response = cmdLine + seqNum;
+		/*
+			终于想到一种错误情况……你不能TEARDOWN一个不存在的会话啊
+			454,Session Not Found
+		*/
 
-		if (errCode != 200)break;
+		unsigned long session = stol(msg.substr(paddingMsg.find("session") + 8));
+
+		if (clientManager.searchClient(session) == 0)
+		{
+			errCode = 454;
+		}
+
+		response = generateCMDLine(errCode) + seqNum;
+
+		if (errCode != 200)
+		{
+			break;
+		}
 
 		//移除客户端信息
-		unsigned long session;
-		session = stol(paddingMsg.substr(paddingMsg.find("session") + 8));
 		clientManager.removeClient(session);
 
 		break;
@@ -704,14 +784,48 @@ string rtspHandler::msgCodec(string msg)
 	default:
 	{
 		//能进到这里说明方法不可用嘛，所以呢……405,Method Not Allowed
+
 		errCode = 405;
 
-		cmdLine += to_string(errCode) + " " + errHandler.getErrMsg(errCode) + "\r\n";
-		response = cmdLine + seqNum;
+		response = generateCMDLine(errCode) + seqNum;
 
 		break;
 	}
 	}
 
+	/*
+		由于之前有些地方直接开大缓存存信令
+		所以最后要加上一步，即去掉多余的后缀空格
+	*/
+	response = response.substr(0, response.rfind('\n'));
+
 	return response;
+}
+
+//生成时间："Date: 23 Jan 1997 15:35:06 GMT"
+string rtspHandler::generateTimeLine()
+{
+	string msg;
+
+	SYSTEMTIME sysTime;
+	GetSystemTime(&sysTime);
+
+	msg.resize(BUF_SIZE);
+
+	sprintf_s((char *)msg.data(), BUF_SIZE, "Date: %02d %s %s %02d:%02d:%02d GMT\r\n",
+		sysTime.wDay, sysTime.wMonth, sysTime.wYear, sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
+
+	msg = msg.substr(0, msg.rfind('\n'));
+
+	return msg;
+}
+
+//生成命令行（第一行）：版本号+错误码+错误信息
+string rtspHandler::generateCMDLine(int errCode)
+{
+	string msg;
+
+	msg = "RTSP/" + rtspVersion + " " + to_string(errCode) + " " + getErrMsg(errCode) + "\r\n";
+
+	return msg;
 }
