@@ -28,6 +28,8 @@ void imgBuffer::pushBuffer(imgHead head, vector<int> img)
 	matrix.convertTo(matrix, head.imgType);
 
 	imgQueue.push(matrix);
+
+	ReleaseSemaphore(hsPlayBuffer, 1, NULL);
 }
 
 bool imgBuffer::popBuffer(Mat &img)

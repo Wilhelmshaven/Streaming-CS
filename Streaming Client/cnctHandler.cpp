@@ -167,6 +167,15 @@ void cnctHandler::showSrvInfo()
 	cout << endl;
 }
 
+int cnctHandler::sendMessage(string msg)
+{
+	int bytesSent = 0;
+
+	bytesSent = send(srvSocket, msg.c_str(), msg.length(), NULL);
+
+	return bytesSent;
+}
+
 cnctHandler::~cnctHandler()
 {
 	closesocket(srvSocket);

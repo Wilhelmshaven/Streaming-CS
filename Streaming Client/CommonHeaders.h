@@ -72,13 +72,77 @@ const string rtspErrFile = "config/static/rtspErrCodeList.csv";    //rtsp´íÎóÏûÏ
 	¸÷Ä£¿éÊÇÃ»°ì·¨ÖªµÀÇ°Ò»¸öÄ£¿éÊ²Ã´Ê±ºòÓĞĞÅÏ¢¹ıÀ´µÄ
 	ËùÒÔĞÅºÅÁ¿¾ÍÊÇ±ØĞèÆ·ÁË
 
-	Ê¹ÓÃ£º
-	¸÷Ä£¿éÓĞÊı¾İºó£¬»áÊ¹¶ÔÓ¦µÄĞÅºÅÁ¿×ÔÔö£»
-	¶øĞÅºÅÁ¿µÄ×Ô¼õ£¬ÓÉÓÃ»§Íê³É
-
 	TODO£ºÒÔºó¿ÉÒÔ¸Ä³É×¨ÃÅµÄCtrl CenterÀ´¹ÜÀí
 */
-static HANDLE hsPlayer = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
-static HANDLE hsMiddleWare = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
-static HANDLE hsMsgHandler = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
-static HANDLE hsMonitor = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+
+//²¥·ÅÆ÷Ä£¿é£º»ñÈ¡µ½ÁË²Ù×÷£¬Í¨ÖªÖĞ¼ä¼şÈ¡×ß
+extern HANDLE hsNewCtrlKey;
+
+//Ã½Ìå»º´æÄ£¿é£º±ê¼ÇÓĞÍ¼ÏñÁË£¬ÇëÈ¡×ß²¥·Å
+extern HANDLE hsPlayBuffer;
+
+/*
+	¸÷ĞÅÁî½á¹¹ÌåÓë¶ÔÓ¦µÄ³£Á¿±í
+*/
+
+//ĞÅÁî¹«¹²Í·½á¹¹
+typedef struct allMsgHead
+{
+	WORD msgSize;
+	BYTE payloadType;
+	BYTE cks;
+	DWORD session;
+};
+
+//ĞÅÁî¹«¹²Í·ÔØºÉÀàĞÍ×Ö¶Î±í
+enum payloadType
+{
+	KB_MSG = 1,
+	MOUSE_MSG = 2,
+	IMG_MSG = 3,
+};
+
+//Êó±êĞÅÁîÍ·½á¹¹
+typedef struct mouseMsg
+{
+	BYTE msgType;
+	BYTE relativeMode;
+	BYTE isPressed;
+	BYTE mouseBtn;
+	WORD pointerX;
+	WORD pointerY;
+};
+
+//¼üÅÌĞÅÁîÍ·½á¹¹
+typedef struct keyboardMsg
+{
+	BYTE msgType;
+	BYTE isPressed;
+	WORD virtualCode;
+	DWORD unicode;
+};
+
+//Í¼Æ¬Í·½á¹¹
+typedef struct imgMsgHead
+{
+	WORD msgSize;
+	BYTE msgType;
+	BYTE msgFlag;
+	WORD imgRows;
+	WORD imgCols;
+	WORD imgChannels;
+	BYTE imgType;
+	BYTE payloadType;
+};
+
+enum keyboardLayout
+{
+	KB_ENG = 1,
+};
+
+enum keyboardState
+{
+	KB_PRESS = 1,
+	KB_RELEASE = 2,
+	KB_CLICK = 3,
+};

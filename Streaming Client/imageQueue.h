@@ -108,3 +108,6 @@ private:
 	};
 	static CGarbo Garbo;
 };
+
+//媒体缓存模块：标记有图像了，请取走播放
+static HANDLE hsPlayBuffer = CreateSemaphore(NULL, 0, BUF_SIZE, NULL); 

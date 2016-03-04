@@ -17,9 +17,7 @@
 
 	使用：
 
-	void pushCtrlKey(char unicode)：播放器模块向中间件输入Unicode形式的按键
-
-	char getCtrlKey()：向信令控制模块返回Unicode形式的按键
+	startMiddleWare()：启动中间件
 
 */
 class mwPlayCtrl
@@ -28,14 +26,17 @@ public:
 	
 	static mwPlayCtrl* getInstance();
 
-	//注意，输入为Unicode
-	void pushCtrlKey(char unicode);
-
-	char getCtrlKey();
+	void startMiddleWare();
 
 private:
 
-	queue<char> ctrlKeyQueue;
+	/*
+		线程，控制流与数据流什么的
+	*/
+
+	static DWORD WINAPI mwCtrlMsgThread(LPVOID lparam);
+
+	static DWORD WINAPI mwMediaThread(LPVOID lparam);
 
 	/*
 		单例模式相关

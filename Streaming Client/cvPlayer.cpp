@@ -2,14 +2,12 @@
 
 #include "cvPlayer.h"
 
-//加载中间件
-#include "middleWare.h"
-
 //类内静态成员变量定义
 HANDLE cvPlayer::hEventStart;
 HANDLE cvPlayer::hEventShutdown;
 HANDLE cvPlayer::hEventDestroy;
 int cvPlayer::frameRate;
+queue<char> cvPlayer::cmdQueue;
 
 cvPlayer* cvPlayer::instance = new cvPlayer;
 
@@ -42,16 +40,23 @@ void cvPlayer::destroyPlayer()
 	SetEvent(hEventStart);
 }
 
-cvPlayer::~cvPlayer()
+char cvPlayer::getCtrlKey()
 {
+	char key = 0;
 
+	if (!cmdQueue.empty())
+	{
+		key = cmdQueue.front();
+
+		cmdQueue.pop();
+	}
+
+	return key;
 }
 
 DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 {
 	imgBuffer *imgBuf = imgBuffer::getInstance();
-
-	mwPlayCtrl *midWare = mwPlayCtrl::getInstance();
 
 	while (1)
 	{
@@ -111,10 +116,10 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 			int key = waitKey(frameRate);
 			if (key != -1)
 			{
-				//有输入，转发指令，通过中间件实现
-				midWare->pushCtrlKey(key);
+				//有输入，则通知中间件来取走
+				cmdQueue.push(key);
 
-				ReleaseSemaphore(hsPlayer, 1, NULL);
+				ReleaseSemaphore(hsNewCtrlKey, 1, NULL);
 			}
 		}
 

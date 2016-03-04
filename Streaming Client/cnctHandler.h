@@ -50,6 +50,7 @@ typedef struct serverList
 class cnctHandler
 {
 public:
+
 	WSADATA wsaData;
 
 	static cnctHandler *getInstance();
@@ -64,7 +65,9 @@ public:
 
 	serverList* getSrvStruct();
 
-	void showSrvInfo();                 
+	void showSrvInfo();         
+
+	int sendMessage(string msg);
 
 	~cnctHandler();
 

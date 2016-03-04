@@ -30,10 +30,13 @@ using namespace cv;
 	void shutdown()：关闭播放器（但仍可以重启）
 
 	void destroyPlayer()：摧毁播放器，顾名思义，调用以后你再也不能重启播放器了，只能重启客户端
+
+	char getCtrlKey()：返回用户输入的按键
 */
 class cvPlayer
 {
 public:
+
 	static cvPlayer* getInstance();
 
 	void play();
@@ -44,9 +47,12 @@ public:
 
 	void destroyPlayer();
 
-	~cvPlayer();
+	static char getCtrlKey();
 
 private:
+
+	//控制指令队列
+	static queue<char> cmdQueue;
 
 	//帧率（这里的意义是两帧之间间隔的毫秒数，即帧率的倒数）
 	static int frameRate;
@@ -88,3 +94,6 @@ private:
 	};
 	static CGarbo Garbo;
 };
+
+//播放器模块：获取到了操作，通知中间件取走
+static HANDLE hsNewCtrlKey = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

@@ -138,3 +138,15 @@ typedef struct imgMsgHead
 	BYTE imgType;
 	BYTE payloadType;
 };
+
+enum keyboardLayout
+{
+	KB_ENG = 1,
+};
+
+enum keyboardState
+{
+	KB_PRESS = 1,
+	KB_RELEASE = 2,
+	KB_CLICK = 3,
+};
