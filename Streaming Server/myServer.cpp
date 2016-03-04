@@ -5,12 +5,15 @@
 /*
 	加载各个模块
 */
-//1.摄像头采集模块：采集图像
-#include "camCap.h"
-//2.图像队列模块（包括图片缓存）：把图像装入图像队列
-#include "imageQueue.h"
-//3.连接处理模块（Winsock）：发出图像，收发信令
+
+//加载网络模块，启动之
 #include "cnctHandler.h"
+
+//加载中间件，启动之
+#include "middleWare.h"
+
+//加载摄像头，启动之
+#include "camCap.h"
 
 /*
 	专门输出前置提示信息
@@ -28,48 +31,31 @@ myMessage::myMessage()
 };
 const myMessage myMsg;
 
-
-UINT sendImgQueue();                   //发送图像线程？
-
 //================================= MAIN =================================//
 int main(int argc, char *argv[])
 {	
 	/*------------------------------建立连接--------------------------*/
-	//初始化Winsock，版本2.2
-	//WSADATA wsaData;
-	//WSAStartup(MAKEWORD(2, 2), &wsaData);
+	
+	//启动网络模块
+	cnctHandler *networkModule = cnctHandler::getInstance();
+	networkModule->startServer();
 
-	////获得单例
-	//cnctHandler *mySrv = cnctHandler::getInstance();
+	//启动中间件
+	mwMsg *middleWare = mwMsg::getInstance();
+	middleWare->startMiddleWare();
 
-	//mySrv->startServer();
+	//启动摄像头
+	camCap *camera = camCap::getInstance();
+	camera->startCapture();
 
-	camCap *test = camCap::getInstance();
+	//TODO：启动……
 
-	test->startCapture();
-	//Sleep(5000);
-	//test->showImg();
-	Sleep(5000);
-	cout << test->getHeight();
-	test->stopCapture();
-	Sleep(5000);
-	test->startCapture();
-	Sleep(5000);
-	test->showImg();
-	Sleep(5000);
-	test->stopCapture();
-	//vector<int> img;
-
-	//test->writeBuf(&img);
+	
 
 
 	WaitForSingleObject(hSrvShutdown, INFINITE);
 
+	//TODO：一系列善后处理
+
 	return 0;
 }
-
-UINT sendImgQueue()
-{
-	return 0;
-}
-

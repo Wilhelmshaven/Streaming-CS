@@ -33,9 +33,12 @@ void imgBuffer::pushBuffer(Mat img)
 		把OpenCV的Mat矩阵转为一维数组
 		连续性：有时行末会补上一定的间隙，以满足譬如是4或者8的倍数的要求（内存对齐）
 	*/
-	image.img= img.reshape(1, 1);
+	image.img = img.reshape(1, 1);
 
 	imgQueue.push(image);
+
+	//激活信号量
+	ReleaseSemaphore(hsImageReady, 1, NULL);
 }
 
 bool imgBuffer::popBuffer(imgHead & head, vector<int> & img)

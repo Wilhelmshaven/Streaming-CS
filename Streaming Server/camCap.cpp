@@ -2,7 +2,7 @@
 
 #include "camCap.h"
 
-//加载图像缓存模块（中间件）
+//加载图像缓存模块
 #include "imageQueue.h"
 
 //类内静态成员变量定义
@@ -10,6 +10,7 @@ HANDLE camCap::hEventStartCap;
 HANDLE camCap::hEventShutDown;
 HANDLE camCap::hEventShowImg;
 Mat camCap::cvFrame;
+queue<char> camCap::cmdQueue;
 
 /*
 	初始化摄像头处理模块的单例
@@ -118,6 +119,13 @@ void camCap::showImg()
 	}
 }
 
+void camCap::render(char cmd)
+{
+	cmdQueue.push(cmd);
+
+	ReleaseSemaphore(hsRender, 1, NULL);
+}
+
 camCap::~camCap()
 {
 	SetEvent(hEventShutDown);
@@ -183,14 +191,41 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 			}
 
 			/*
-				Important!是不停的发送还是客户端操控后才发送？
-				按照VR的模式，客户没有转变视角时，可以暂停发送的
-				这里就按照这个实现
-				接收到客户端指令后，推出图像
+				接收到客户端指令后，做相关变换，推出图像
 				通过信号量控制
 			*/
-			if (WaitForSingleObject(hsMsgHandler, 0) == WAIT_OBJECT_0)
-			{
+			if (WaitForSingleObject(hsRender, 0) == WAIT_OBJECT_0)
+			{	
+				char key = 0;
+				if (!cmdQueue.empty())
+				{
+					key = cmdQueue.front();
+
+					cmdQueue.pop();
+				}
+
+				//根据指令对图像做一些小变换
+				switch (key)
+				{
+				case 'a':
+				{
+					Size s;
+					resize(cvFrame, cvFrame, s, 0.5, 0.5);
+
+					break;
+				}
+				case 'd':
+				{
+					Size s;
+					resize(cvFrame, cvFrame, s, 1.5, 1.5);
+
+					break;
+				}
+				default:
+					break;
+				}
+
+				//将变换好的图像塞入缓存
 				imgBuf->pushBuffer(cvFrame);
 			}
 

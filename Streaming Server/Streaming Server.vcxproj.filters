@@ -36,6 +36,9 @@
     <ClCompile Include="ctrlMsgHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="crc8.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="myServer.h">
@@ -60,6 +63,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="ctrlMsgHandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="crc8.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

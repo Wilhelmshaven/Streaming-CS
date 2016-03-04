@@ -15,6 +15,12 @@
 //加载控制信令处理模块
 #include "ctrlMsgHandler.h"
 
+//加载摄像头（模拟渲染器）模块
+#include "camCap.h"
+
+//加载图像缓存
+#include "imageQueue.h"
+
 mwMsg* mwMsg::instance = new mwMsg;
 
 mwMsg * mwMsg::getInstance()
@@ -34,6 +40,10 @@ DWORD mwMsg::mwCtrlMsgThread(LPVOID lparam)
 	cnctHandler *netModule = cnctHandler::getInstance();
 
 	ctrlMsgHandler *ctrlMsgModule = ctrlMsgHandler::getInstance();
+
+	camCap *renderer = camCap::getInstance();
+
+	imgBuffer *imgBuf = imgBuffer::getInstance();
 
 	string ctrlMsg;
 	char key;
@@ -60,8 +70,23 @@ DWORD mwMsg::mwCtrlMsgThread(LPVOID lparam)
 			key = ctrlMsgModule->getCtrlKey();
 		}
 
-		//TODO!! 4.然后塞给渲染器
+		//4.然后塞给渲染器
+		renderer->render(key);
 
+		//5.然后等图像好了，取出来。注意，从图像缓存中取
+		vector<int> img;
+		imgHead imageHead;
+		if (WaitForSingleObject(hsImageReady, INFINITE) == WAIT_OBJECT_0)
+		{
+			imgBuf->popBuffer(imageHead, img);
+		}
+
+		//TODO 6.把图像塞给RTP打包模块
+		string rtpPacket;
+
+		//TODO 7.取出打包好的图像
+
+		//TODO 8.交给网络模块发送
 	}
 
 	return 0;

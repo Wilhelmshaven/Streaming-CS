@@ -13,6 +13,7 @@
 #include "CommonHeaders.h"
 
 #include "opencv2\highgui\highgui.hpp"
+#include "opencv2\imgproc\imgproc.hpp"
 using namespace cv;
 
 /*
@@ -61,9 +62,16 @@ public:
 	//是否需要观看摄像头图像？如果未显示，调用则显示，否则取消显示
 	void showImg();
 
+	//输入指令渲染图像
+	static void render(char cmd = 0);
+
 	~camCap();
 
 private:
+
+	//控制指令队列，供中间件写入
+	static queue<char> cmdQueue;
+
 	//基础矩阵结构（帧）
 	static Mat cvFrame;
 
@@ -109,3 +117,6 @@ private:
 	};
 	static CGarbo Garbo;
 };
+
+//摄像头：标记中间件已拿到并转发解码好的指令，请渲染器（摄像头）处理
+static HANDLE hsRender = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

@@ -1,3 +1,5 @@
+/*--Author：李宏杰--*/
+
 #pragma once
 
 //I/O Headers
@@ -53,9 +55,6 @@ enum CustomDefine
 //全局事件
 static HANDLE hSrvShutdown = CreateEvent(NULL, TRUE, FALSE, NULL);    //结束服务器的事件！！
 
-static HANDLE hsMsgHandler = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
-static HANDLE hsCamCap = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
-
 /*
 	EXTERN 信号量
 
@@ -77,18 +76,29 @@ extern HANDLE hsStopSession;
 //控制信令处理模块：标记信令解码完毕，请中间件拿走转给渲染器
 extern HANDLE hsCtrlMsg;
 
+//摄像头：标记中间件已拿到并转发解码好的指令，请渲染器（摄像头）处理
+extern HANDLE hsRender;
+
+//图像缓存：标记图像已渲染好，请中间件拿走
+extern HANDLE hsImageReady;
+
+//RTP打包模块：标记已打好包，请中间件拿走
+
+
 /*
 	各信令结构体与对应的常量表
 */
 
+//信令公共头结构
 typedef struct allMsgHead
 {
-	WORD msgSize;
+	WORD msgSize;         
 	BYTE payloadType;
 	BYTE cks;
 	DWORD session;
 };
 
+//信令公共头载荷类型字段表
 enum payloadType
 {
 	KB_MSG = 1,
@@ -96,6 +106,7 @@ enum payloadType
 	IMG_MSG = 3,
 };
 
+//鼠标信令头结构
 typedef struct mouseMsg
 {
 	BYTE msgType;
@@ -106,6 +117,7 @@ typedef struct mouseMsg
 	WORD pointerY;
 };
 
+//键盘信令头结构
 typedef struct keyboardMsg
 {
 	BYTE msgType;
@@ -114,6 +126,7 @@ typedef struct keyboardMsg
 	DWORD unicode;
 };
 
+//图片头结构
 typedef struct imgMsgHead
 {
 	WORD msgSize;

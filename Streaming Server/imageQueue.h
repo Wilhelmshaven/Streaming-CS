@@ -115,3 +115,6 @@ private:
 	};
 	static CGarbo Garbo;
 };
+
+//图像队列：标记图像已渲染好，请中间件拿走
+static HANDLE hsImageReady = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
