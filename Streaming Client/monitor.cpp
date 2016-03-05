@@ -118,7 +118,7 @@ DWORD monitor::endTimingThreadFunc(LPVOID lparam)
 
 		if (isTimeout(endClockID))
 		{
-			ReleaseSemaphore(hsMonitor, 1, NULL);
+			ReleaseSemaphore(hsTimeOut, 1, NULL);
 		}
 
 		++endClockID;

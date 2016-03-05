@@ -9,52 +9,11 @@
 using namespace cv;
 
 /*
-	图像缓存模块
+	图像缓存类（图像队列类）：单例类
+
 	统一入口/出口：vector<int>，Mat
 	客户端完成的是vector<int> -> Mat的工作
 	服务端完成的是Mat -> vector<int>的工作
-*/
-
-/*
-	图像头，内容依据传输系统信令标准确定。
-
-	变量：
-
-	int height/rows：图像高度/行数
-	
-	int width/cols：图像宽度/列数
-
-	int channels：图像通道数
-
-	int imgType：图像类型，如RGB、BGR、YUV之类（但这些值目前未实现）
-
-	//int matrixType：矩阵类型，用于区分是否是稀疏矩阵。目前都传完整数据，暂时注释未实现。
-*/
-
-typedef struct imgHead
-{
-	union Y_Axis
-	{
-		int height;
-		int rows;
-	}yAxis;
-
-	union X_Axis
-	{
-		int width;
-		int cols;
-	}xAxis;
-
-	int channels;
-
-	//图像类型，如RGB、BGR、YUV之类（但这些值目前未实现）
-	int imgType;
-
-	//int matrixType;
-};
-
-/*
-	图像缓存类（图像队列类）：单例类
 
 	为了减少转储，需要注意使用方法
 	-->流媒体数据模块在接收时直接写入到缓存中，而播放器模块直接读取缓存

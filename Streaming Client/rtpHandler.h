@@ -3,32 +3,60 @@
 #pragma once
 #include "CommonHeaders.h"
 
-//加载JRTPLIB
-#include "rtpsession.h"
-#include "rtpsessionparams.h"
-#include "rtpudpv4transmitter.h"
-#include "rtpipv4address.h"
-#include "rtptimeutilities.h"
-#include "rtppacket.h"
+/*
+	SETUP之后，RTP数据将通过用来发送RTSP命令的TCP Socket进行发送。RTP数据将以如下格式进行封装：
 
-using namespace jrtplib;
+	| magic number | channel number | embedded data length | data |
+
+	magic number - 1 byte value of hex 0x24
+	RTP数据标识符，"$"
+	channel number - 1 byte value to denote the channel
+	信道数字 - 1个字节，用来指示信道
+	embedded data length - 2 bytes to denote the embedded data length
+	数据长度 - 2个字节，用来指示插入数据长度
+	data - data packet, ie RTP packet, with the total length of the embedded data length
+	数据 - 数据包，比如说RTP包，总长度与上面的数据长度相同
+	Below is a full example of the communication exchanged
+*/
 
 /*
-	使用JRTPLIB库完成RTP数据包的接收与解析工作
-	需要网络模块提供目标服务器的地址与端口信息
+	RTP数据包处理类，负责解码与送入缓存
+
+	ps.关于接收的情况，通常的做法是，信令一个套接字，媒体数据一个套接字
+	但是上面是应用UDP传输的
+	这里使用TCP的话，那么就是RTP over RTSP的传输方式
+	即使用同一个套接字进行传输
+	所以，接收统一由网络模块负责（按目前的情况，准确点说，是main函数……懒得改了），若检测到是RTP数据包，则再转给本模块处理
+
+	pps.发送RTP数据前，务必先发送一个图片头……
+
+	使用：
+
+	void unpackRTP(imgHead head, string rtpPacket)：送入待解码的RTP数据包
+
+	void getMedia(imgHead &head, vector<int> &img)：传出媒体数据
+
 */
 class rtpHandler
 {
 public:
 
+	static rtpHandler* getInstance();
+
+	void unpackRTP(string rtpPacket);
+
+	void getMedia(vector<int> &img);
+
 private:
 
-	/*
-		Singleton
-	*/
-	static rtpHandler* instance;
+	queue<vector<int>> rtpQueue;
 
+	/*
+		单例模式相关
+	*/
 	rtpHandler();
+
+	static rtpHandler* instance;
 
 	rtpHandler(const rtpHandler&);
 	rtpHandler &operator = (const rtpHandler&);
@@ -42,3 +70,6 @@ private:
 	};
 	CGarbo garbo;
 };
+
+//RTP模块：标记RTP数据包已经解包完成
+static HANDLE hsRTPUnpacked = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

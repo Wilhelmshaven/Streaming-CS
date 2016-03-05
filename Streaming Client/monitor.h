@@ -80,3 +80,6 @@ private:
 	};
 	CGarbo garbo;
 };
+
+//监控模块：标记是否有超时的情况
+static HANDLE hsTimeOut = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

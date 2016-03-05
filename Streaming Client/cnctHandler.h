@@ -3,7 +3,7 @@
 #include "CommonHeaders.h"
 
 /*
-	cnctHandler：客户端网络连接模块，使用Winsock与服务器建立连接
+	cnctHandler：客户端网络连接模块，使用Winsock与服务器建立连接，并保存连接信息
 */
 
 /*
@@ -27,6 +27,10 @@ typedef struct serverList
 	serverList *next;		
 };
 
+typedef struct threadParam
+{
+	SOCKET socket;
+};
 /*
 	cnctHandler类：提供客户端网络连接管理
 
@@ -36,16 +40,11 @@ typedef struct serverList
 	之后便可调用connnectServer函数连接服务器
 
 	使用：
-	static cnctHandler *getInstance()：获取单例
 
 	int connectServer()：连接服务器，成功返回0，否则为-1（代表无可用服务器）或其它值（能连接上但出错，此时代表connect函数返回的错误码，参见MSDN）
 
-	SOCKET getSocket()：获取SOCKET实例
-	int getStreamPort()：获取所使用的端口号
-	string getDisplayAddr()：获取完整的连接地址（eg. http://www.rayion.com/desktop）
-	serverList* getSrvStruct()：返回成功连接的服务器信息结构体
-
 	void showSrvInfo():在控制台显示当前使用的服务器信息
+
 */
 class cnctHandler
 {
@@ -56,22 +55,29 @@ public:
 	static cnctHandler *getInstance();
 
 	int connectServer();             
-	
-	SOCKET getSocket(); 
-
-	string getDisplayAddr();
-
-	int getStreamPort();
-
-	serverList* getSrvStruct();
 
 	void showSrvInfo();         
 
-	int sendMessage(string msg);
+	static void sendMessage(string msg);
+
+	static void getRecvMessage(string &msg);
 
 	~cnctHandler();
 
 private:
+	
+	//连接成功后调用，开启接收与发送的线程
+	void startThread();
+
+	//消息队列
+
+	static queue<string> recvMsgQueue;
+
+	static queue<string> sendMsgQueue;
+
+	static DWORD WINAPI sendThread(LPVOID lparam);
+
+	static DWORD WINAPI recvThread(LPVOID lparam);
 
 	/*
 		服务器配置表处理部分
@@ -108,8 +114,7 @@ private:
 	*/
 
 	//构造函数，输入为存储有服务器信息的XML格式配置文件
-	cnctHandler(string file);
-	cnctHandler();
+	cnctHandler(string file = srvSettingFile);
 
 	//仅在构造函数调用，完成构造工作
 	void defaultSettings();
@@ -131,3 +136,9 @@ private:
 	};
 	static CGarbo Garbo;
 };
+
+//网络模块：标记有消息需要发送
+static HANDLE hsNewSendMsg = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+
+//网络模块：标记接收到了新的消息，至于是控制还是RTSP，给中间件解决好了
+static HANDLE hsNewRecvMsg = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

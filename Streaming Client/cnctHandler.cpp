@@ -4,19 +4,15 @@
 
 cnctHandler *cnctHandler::instance = new cnctHandler(srvSettingFile);
 
+queue<string> cnctHandler::recvMsgQueue;
+queue<string> cnctHandler::sendMsgQueue;
+
 /*
 	构造函数（传入文件名为参数，否则读取公共头中指定的文件路径）
 */
 cnctHandler::cnctHandler(string file)
 {
 	fileName = file;
-
-	defaultSettings();
-}
-
-cnctHandler::cnctHandler()
-{
-	fileName = srvSettingFile;
 
 	defaultSettings();
 }
@@ -110,6 +106,9 @@ int cnctHandler::connectServer()
 				displayAddr = serverTmp;
 				srvSocket = socketTmp;
 
+				//启动收发线程
+				startThread();
+
 				break;
 			}
 			else
@@ -136,26 +135,6 @@ cnctHandler* cnctHandler::getInstance()
 	return instance;
 }
 
-SOCKET cnctHandler::getSocket()
-{
-	return srvSocket;
-}
-
-string cnctHandler::getDisplayAddr()
-{
-	return displayAddr;
-}
-
-int cnctHandler::getStreamPort()
-{
-	return srvAddr.sin_port;
-}
-
-serverList* cnctHandler::getSrvStruct()
-{
-	return mySrvList;
-}
-
 void cnctHandler::showSrvInfo()
 {
 	//在控制台显示当前使用的服务器信息
@@ -167,18 +146,89 @@ void cnctHandler::showSrvInfo()
 	cout << endl;
 }
 
-int cnctHandler::sendMessage(string msg)
+void cnctHandler::sendMessage(string msg)
 {
-	int bytesSent = 0;
+	sendMsgQueue.push(msg);
 
-	bytesSent = send(srvSocket, msg.c_str(), msg.length(), NULL);
+	ReleaseSemaphore(hsNewSendMsg, 1, NULL);
+}
 
-	return bytesSent;
+void cnctHandler::getRecvMessage(string & msg)
+{
+	if (!recvMsgQueue.empty())
+	{
+		msg = recvMsgQueue.front();
+
+		recvMsgQueue.pop();
+	}
 }
 
 cnctHandler::~cnctHandler()
 {
 	closesocket(srvSocket);
+}
+
+void cnctHandler::startThread()
+{
+	threadParam *param = new threadParam;
+
+	param->socket = srvSocket;
+
+	CreateThread(NULL, NULL, recvThread, param, NULL, NULL);
+
+	CreateThread(NULL, NULL, sendThread, param, NULL, NULL);
+}
+
+DWORD cnctHandler::sendThread(LPVOID lparam)
+{
+	threadParam *param = (threadParam *)lparam;
+
+	SOCKET socket = param->socket;
+
+	string msg;
+	int bytesSent;
+
+	while (1)
+	{
+		WaitForSingleObject(hsNewSendMsg, INFINITE);
+
+		if (!sendMsgQueue.empty())
+		{
+			msg = sendMsgQueue.front();
+
+			sendMsgQueue.pop();
+
+			bytesSent = send(socket, msg.c_str(), msg.length(), NULL);
+
+			if (bytesSent > 0)
+			{
+				cout << "Send Message:" << msg << endl;
+			}
+		}
+	}
+
+	return 0;
+}
+
+DWORD cnctHandler::recvThread(LPVOID lparam)
+{
+	threadParam *param = (threadParam *)lparam;
+
+	SOCKET socket = param->socket;
+
+	string msg;
+
+	while (1)
+	{
+		//TODO：这里可能有问题，待测试
+		//recv(socket, msg.data, BUF_SIZE, NULL);
+
+		recvMsgQueue.push(msg);
+
+		ReleaseSemaphore(hsNewRecvMsg, 1, NULL);
+	}
+
+	return 0;
 }
 
 /*

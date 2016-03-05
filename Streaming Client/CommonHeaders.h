@@ -81,6 +81,18 @@ extern HANDLE hsNewCtrlKey;
 //媒体缓存模块：标记有图像了，请取走播放
 extern HANDLE hsPlayBuffer;
 
+//RTP模块：标记RTP数据包已经解包完成
+extern HANDLE hsRTPUnpacked;
+
+//网络模块：标记有消息需要发送
+extern HANDLE hsNewSendMsg;
+
+//网络模块：标记接收到了新的消息，至于是控制还是RTSP，给中间件解决好了
+extern HANDLE hsNewRecvMsg;
+
+//监控模块：标记是否有超时的情况
+extern HANDLE hsTimeOut;
+
 /*
 	各信令结构体与对应的常量表
 */
@@ -122,7 +134,7 @@ typedef struct keyboardMsg
 	DWORD unicode;
 };
 
-//图片头结构
+//图片信令头结构
 typedef struct imgMsgHead
 {
 	WORD msgSize;
@@ -133,6 +145,50 @@ typedef struct imgMsgHead
 	WORD imgChannels;
 	BYTE imgType;
 	BYTE payloadType;
+};
+
+/*
+	图像头，内容依据传输系统信令标准确定。
+
+	变量：
+
+	int height/rows：图像高度/行数
+
+	int width/cols：图像宽度/列数
+
+	int channels：图像通道数
+
+	int imgType：图像类型，如RGB、BGR、YUV之类（但这些值目前未实现）
+
+	//int matrixType：矩阵类型，用于区分是否是稀疏矩阵。目前都传完整数据，暂时注释未实现。
+*/
+typedef struct imgHead
+{
+	union Y_Axis
+	{
+		int height;
+		int rows;
+	}yAxis;
+
+	union X_Axis
+	{
+		int width;
+		int cols;
+	}xAxis;
+
+	int channels;
+
+	//图像类型，如RGB、BGR、YUV之类（但这些值目前未实现）
+	int imgType;
+
+	//int matrixType;
+};
+
+typedef struct image
+{
+	imgHead head;
+
+	vector<int> vec;
 };
 
 enum keyboardLayout
