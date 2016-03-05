@@ -146,6 +146,11 @@ void cnctHandler::showSrvInfo()
 	cout << endl;
 }
 
+string cnctHandler::getDisplayAddr()
+{
+	return displayAddr;
+}
+
 void cnctHandler::sendMessage(string msg)
 {
 	sendMsgQueue.push(msg);
@@ -177,6 +182,10 @@ void cnctHandler::startThread()
 	CreateThread(NULL, NULL, recvThread, param, NULL, NULL);
 
 	CreateThread(NULL, NULL, sendThread, param, NULL, NULL);
+
+	//设置Socket接收超时为5秒，避免阻塞太久（嗯当然我们现在还是用阻塞模式，客户端么）
+	int recvTimeMax = 5000;
+	setsockopt(srvSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)recvTimeMax, sizeof(int));
 }
 
 DWORD cnctHandler::sendThread(LPVOID lparam)
@@ -221,7 +230,7 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 	while (1)
 	{
 		//TODO：这里可能有问题，待测试
-		//recv(socket, msg.data, BUF_SIZE, NULL);
+		recv(socket, (char *)msg.data(), BUF_SIZE, NULL);
 
 		recvMsgQueue.push(msg);
 

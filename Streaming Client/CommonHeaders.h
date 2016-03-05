@@ -93,6 +93,12 @@ extern HANDLE hsNewRecvMsg;
 //监控模块：标记是否有超时的情况
 extern HANDLE hsTimeOut;
 
+//中间件：标记收到的RTSP信令是否OK
+extern HANDLE hsIsRTSPOK;
+
+//中间件：标记是否开始心跳
+extern HANDLE heStartHeartBeat;
+
 /*
 	各信令结构体与对应的常量表
 */
@@ -145,6 +151,12 @@ typedef struct imgMsgHead
 	WORD imgChannels;
 	BYTE imgType;
 	BYTE payloadType;
+};
+
+typedef struct imgMsgCombine
+{
+	allMsgHead publicHead;
+	imgMsgHead imgHead;
 };
 
 /*

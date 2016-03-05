@@ -2,15 +2,24 @@
 
 #include "myClient.h"
 
-//加载各模块
+//加载中间件
 #include "middleWare.h"
+
+//加载网络处理模块
+#include "cnctHandler.h"
+
+//加载播放器模块
+#include "cvPlayer.h"
+
+//加载RTSP模块
+#include "rtspHandler.h"
 
 // 专门输出前置提示信息
 myMessage::myMessage()
 {
 	cout << "================================================" << endl;
 	cout << "=                                              =" << endl;
-	cout << "=     交互式流媒体序列帧传输平台，版本v0.1     =" << endl;
+	cout << "=     交互式流媒体序列帧传输平台，版本v1.0     =" << endl;
 	cout << "=            143020085211001 李宏杰            =" << endl;
 	cout << "=                                              =" << endl;
 	cout << "================================================" << endl;
@@ -19,76 +28,131 @@ myMessage::myMessage()
 };
 const myMessage myMsg;
 
+void sendMsgBackground(int msgType);
+
 //================================= MAIN =================================//
 int main(int argc, char *argv[])
 {
 	/*------------------------------建立连接--------------------------*/
-//	WSADATA wsaData;
-//	WSAStartup(MAKEWORD(2, 2), &wsaData);
-//
-//	cnctHandler *mySrv = cnctHandler::getInstance();
-//
-//	if (mySrv->connectServer() == 0)
-//	{
-//		//成功连接服务器
-//
-//		/*
-//			1.RTSP交互
-//
-//			这个必然是要放在子线程里了
-//			所以首先新建两个线程。一个是控制交互，一个是心跳（作为交互的子线程就好），维持连接的
-//			线程不需要参数了，单例里面要什么有什么
-//		*/
-//
-//		//rtsp交互线程
-//		CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)rtspHandleThread, NULL, NULL, NULL);          
-//	}
-//	else
-//	{
-//		//连接服务器失败
-//	}
-//
-//	WaitForSingleObject(hCloseClientEvent, INFINITE);
-//	system("pause");
-//	return 0;
-//}
-//
-////RTSP控制线程
-//UINT rtspHandleThread()
-//{
-//	//子线程
-//	UINT sendMsgThread();       //发送信息
-//	UINT recvMsgThread();       //接收信息
-//	UINT rtspHeartBeat();       //心跳
-//	
-//	//获取单例
-//	cnctHandler *mySrv = cnctHandler::getInstance();
-//	rtspHandler *rtsp = rtspHandler::getInstance();
-//
-//	//并用服务器信息设置rtsp处理器
-//	rtsp->setHandler(mySrv->getDisplayAddr(), "1.0", mySrv->getStreamPort(), true);
-//
-//	//设置Socket接收超时，避免阻塞太久（嗯当然我们现在还是用阻塞模式，客户端么
-//	int recvTimeMax = 5000;  //5s
-//	//setsockopt(mySrv->getSocket(), SOL_SOCKET, SO_RCVTIMEO, (char *)recvTimeMax, sizeof(int));
-//
-//	//启动收发和心跳线程
-//	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)sendMsgThread, NULL, NULL, NULL);
-//	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)recvMsgThread, NULL, NULL, NULL);
-//	CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)rtspHeartBeat, NULL, NULL, NULL);     //这个放在Play以后进行
-//	
-//	//启动线程
-//	SetEvent(hRTSPBeginEvent);
-//
-//	//等待结束
-//	WaitForSingleObject(hCloseClientEvent, INFINITE);
-//
-//	CloseHandle(sendMsgThread);
-//	CloseHandle(recvMsgThread);
-//	CloseHandle(rtspHeartBeat);
+	WSADATA wsaData;
+	WSAStartup(MAKEWORD(2, 2), &wsaData);
+
+	cnctHandler *mySrv = cnctHandler::getInstance();
+
+	if (mySrv->connectServer() == 0)
+	{
+		//成功连接服务器
+
+		/*
+			启动中间件
+		*/
+
+		mwPlayCtrl *middleWare = mwPlayCtrl::getInstance();
+
+		middleWare->startMiddleWare();
+
+		/*
+			RTSP交互
+			算了不写在RTSP模块里了，就直接主函数吧
+			反正客户端简单
+		*/
+
+		rtspHandler *rtspModule = rtspHandler::getInstance();
+
+		string rtspMsg;
+
+		int errCode;
+
+		//1.发送OPTIONS信令
+		sendMsgBackground(OPTIONS);
+		
+		if (WaitForSingleObject(hsIsRTSPOK, 50000) != WAIT_OBJECT_0)
+		{
+			SetEvent(hCloseClientEvent);
+
+			goto endClient;
+		}
+		        
+		//2.发送DESCRIBE信令
+		sendMsgBackground(DESCRIBE);
+
+		if (WaitForSingleObject(hsIsRTSPOK, 50000) != WAIT_OBJECT_0)
+		{
+			SetEvent(hCloseClientEvent);
+
+			goto endClient;
+		}
+
+		//3.发送SETUP信令
+		sendMsgBackground(SETUP);
+
+		if (WaitForSingleObject(hsIsRTSPOK, 50000) != WAIT_OBJECT_0)
+		{
+			SetEvent(hCloseClientEvent);
+
+			goto endClient;
+		}
+
+		//4.发送PLAY信令
+		sendMsgBackground(PLAY);
+
+		if (WaitForSingleObject(hsIsRTSPOK, 50000) != WAIT_OBJECT_0)
+		{
+			SetEvent(hCloseClientEvent);
+
+			goto endClient;
+		}
+
+		//开始心跳
+		SetEvent(heStartHeartBeat);
+	}
+	else
+	{
+		//连接服务器失败
+		goto endClient;
+	}
+
+	WaitForSingleObject(hCloseClientEvent, INFINITE);
+
+	/*
+		结束清理工作
+	*/
+
+	//5.发送TEARDOWN信令
+	sendMsgBackground(TEARDOWN);
+
+endClient:
+
+	ResetEvent(heStartHeartBeat);
+
+	CloseHandle(hCloseClientEvent);
+
+	system("pause");
 
 	return 0;
 }
+
+/*
+	发送RTSP信令的函数（一个小封装，编码->发送）
+*/
+void sendMsgBackground(int msgType)
+{
+	cnctHandler *networkModule = cnctHandler::getInstance();
+
+	rtspHandler *rtspModule = rtspHandler::getInstance();
+
+	string rtspMsg;
+
+	int bytesSent;
+
+	rtspMsg = rtspModule->encodeMsg(msgType);
+
+	networkModule->sendMessage(rtspMsg);
+}
+
+
+
+
 
 ////RTSP信令发送线程
 //void sendMsgInThread(int msgType); //发送信令线程内的函数（一个小封装，编码->发送->错误处理）
@@ -135,32 +199,7 @@ int main(int argc, char *argv[])
 //	return 0;
 //}
 //
-////发送信令线程内的函数（一个小封装，编码->发送->错误处理）
-//void sendMsgInThread(int msgType)
-//{
-//	//获取单例
-//	cnctHandler *mySrv = cnctHandler::getInstance();
-//	rtspHandler *rtsp = rtspHandler::getInstance();
-//
-//	string sendBuf;        //收发缓存
-//	int bytesSent;         //发送的字节数
-//
-//	sendBuf = rtsp->encodeMsg(msgType);
-//	bytesSent = send(mySrv->getSocket(), sendBuf.c_str(), sendBuf.length(), NULL);
-//
-//	if (bytesSent == 0)
-//	{
-//		//发送失败
-//		cout << "Error in sending msg:" << sendBuf << endl;
-//		SetEvent(hCloseClientEvent);           //目前采用的方式是直接关闭客户端；TODO：改成切换下一个服务器
-//	}
-//	else
-//	{
-//		//发送成功，报出相关信息
-//		cout << "Bytes sent:" << bytesSent << endl;
-//		cout << "Msg sent:" << endl << sendBuf << endl;
-//	}
-//}
+
 //
 ////RTSP信令接收线程
 //UINT recvMsgThread()

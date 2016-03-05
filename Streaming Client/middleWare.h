@@ -38,6 +38,9 @@ private:
 
 	static DWORD WINAPI mwMediaThread(LPVOID lparam);
 
+	//专门发送心跳的
+	static DWORD WINAPI mwHeartBeat(LPVOID lparam);
+
 	/*
 		单例模式相关
 	*/
@@ -59,3 +62,9 @@ private:
 	static CGarbo Garbo;
 
 };
+
+//中间件：标记收到的RTSP信令是否OK
+static HANDLE hsIsRTSPOK = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+
+//中间件：标记是否开始心跳
+static HANDLE heStartHeartBeat = CreateEvent(NULL, TRUE, FALSE, NULL);

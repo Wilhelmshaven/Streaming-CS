@@ -58,6 +58,8 @@ public:
 
 	void showSrvInfo();         
 
+	string getDisplayAddr();
+
 	static void sendMessage(string msg);
 
 	static void getRecvMessage(string &msg);
