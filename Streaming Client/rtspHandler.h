@@ -43,7 +43,9 @@ private:
 	服务器都单例了，这个也要单例。换句话说，这个的实例数量和服务器一样
 	信令编解码以方法形式表现。注意：只管编解码，不管发送
 
-	使用：（必须先设置）
+	使用：
+
+	（必须先设置）
 	bool setHandler(string URI, WORD rtspVer, int port = 8554, bool enableUDP = false)：配置处理器：URI地址、RTSP版本、流媒体端口号、是否使用UDP
 
 	string encodeMsg(int method)：流媒体信令编码，输入流媒体方法（常量，见公共头），返回字符串形式的信令

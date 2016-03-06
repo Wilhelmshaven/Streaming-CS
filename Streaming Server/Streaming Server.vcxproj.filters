@@ -36,7 +36,7 @@
     <ClCompile Include="ctrlMsgHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="crc8.cpp">
+    <ClCompile Include="rtpHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -65,7 +65,7 @@
     <ClInclude Include="ctrlMsgHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="crc8.h">
+    <ClInclude Include="rtpHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

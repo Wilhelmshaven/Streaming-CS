@@ -43,7 +43,7 @@ string msgHandler::keyboardMsgEncode(char key)
 	return msg;
 }
 
-string msgHandler::mouseMsgEncode()
+string msgHandler::mouseMsgEncode(char key)
 {
 	string msg;
 

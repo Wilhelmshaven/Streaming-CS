@@ -25,7 +25,7 @@ public:
 
 	string keyboardMsgEncode(char key);
 
-	string mouseMsgEncode();
+	string mouseMsgEncode(char key);
 
 private:
 

@@ -11,7 +11,9 @@
 
 	使用：
 	
-	void decodeMsg(string msg)：解码信令，输入待解码信令即可，不需要关心后续处理
+	void decodeMsg(string msg)：解码信令，返回会话号
+
+	string encodeMsg(imgHead head, int imgSize, int session)：编码信令（图像头）
 
 	char getCtrlKey()：获取操作情况
 
@@ -23,11 +25,16 @@ public:
 
 	static ctrlMsgHandler* getInstance();
 
-	void decodeMsg(string msg);
+	int decodeMsg(string msg);
+
+	string encodeMsg(imgHead head, int imgSize, int session);
 
 	char getCtrlKey();
 
 private:
+
+	//编码公共头
+	string encodePublicHead(int payloadType, int session, int size);
 
 	queue<char> ctrlKeyQueue;
 

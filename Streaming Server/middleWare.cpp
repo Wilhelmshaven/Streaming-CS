@@ -21,6 +21,9 @@
 //加载图像缓存
 #include "imageQueue.h"
 
+//加载RTP打包模块
+#include "rtpHandler.h"
+
 mwMsg* mwMsg::instance = new mwMsg;
 
 mwMsg * mwMsg::getInstance()
@@ -45,8 +48,23 @@ DWORD mwMsg::mwCtrlMsgThread(LPVOID lparam)
 
 	imgBuffer *imgBuf = imgBuffer::getInstance();
 
+	rtpHandler *rtpModule = rtpHandler::getInstance();
+
 	string ctrlMsg;
+
 	char key;
+
+	vector<int> img;
+
+	imgHead imageHead;
+
+	string rtpPacket;
+
+	string imageHeadMsg;
+
+	int session;
+
+	SOCKET clientSocket;
 
 	while (1)
 	{
@@ -57,36 +75,39 @@ DWORD mwMsg::mwCtrlMsgThread(LPVOID lparam)
 			break;
 		}
 
-		//1.从网络模块拿信令
+		//1.从网络模块拿信令以及SOCKET！
 		ctrlMsg = netModule->getCtrlMsg();
 
-		//2.丢给控制信令处理模块
-		ctrlMsgModule->decodeMsg(ctrlMsg);
+		clientSocket = netModule->getSocket();
+
+		//2.丢给控制信令处理模块，并获取会话号
+		session = ctrlMsgModule->decodeMsg(ctrlMsg);
 
 		//3.等解码好了，拿回来
 		key = 0;
-		if (WaitForSingleObject(hsCtrlMsg, INFINITE) == WAIT_OBJECT_0)
-		{
-			key = ctrlMsgModule->getCtrlKey();
-		}
+
+		WaitForSingleObject(hsCtrlMsg, INFINITE);
+
+		key = ctrlMsgModule->getCtrlKey();
 
 		//4.然后塞给渲染器
 		renderer->render(key);
 
 		//5.然后等图像好了，取出来。注意，从图像缓存中取
-		vector<int> img;
-		imgHead imageHead;
-		if (WaitForSingleObject(hsImageReady, INFINITE) == WAIT_OBJECT_0)
-		{
-			imgBuf->popBuffer(imageHead, img);
-		}
+		WaitForSingleObject(hsImageReady, INFINITE);
 
-		//TODO 6.把图像塞给RTP打包模块
-		string rtpPacket;
+		imgBuf->popBuffer(imageHead, img);
 
-		//TODO 7.取出打包好的图像
+		//6.把图像塞给RTP打包模块，并且推入SOCKET以构建序列号
+		rtpPacket = rtpModule->pack(clientSocket, img);
 
-		//TODO 8.交给网络模块发送
+		//7.编码图像头
+		imageHeadMsg = ctrlMsgModule->encodeMsg(imageHead, img.size(), session);
+
+		//8.把RTP包交给网络模块发送。先发送头再发送数据
+		netModule->sendMessage(clientSocket, imageHeadMsg);
+
+		netModule->sendMessage(clientSocket, rtpPacket);
 	}
 
 	return 0;

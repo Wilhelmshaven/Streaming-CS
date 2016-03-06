@@ -56,6 +56,9 @@ int main(int argc, char *argv[])
 	WaitForSingleObject(hSrvShutdown, INFINITE);
 
 	//TODO：一系列善后处理
+	//delete networkModule;
+	//delete middleWare;
+	//delete camera;
 
 	return 0;
 }

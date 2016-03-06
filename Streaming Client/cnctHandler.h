@@ -45,6 +45,11 @@ typedef struct threadParam
 
 	void showSrvInfo():在控制台显示当前使用的服务器信息
 
+	string getDisplayAddr()：获取完整播放地址（用来设置流媒体信令处理器的）
+
+	static void sendMessage(string msg)：发送给定的数据
+
+	static void getRecvMessage(string &msg)：取出收到的数据
 */
 class cnctHandler
 {

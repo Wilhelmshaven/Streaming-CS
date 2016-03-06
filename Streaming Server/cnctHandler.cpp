@@ -304,19 +304,17 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 
 		buf = ioInfo->buffer;
 
+		socketQueue.push(handleInfo->clientSocket);
+
 		if (buf.find("RTSP"))
 		{
-			rtspQueue.push(buf);
-
-			socketQueue.push(handleInfo->clientSocket);
+			rtspQueue.push(buf);		
 
 			ReleaseSemaphore(hsRTSPMsgArrived, 1, NULL);
 		}
 		else
 		{
 			ctrlQueue.push(buf);
-
-			socketQueue.push(handleInfo->clientSocket);
 
 			ReleaseSemaphore(hsCtrlMsgArrived, 1, NULL);
 		}
