@@ -46,7 +46,7 @@ enum rtspMethod
 
 enum CustomDefine
 {
-	BUF_SIZE = 8192,
+	BUF_SIZE = 2048,
 	//下面是完成端口的操作模式标记
 	compRecv = 3,
 	compSend = 5,
@@ -81,9 +81,6 @@ extern HANDLE hsRender;
 
 //图像缓存：标记图像已渲染好，请中间件拿走
 extern HANDLE hsImageReady;
-
-//RTP打包模块：标记已打好包，请中间件拿走
-
 
 /*
 	各信令结构体与对应的常量表

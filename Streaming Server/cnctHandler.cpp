@@ -291,8 +291,16 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		*/
 		GetQueuedCompletionStatus(hCompletionPort, &bytesTransferred, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
 
-		//结束服务器？
-		if (WaitForSingleObject(hSrvShutdown, 0))break;  //这个到底有没有用是个问题
+		string incomingIP;
+		incomingIP.resize(16);
+		inet_ntop(AF_INET, &(handleInfo->clientAddr.sin_addr.S_un.S_addr), (char *)incomingIP.data(), 16);
+		cout << "Recv message from " << incomingIP << endl;
+
+		//结束服务器？这个到底有没有用是个问题
+		if (WaitForSingleObject(hSrvShutdown, 0) == WAIT_OBJECT_0)
+		{
+			break;  
+		}
 
 		clientSocket = handleInfo->clientSocket;
 
@@ -303,6 +311,8 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		*/
 
 		buf = ioInfo->buffer;
+
+		cout << "Recv:" << buf << endl;
 
 		socketQueue.push(handleInfo->clientSocket);
 

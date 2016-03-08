@@ -22,7 +22,7 @@ myMessage::myMessage()
 {
 	cout << "================================================" << endl;
 	cout << "=                                              =" << endl;
-	cout << "=     交互式流媒体序列帧传输平台，版本v0.1     =" << endl;
+	cout << "=     交互式流媒体序列帧传输平台，版本v1.0     =" << endl;
 	cout << "=            143020085211001 李宏杰            =" << endl;
 	cout << "=                                              =" << endl;
 	cout << "================================================" << endl;
@@ -54,6 +54,8 @@ int main(int argc, char *argv[])
 
 
 	WaitForSingleObject(hSrvShutdown, INFINITE);
+
+	system("pause");
 
 	//TODO：一系列善后处理
 	//delete networkModule;

@@ -88,7 +88,13 @@ rtspHandler* rtspHandler::getInstance()
 rtspHandler::rtspHandler()
 {
 	//初始化序列号为1
-	seqNum = 1;                   
+	seqNum = 1;          
+	
+	rtspVersion = "1.0";
+
+	streamingPort = 8554;
+
+	enableUDP = false;
 }
 
 bool rtspHandler::setHandler(string URI, string rtspVer, int port, bool enableUDP)
@@ -154,10 +160,25 @@ string rtspHandler::encodeMsg(int method)
 	sprintf_s((char *)reqLine.data(), BUF_SIZE, " %s RTSP/%s\r\nCSeq:%d\r\n", URI.c_str(), rtspVersion.c_str(), seqNum);
 
 	//Tips. 去掉过长的空结尾，否则会影响字符拼接……
-	reqLine = reqLine.substr(0, reqLine.rfind('\n'));    
+	reqLine = reqLine.substr(0, reqLine.rfind('\n') + 1);
 
 	switch (method)
 	{
+	case OPTIONS:
+	{
+		/*Example Message*/
+
+		/*
+
+		OPTIONS rtsp://example.com/test.mp3 RTSP/1.0
+		CSeq: 302
+
+		*/
+
+		msg = "OPTIONS" + reqLine;
+
+		break;
+	}
 	case DESCRIBE:
 	{
 		/*Example Message*/
@@ -253,7 +274,7 @@ string rtspHandler::encodeMsg(int method)
 	}
 
 	//在拼接好的信令末尾补上一个回车换行符
-	msg = msg.substr(0, msg.find('\0')) + "\r\n";
+	msg = msg.substr(0, msg.rfind("\n") + 1) + "\r\n";
 
 	//重要！序列号自增！
 	++seqNum;          

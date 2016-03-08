@@ -23,6 +23,8 @@ string rtpHandler::pack(SOCKET socket, vector<int> img)
 		3.编码
 
 		首先把vector<int>转为string，然后再在前面加上各种头部
+
+		先加rtp头，再加TCP的小头
 	*/
 	rtpPacket.resize(img.size());
 	rtpPacket.assign(img.begin(), img.end());
@@ -71,4 +73,9 @@ unsigned short rtpHandler::randSeq(SOCKET socket)
 
 	//随机……
 	return distribution(randEngine);
+}
+
+rtpHandler::rtpHandler()
+{
+
 }

@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 		//1.发送OPTIONS信令
 		sendMsgBackground(OPTIONS);
 		
-		if (WaitForSingleObject(hsIsRTSPOK, 50000) != WAIT_OBJECT_0)
+		if (WaitForSingleObject(hsIsRTSPOK, 5000) != WAIT_OBJECT_0)
 		{
 			SetEvent(hCloseClientEvent);
 
@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 		//2.发送DESCRIBE信令
 		sendMsgBackground(DESCRIBE);
 
-		if (WaitForSingleObject(hsIsRTSPOK, 50000) != WAIT_OBJECT_0)
+		if (WaitForSingleObject(hsIsRTSPOK, 5000) != WAIT_OBJECT_0)
 		{
 			SetEvent(hCloseClientEvent);
 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 		//3.发送SETUP信令
 		sendMsgBackground(SETUP);
 
-		if (WaitForSingleObject(hsIsRTSPOK, 50000) != WAIT_OBJECT_0)
+		if (WaitForSingleObject(hsIsRTSPOK, 5000) != WAIT_OBJECT_0)
 		{
 			SetEvent(hCloseClientEvent);
 
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 		//4.发送PLAY信令
 		sendMsgBackground(PLAY);
 
-		if (WaitForSingleObject(hsIsRTSPOK, 50000) != WAIT_OBJECT_0)
+		if (WaitForSingleObject(hsIsRTSPOK, 5000) != WAIT_OBJECT_0)
 		{
 			SetEvent(hCloseClientEvent);
 
@@ -142,8 +142,6 @@ void sendMsgBackground(int msgType)
 	rtspHandler *rtspModule = rtspHandler::getInstance();
 
 	string rtspMsg;
-
-	int bytesSent;
 
 	rtspMsg = rtspModule->encodeMsg(msgType);
 

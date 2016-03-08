@@ -211,7 +211,7 @@ DWORD cnctHandler::sendThread(LPVOID lparam)
 
 			if (bytesSent > 0)
 			{
-				cout << "Send Message:" << msg << endl;
+				cout << "Send Message:" << endl << msg << endl;
 			}
 		}
 	}
@@ -226,11 +226,14 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 	SOCKET socket = param->socket;
 
 	string msg;
+	msg.resize(BUF_SIZE);
 
 	while (1)
 	{
 		//TODO：这里可能有问题，待测试
 		recv(socket, (char *)msg.data(), BUF_SIZE, NULL);
+
+		cout << "Recv:" << endl << msg << endl;
 
 		recvMsgQueue.push(msg);
 
@@ -272,6 +275,8 @@ bool cnctHandler::readFile()
 			{
 				//只要是服务器就全部读进来，创建一个服务器链表
 				serverList *newServer = mySrvList, *nextServer = NULL;
+
+				//TODO：这里怎么又有问题了，说好的双向链表呢
 
 				while (buf.find("</serverList>") == string::npos)
 				{

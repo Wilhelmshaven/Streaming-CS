@@ -51,7 +51,12 @@ monitor::~monitor()
 	CloseHandle(hEventShutdown);
 }
 
-//这里只判断了毫秒差
+/*
+	这里只判断了毫秒差
+
+	TODO：
+	以及，还有一个严重问题，如果有去无回呢？那停表的时候就肯定会停乱了
+*/
 bool monitor::isTimeout(int clockID)
 {
 	int diff = 0;
