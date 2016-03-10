@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
 
 		//1.∑¢ÀÕOPTIONS–≈¡Ó
 		sendMsgBackground(OPTIONS);
-		
+
 		if (WaitForSingleObject(hsIsRTSPOK, 5000) != WAIT_OBJECT_0)
 		{
 			SetEvent(hCloseClientEvent);

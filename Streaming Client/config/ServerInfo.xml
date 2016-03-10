@@ -17,8 +17,8 @@
 		</server>
 		<server>
 			<type>RTSP</type>
-			<protocol>rtsp</protocol>
-			<hostname>192.168.1.105</hostname>
+			<protocol>http</protocol>
+			<hostname>192.168.1.107</hostname>
 			<port>8554</port>
 			<display></display>
 		</server>

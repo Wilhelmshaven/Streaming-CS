@@ -190,7 +190,7 @@ SOCKET cnctHandler::getSocket()
 
 int cnctHandler::sendMessage(SOCKET socket, string msg)
 {
-	int bytesSent;
+	int bytesSent = 0;
 
 	bytesSent = send(socket, msg.c_str(), msg.length(), NULL);
 
@@ -213,14 +213,13 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 	//单句柄数据
 	LPPER_HANDLE_DATA PerHandleData;     
 
-	//临时SOCKET
-	SOCKET acptSocket;    
-
-	SOCKADDR_IN clientAddr;
-	int addrSize = sizeof(clientAddr);
-
 	while (true)
 	{
+		//临时SOCKET
+		SOCKET acptSocket;
+		SOCKADDR_IN clientAddr;
+		int addrSize = sizeof(clientAddr);
+
 		//if (WaitForSingleObject(hSrvShutdown, 0))break;  //这个到底有没有用是个问题
 
 		/*
@@ -231,8 +230,9 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 
 		//保存客户端信息
 		PerHandleData = (LPPER_HANDLE_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(LPPER_HANDLE_DATA));
-		PerHandleData->clientAddr = clientAddr;
+		//PerHandleData->clientAddr = clientAddr;
 		PerHandleData->clientSocket = acptSocket;
+		memcpy(&(PerHandleData->clientAddr), &clientAddr, addrSize);
 
 		//将接受套接字和完成端口关联
 		CreateIoCompletionPort((HANDLE)acptSocket, hCompletionPort, (DWORD)PerHandleData, 0);
@@ -320,13 +320,13 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		{
 			rtspQueue.push(buf);		
 
-			ReleaseSemaphore(hsRTSPMsgArrived, 1, NULL);
+			ReleaseSemaphore(hsRTSPMsgArrived, 10, NULL);
 		}
 		else
 		{
 			ctrlQueue.push(buf);
 
-			ReleaseSemaphore(hsCtrlMsgArrived, 1, NULL);
+			ReleaseSemaphore(hsCtrlMsgArrived, 10, NULL);
 		}
 
 		/*
@@ -335,6 +335,7 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 
 		//准备一个重叠I/O
 		ioInfo = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(LPPER_IO_DATA));
+
 		ZeroMemory(ioInfo, sizeof(ioInfo));
 
 		//缓存为最大
@@ -345,7 +346,7 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		//设置模式为接收
 		ioInfo->operationType = compRecv;	       
 
-		WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, NULL, &flags, &(ioInfo->overlapped), NULL);
+		WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, &(ioInfo->bytesRecv), &(ioInfo->flags), &(ioInfo->overlapped), NULL);
 	}
 
 	return 0;
