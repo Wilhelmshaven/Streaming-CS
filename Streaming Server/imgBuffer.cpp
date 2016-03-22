@@ -1,6 +1,9 @@
 /*--Author：李宏杰--*/
 
-#include "imageQueue.h"
+#include "imgBuffer.h"
+
+//图像队列：标记缓存中有图像了，请拿走
+static HANDLE hsImageReady = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::imgBufferOutput);
 
 imgBuffer *imgBuffer::instance = new imgBuffer;
 
@@ -14,40 +17,21 @@ imgBuffer::imgBuffer()
 
 }
 
-/*
-	完成类型转换并入队
-*/
-void imgBuffer::pushBuffer(Mat img)
+void imgBuffer::pushBuffer(imgHead head, vector<int> img)
 {
 	myImg image;
 
-	/*
-		自己根据Mat填写图像头部
-	*/
-	image.head.cols = img.cols;
-	image.head.rows = img.rows;
-	image.head.channels = img.channels();
-	image.head.imgType = img.type();
-
-	/*
-		把OpenCV的Mat矩阵转为一维数组
-		连续性：有时行末会补上一定的间隙，以满足譬如是4或者8的倍数的要求（内存对齐）
-	*/
-	image.img = img.reshape(1, 1);
+	image.head = head;
+	image.img = img;
 
 	imgQueue.push(image);
 
-	//激活信号量
 	ReleaseSemaphore(hsImageReady, 1, NULL);
 }
 
 bool imgBuffer::popBuffer(imgHead & head, vector<int> & img)
 {
-	if (isBufEmpty())
-	{
-		return false;
-	}
-	else
+	if (!isBufEmpty())
 	{
 		head = imgQueue.front().head;
 
@@ -57,8 +41,9 @@ bool imgBuffer::popBuffer(imgHead & head, vector<int> & img)
 
 		return true;
 	}
-}
 
+	return false;
+}
 
 bool imgBuffer::isBufEmpty()
 {

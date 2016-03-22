@@ -25,7 +25,22 @@
 
 using namespace std;
 
-/*---------------------自定义常量区，少的话这里写，多的话，不如用map，例如rtsp错误信息--------------------*/
+namespace syncManager
+{
+	/*
+		图像源出入口信号
+	*/	
+	const char renderInput[] = "hsRenderInput";
+	const char renderOutput[] = "hsRenderOutput";
+
+	/*
+		图像缓存出入口信号
+	*/
+	const char imgBufferInput[] = "hsImgBufferInput";
+	const char imgBufferOutput[] = "hsImgBufferOutput";
+
+}
+
 //RTSP方法
 enum rtspMethod
 {
@@ -51,36 +66,6 @@ enum CustomDefine
 	compRecv = 3,
 	compSend = 5,
 };
-
-//全局事件
-static HANDLE hSrvShutdown = CreateEvent(NULL, TRUE, FALSE, NULL);    //结束服务器的事件！！
-
-/*
-	EXTERN 信号量
-
-	各模块的信号量写在各模块的头部，这里只是为了方便使用
-
-	不在这里声明是因为这样违反组件化规则……
-*/
-
-//网络模块：标记有新的RTSP信令信息来到
-extern HANDLE hsRTSPMsgArrived;
-
-//网络模块：标记有新的控制信令信息来到
-extern HANDLE hsCtrlMsgArrived;
-
-//流媒体信令处理模块：标记有新的播放/停止播放请求，请RTP模块拿走会话号
-extern HANDLE hsPlaySession;
-extern HANDLE hsStopSession;
-
-//控制信令处理模块：标记信令解码完毕，请中间件拿走转给渲染器
-extern HANDLE hsCtrlMsg;
-
-//摄像头：标记中间件已拿到并转发解码好的指令，请渲染器（摄像头）处理
-extern HANDLE hsRender;
-
-//图像缓存：标记图像已渲染好，请中间件拿走
-extern HANDLE hsImageReady;
 
 /*
 	各信令结构体与对应的常量表

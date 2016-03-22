@@ -68,29 +68,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="cvPlayer.cpp" />
-    <ClCompile Include="imageQueue.cpp" />
-    <ClCompile Include="middleWare.cpp" />
-    <ClCompile Include="monitor.cpp" />
-    <ClCompile Include="msgHandler.cpp" />
-    <ClCompile Include="myClient.cpp" />
-    <ClCompile Include="rtpHandler.cpp" />
-    <ClCompile Include="rtspHandler.cpp" />
-    <ClCompile Include="cnctHandler.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="CommonHeaders.h" />
-    <ClInclude Include="cvPlayer.h" />
-    <ClInclude Include="imageQueue.h" />
-    <ClInclude Include="middleWare.h" />
-    <ClInclude Include="monitor.h" />
-    <ClInclude Include="msgHandler.h" />
-    <ClInclude Include="myClient.h" />
-    <ClInclude Include="rtpHandler.h" />
-    <ClInclude Include="rtspHandler.h" />
-    <ClInclude Include="cnctHandler.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="config\static\rtspErrCodeList.csv" />
   </ItemGroup>

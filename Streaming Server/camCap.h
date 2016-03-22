@@ -20,17 +20,25 @@ using namespace cv;
 	摄像头处理类
 
 	使用方法：
+	1.调用startCapture()启动；
+	2.调用render()传入命令；
+	3.调用getImage()获取图像；
+	4.调用stopCapture()结束；
+
+	接口：
+
 	void camCap::startCapture()：开启摄像头；
 	void camCap::stopCapture()：关闭摄像头；
 
 	void camCap::changeFrameRate(double frameRate)：改变帧率，单位为每秒帧数
 
-	int camCap::getHeight()：得到当前帧的高度（行数）
-	int camCap::getWidth()：得到当前帧的宽度（列数）
-	int camCap::getChannels()：获取帧的通道数
-	int camCap::getType()：获取帧的类型（即矩阵类型）（参见cvdef.h）
-
 	void camCap::showImg()：开启/关闭视频窗口，若开则关，若关则开。初始状态为开启。
+
+	（入口方法）static void render(char cmd = 0)：输入指令渲染图像
+	（入口信号）static HANDLE hsRenderImage = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(renderImage))
+
+	（出口方法）Mat getImage()：获取图像
+	（出口信号）static HANDLE hsRenderDone = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(renderDone))
 */
 class camCap
 {
@@ -47,33 +55,24 @@ public:
 	//改变帧率
 	void changeFrameRate(double frameRate);
 
-	//获取帧的高度（行）
-	int getHeight();
-
-	//获取帧的宽度（列）
-	int getWidth();
-
-	//获取帧的通道数
-	int getChannels();
-
-	//获取帧的类型（即矩阵类型）（参见cvdef.h）
-	int getType();
-
 	//是否需要观看摄像头图像？如果未显示，调用则显示，否则取消显示
 	void showImg();
 
 	//输入指令渲染图像
 	static void render(char cmd = 0);
 
+	//获取图像
+	Mat getImage();
+
 	~camCap();
 
 private:
 
+	//图像队列
+	static queue<Mat> imgQueue;
+
 	//控制指令队列，供中间件写入
 	static queue<char> cmdQueue;
-
-	//基础矩阵结构（帧）
-	static Mat cvFrame;
 
 	//开始抓取事件
 	static HANDLE hEventStartCap;
@@ -117,6 +116,3 @@ private:
 	};
 	static CGarbo Garbo;
 };
-
-//摄像头：标记中间件已拿到并转发解码好的指令，请渲染器（摄像头）处理
-static HANDLE hsRender = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

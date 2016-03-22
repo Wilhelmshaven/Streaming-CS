@@ -15,61 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="myServer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cnctHandler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="imageQueue.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="rtspHandler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="camCap.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="middleWare.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="ctrlMsgHandler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="rtpHandler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="myServer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="CommonHeaders.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cnctHandler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="imageQueue.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="rtspHandler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="camCap.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="middleWare.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="ctrlMsgHandler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="rtpHandler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <Xml Include="config\srvConfig.xml">
       <Filter>资源文件</Filter>
     </Xml>
@@ -79,5 +24,30 @@
       <Filter>资源文件</Filter>
     </None>
     <None Include="ClassDiagram.cd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="camCap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Module Test.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="imgBuffer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="camCap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonHeaders.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="myServer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="imgBuffer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

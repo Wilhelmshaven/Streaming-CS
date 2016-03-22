@@ -143,4 +143,3 @@ cvPlayer::cvPlayer()
 
 	CreateThread(NULL, NULL, playThreadFunc, NULL, NULL, NULL);
 }
-

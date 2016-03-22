@@ -2,19 +2,19 @@
 
 #include "camCap.h"
 
-//加载图像缓存模块
-#include "imageQueue.h"
+//摄像头：标记中间件已拿到并转发解码好的指令，请渲染器（摄像头）处理
+HANDLE hsRenderImage = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::renderInput));
+
+//摄像头：标记图像已经渲染好，请中间件拿走
+HANDLE hsRenderDone = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::renderOutput));
 
 //类内静态成员变量定义
 HANDLE camCap::hEventStartCap;
 HANDLE camCap::hEventShutDown;
 HANDLE camCap::hEventShowImg;
-Mat camCap::cvFrame;
 queue<char> camCap::cmdQueue;
+queue<Mat> camCap::imgQueue;
 
-/*
-	初始化摄像头处理模块的单例
-*/
 camCap *camCap::instance = new camCap;
 
 /*
@@ -72,38 +72,6 @@ void camCap::changeFrameRate(double frameRate)
 }
 
 /*
-	函数：返回帧高
-*/
-int camCap::getHeight()
-{
-	return cvFrame.rows;
-}
-
-/*
-	函数：返回帧宽
-*/
-int camCap::getWidth()
-{
-	return cvFrame.cols;
-}
-
-/*
-	函数：返回通道数
-*/
-int camCap::getChannels()
-{
-	return cvFrame.channels();
-}
-
-/*
-	函数：返回矩阵类型
-*/
-int camCap::getType()
-{
-	return cvFrame.type();
-}
-
-/*
 	函数：展示图像
 	描述：通过设置事件和重置事件的方式，改变线程中的情况
 */
@@ -123,7 +91,20 @@ void camCap::render(char cmd)
 {
 	cmdQueue.push(cmd);
 
-	ReleaseSemaphore(hsRender, 1, NULL);
+	ReleaseSemaphore(hsRenderImage, 1, NULL);
+}
+
+Mat camCap::getImage()
+{
+	Mat frame;
+
+	if (!imgQueue.empty())
+	{
+		frame = imgQueue.front();
+		imgQueue.pop();
+	}
+
+	return frame;
 }
 
 camCap::~camCap()
@@ -161,7 +142,7 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 {
 	captureThreadParam *param = (captureThreadParam *)lparam;
 
-	imgBuffer *imgBuf = imgBuffer::getInstance();
+	Mat cvFrame;
 
 	while (1)
 	{
@@ -194,7 +175,7 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 				接收到客户端指令后，做相关变换，推出图像
 				通过信号量控制
 			*/
-			if (WaitForSingleObject(hsRender, 0) == WAIT_OBJECT_0)
+			if (WaitForSingleObject(hsRenderImage, 0) == WAIT_OBJECT_0)
 			{	
 				char key = 0;
 				if (!cmdQueue.empty())
@@ -204,7 +185,11 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 					cmdQueue.pop();
 				}
 
-				//根据指令对图像做一些小变换
+				/*
+					根据指令对图像做一些小变换
+
+					TODO：独立抽出作为一个/多个方法
+				*/
 				switch (key)
 				{
 				case 'a':
@@ -225,8 +210,13 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 					break;
 				}
 
-				//将变换好的图像塞入缓存
-				imgBuf->pushBuffer(cvFrame);
+				/*
+					将变换好的图像塞入缓存，并释放信号量
+				*/
+
+				imgQueue.push(cvFrame);
+				ReleaseSemaphore(hsRenderDone, 1, NULL);
+
 			}
 
 			//等待时间间隔

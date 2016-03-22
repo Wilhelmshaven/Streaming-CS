@@ -15,67 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="myClient.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="rtspHandler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="msgHandler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cvPlayer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="cnctHandler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="imageQueue.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="middleWare.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="rtpHandler.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="monitor.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="CommonHeaders.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="myClient.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="rtspHandler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="msgHandler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cvPlayer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="cnctHandler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="imageQueue.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="middleWare.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="rtpHandler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="monitor.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="config\static\rtspErrCodeList.csv" />
   </ItemGroup>
