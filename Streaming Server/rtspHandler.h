@@ -107,7 +107,7 @@ private:
 	
 	ps.
 	气氛上我觉得直接用时间戳就好了……算了一下0xFFFFFFFF是足够的
-	这当然有问题，详情请看实现部分
+	为了保证会话号唯一，如果同一秒内传入了多个连接，则其它连接使用从1开始的会话号
 */
 class sessionGenerator
 {
@@ -119,22 +119,11 @@ public:
 
 private:
 
-	string session;
+	unsigned long session;
+
+	unsigned long time;
 	
 	NTPTimeGenerator ntpTime;
-};
-
-/*
-	为每一个会话存储对应数据的结构体
-	包括：套接字，端口号，传输模式（TCP/UDP）
-*/
-typedef struct PerClientData
-{
-	SOCKET socket;
-
-	int streamingPort;
-
-	bool enableUDP;
 };
 
 /*
@@ -142,36 +131,49 @@ typedef struct PerClientData
 
 	使用：
 
-	int addClient(unsigned long session, PerClientData clientInfo)：插入客户端，输入会话号和客户端信息结构体
+	bool addClient(unsigned long session, SOCKET socket, int port, bool enableUDP)：插入客户端
 
-	unsigned long searchClient(unsigned long session)：查询客户端是否存在，输入会话号，返回会话号或0（不存在）
+	bool searchClient(unsigned long session)：查询客户端是否存在
 
-	PerClientData getClientInfo(unsigned long session)：获得客户端信息，输入会话号，返回客户端信息结构体
+	bool getClientInfo(unsigned long session, SOCKET &socket, int &port, bool &enableUDP)：获得客户端信息
 
-	int removeClient(unsigned long Session)：移除客户端，输入会话号，返回0
+	bool removeClient(unsigned long session)：移除客户端
 */
-class clientList
+class clientManager
 {
 public: 
 
 	//插入客户端
-	int addClient(unsigned long session, PerClientData clientInfo);   
+	bool addClient(unsigned long session, SOCKET socket, int port, bool enableUDP);   
 	
 	//查询客户端是否存在
-	unsigned long searchClient(unsigned long session); 
+	bool searchClient(unsigned long session); 
 	
 	//获得客户端信息
-	PerClientData getClientInfo(unsigned long session);                
+	bool getClientInfo(unsigned long session, SOCKET &socket, int &port, bool &enableUDP);
 
 	//移除客户端
-	int removeClient(unsigned long session);                          
+	bool removeClient(unsigned long session);                          
 	 
-	clientList();
+	clientManager();
 
 private:
 
+	/*
+		为每一个会话存储对应数据的结构体
+		包括：套接字，端口号，传输模式（TCP/UDP）
+	*/
+	typedef struct PerClientData
+	{
+		SOCKET socket;
+
+		int streamingPort;
+
+		bool enableUDP;
+	};
+
 	//Key-Value MAP
-	map<unsigned long, PerClientData> client;
+	map<unsigned long, PerClientData> clientList;
 };
 
 /*
@@ -179,7 +181,7 @@ private:
 
 	使用：
 
-	int srvConfig(string URI = "", unsigned int srvPort = 8554)：服务器设置函数，目前只能设置连接使用的端口号
+	void srvConfig(string URI = "", unsigned int srvPort = 8554)：服务器设置函数，目前只能设置连接使用的端口号
 
 	string msgCodec(string msg)：编解码一体函数，输入客户端来的待解码信息，返回编码好的答复信息
 
@@ -200,6 +202,9 @@ public:
 
 	static rtspHandler *getInstance();
 
+	//设置服务器属性
+	void srvConfig(string URI = "http://localhost:8554", unsigned int srvPort = 8554);
+
 	//编解码一体，输入待解码信息，返回编码好的答复，不负责发送
 	string msgCodec(SOCKET socket, string msg);
 
@@ -209,20 +214,27 @@ public:
 	//获取rtsp处理器的相关信息
 	string getHandlerInfo();         
 
-	//设置服务器属性
-	int srvConfig(string URI = "", unsigned int srvPort = 8554);
-
-	unsigned long getWaitingSession();
-
-	SOCKET getWaitingSocket(unsigned long session);
+	//出口：取出待处理的会话，交给RTP模块发送
+	bool getWaitingSession(unsigned long &session, SOCKET &socket, bool &enableUDP);
 
 private:
 
+	typedef struct PerClientData
+	{
+		unsigned long session;
+
+		SOCKET socket;
+
+		int streamingPort;
+
+		bool enableUDP;
+	};
+
 	//等待RTP处理的会话序列
-	queue<unsigned long> waitingQueue;
+	queue<PerClientData> sendQueue, stopQueue;
 
 	//一个Session与客户端参数的对应表 
-	clientList clientManager;
+	clientManager clientList;
 
 	//服务器RTSP方法
 	vector<string> rtspMethod;                 
@@ -235,7 +247,7 @@ private:
 	*/
 
 	//流媒体地址（！！目前没用上，不知道填啥）
-	string URI;   
+	string srvURI;   
 
 	//RTSP版本
 	string rtspVersion;  
@@ -260,10 +272,18 @@ private:
 		封装编码过程中重复的代码段/功能
 	*/
 
+	//生成信令第一行
 	string generateCMDLine(int errCode);
 
+	//生成时间那一行
 	string generateTimeLine();
 
+	//截取第一段字符串
+	string extractString(string &msg, bool newLine = false);
+
+	//截取出会话号
+	string extractSession(string msg);
+	
 	/*
 		单例模式
 	*/
@@ -287,8 +307,3 @@ private:
 	};
 	static CGarbo Garbo;
 };
-
-//流媒体信令模块：标记有新的播放/停止播放请求，请RTP模块拿走会话号
-static HANDLE hsPlaySession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
-
-static HANDLE hsStopSession = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

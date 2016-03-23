@@ -18,6 +18,11 @@ namespace myHandlerName
 	//缓存出入口
 	HANDLE hsImgBufferInput;
 	HANDLE hsImgBufferOutput;
+
+	//流媒体信令多个出口
+	HANDLE hsRTSPPlay;
+	HANDLE hsRTSPPause;
+	HANDLE hsRTSPStop;
 }
 
 //class myMessage
