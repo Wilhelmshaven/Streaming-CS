@@ -3,7 +3,7 @@
 #include "imgBuffer.h"
 
 //图像队列：标记缓存中有图像了，请拿走
-static HANDLE hsImageReady = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::imgBufferOutput);
+HANDLE hsImageReady = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::imgBufferOutput);
 
 imgBuffer *imgBuffer::instance = new imgBuffer;
 

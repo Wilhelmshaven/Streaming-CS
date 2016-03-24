@@ -38,6 +38,9 @@
     <ClCompile Include="rtspHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="ctrlMsgHandler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camCap.h">
@@ -53,6 +56,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="rtspHandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ctrlMsgHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

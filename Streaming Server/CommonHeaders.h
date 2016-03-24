@@ -45,6 +45,12 @@ namespace syncManager
 	const char rtspPlay[] = "hsRTSPPlay";
 	const char rtspPause[] = "hsRTSPPause";
 	const char rtspTeardown[] = "hsRTSPTeardown";
+
+	/*
+		控制信令出入口信号：实际上是两个出口
+	*/
+	const char ctrlMsgEncoded[] = "hsCtrlMsgEncoded";
+	const char ctrlMsgDecoded[] = "hsCtrlMsgDecoded";
 }
 
 //RTSP方法
@@ -178,11 +184,11 @@ enum keyboardState
 
 enum imgPayloadType
 {
-	OPENCV_MAT = 1,
-	JPEG = 2,
+	OPENCV_MAT = 0x01,
+	JPEG = 0x02,
 };
 
 enum imgMsgType
 {
-	IMG_HEAD = 1,
+	IMG_HEAD = 0x01,
 };

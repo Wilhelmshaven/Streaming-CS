@@ -23,6 +23,10 @@ namespace myHandlerName
 	HANDLE hsRTSPPlay;
 	HANDLE hsRTSPPause;
 	HANDLE hsRTSPStop;
+
+	//
+	HANDLE hsCtrlMsgDecoded;
+	HANDLE hsCtrlMsgEncoded;
 }
 
 //class myMessage

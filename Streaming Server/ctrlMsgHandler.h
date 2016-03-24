@@ -11,11 +11,13 @@
 
 	使用：
 	
-	void decodeMsg(string msg)：解码信令，返回会话号
+	void decodeMsg(string msg)：解码信令
 
-	string encodeMsg(imgHead head, int imgSize, int session)：编码信令（图像头）
+	void encodeMsg(imgHead head, int imgSize, int session)：编码信令
 
-	char getCtrlKey()：获取操作情况
+	bool getDecodedMsg(int &session, char &ctrlKey)：取出解码结果
+
+	bool getEncodedMsg(string &encodedMsg)：取出编码结果
 
 */
 
@@ -25,18 +27,29 @@ public:
 
 	static ctrlMsgHandler* getInstance();
 
-	int decodeMsg(string msg);
+	void decodeMsg(string msg);
 
-	string encodeMsg(imgHead head, int imgSize, int session);
+	void encodeMsg(imgHead head, int imgSize, int session);
 
-	char getCtrlKey();
+	bool getDecodedMsg(unsigned int &session, char &ctrlKey);
+
+	bool getEncodedMsg(string &encodedMsg);
 
 private:
 
+	typedef struct decodedMsg
+	{
+		int session;
+
+		char ctrlKey;
+	};
+
+	queue<decodedMsg> decodedMsgQueue;
+
+	queue<string> encodedMsgQueue;
+	
 	//编码公共头
 	string encodePublicHead(int payloadType, int session, int size);
-
-	queue<char> ctrlKeyQueue;
 
 	/*
 		单例模式
@@ -46,7 +59,6 @@ private:
 
 	static ctrlMsgHandler *instance;
 	
-
 	ctrlMsgHandler(const ctrlMsgHandler&);
 	ctrlMsgHandler &operator=(const ctrlMsgHandler&);
 	class CGarbo
@@ -59,6 +71,3 @@ private:
 	};
 	static CGarbo garbo;
 };
-
-//控制信令处理模块：标记信令解码完毕，请中间件拿走转给渲染器
-static HANDLE hsCtrlMsg = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

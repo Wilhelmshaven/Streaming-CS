@@ -3,10 +3,10 @@
 #include "rtspHandler.h"
 
 //流媒体信令模块：标记有新的播放请求，请RTP模块拿走相关信息
-static HANDLE hsPlaySession = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtspPlay);
+HANDLE hsPlaySession = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtspPlay);
 
 //流媒体信令模块：标记有新的停止播放请求，请RTP模块拿走相关信息
-static HANDLE hsStopSession = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtspTeardown);
+HANDLE hsStopSession = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtspTeardown);
 
 /*----------------------RTSP错误信息处理器：RTSP 错误码信息查询---------------------*/
 /*

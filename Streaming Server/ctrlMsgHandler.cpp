@@ -2,7 +2,18 @@
 
 #include "ctrlMsgHandler.h"
 
+//控制信令处理模块：标记信令解码完毕，请中间件拿走转给渲染器
+HANDLE hsCtrlMsgDecoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgDecoded);
+
+//控制信令处理模块：标记信令编码完毕，请中间件拿走转给网络模块
+HANDLE hsCtrlMsgEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgEncoded);
+
 ctrlMsgHandler* ctrlMsgHandler::instance = new ctrlMsgHandler;
+
+ctrlMsgHandler::ctrlMsgHandler()
+{
+
+}
 
 ctrlMsgHandler * ctrlMsgHandler::getInstance()
 {
@@ -12,46 +23,42 @@ ctrlMsgHandler * ctrlMsgHandler::getInstance()
 /*
 	解码
 */
-int ctrlMsgHandler::decodeMsg(string msg)
+void ctrlMsgHandler::decodeMsg(string msg)
 {
-	int msgType;
-
 	/*
-		先区分是键盘信令还是鼠标信令，并提取出会话号
+		提取出会话号与信令类型
 	*/
 
-	int session;
+	auto *aHead = (allMsgHead *)msg.c_str();
 
-	allMsgHead *publicHead = (allMsgHead *)&msg;
+	unsigned int payloadType, session;
 
-	msgType = publicHead->payloadType;
+	payloadType = aHead->payloadType;
 
-	session = publicHead->session;
-
-	delete(publicHead);
+	session = aHead->session;
 
 	/*
 		根据信令类型处理
 	*/
-	switch (msgType)
+
+	switch (payloadType)
 	{
 	case KB_MSG:
 	{
-		//将传入信令装入键盘信令结构体
-		keyboardMsg *kbMsg = (keyboardMsg *)&msg;
+		//将传入信令装入键盘信令结构体。注意：用string其实真心比较容易搞乱啊……
+		auto kbMsg = (keyboardMsg *)(msg.c_str() + 8);
 
 		//转换虚拟码为字符
 		char key = MapVirtualKey(kbMsg->unicode, MAPVK_VK_TO_CHAR);
 
-		/*
-			发送字符给中间件转给渲染器
-		*/
+		decodedMsg dMsg;
 
-		ctrlKeyQueue.push(key);
+		dMsg.ctrlKey = key;
+		dMsg.session = session;
 
-		ReleaseSemaphore(hsCtrlMsg, 1, NULL);
+		decodedMsgQueue.push(dMsg);
 
-		delete(kbMsg);
+		ReleaseSemaphore(hsCtrlMsgDecoded, 1, NULL);		
 
 		break;
 	}
@@ -64,11 +71,9 @@ int ctrlMsgHandler::decodeMsg(string msg)
 	default:
 		break;
 	}
-
-	return session;
 }
 
-string ctrlMsgHandler::encodeMsg(imgHead head, int imgSize, int session)
+void ctrlMsgHandler::encodeMsg(imgHead head, int imgSize, int session)
 {
 	string msg;
 
@@ -94,7 +99,35 @@ string ctrlMsgHandler::encodeMsg(imgHead head, int imgSize, int session)
 	//加上公共头
 	msg = encodePublicHead(IMG_MSG, session, msg.size()) + msg;
 
-	return msg;
+	encodedMsgQueue.push(msg);
+
+	ReleaseSemaphore(hsCtrlMsgEncoded, 1, NULL);
+}
+
+bool ctrlMsgHandler::getDecodedMsg(unsigned int &session, char &ctrlKey)
+{
+	if (decodedMsgQueue.empty())return false;
+
+	decodedMsg dMsg = decodedMsgQueue.front();
+
+	decodedMsgQueue.pop();
+
+	session = dMsg.session;
+
+	ctrlKey = dMsg.ctrlKey;
+
+	return true;
+}
+
+bool ctrlMsgHandler::getEncodedMsg(string & encodedMsg)
+{
+	if (encodedMsgQueue.empty())return false;
+
+	encodedMsg = encodedMsgQueue.front();
+
+	encodedMsgQueue.pop();
+
+	return true;
 }
 
 string ctrlMsgHandler::encodePublicHead(int payloadType, int session, int size)
@@ -113,23 +146,4 @@ string ctrlMsgHandler::encodePublicHead(int payloadType, int session, int size)
 	msg = to_string(publicHead.msgSize) + to_string(publicHead.payloadType) + to_string(publicHead.session) + to_string(publicHead.msgSize);
 
 	return msg;
-}
-
-char ctrlMsgHandler::getCtrlKey()
-{
-	char key = 0;
-
-	if (!ctrlKeyQueue.empty())
-	{
-		key = ctrlKeyQueue.front();
-
-		ctrlKeyQueue.pop();
-	}
-
-	return key;
-}
-
-ctrlMsgHandler::ctrlMsgHandler()
-{
-
 }
