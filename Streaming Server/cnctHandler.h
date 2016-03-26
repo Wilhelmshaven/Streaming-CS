@@ -17,13 +17,13 @@ typedef struct
 	// 对应WSABUF里的缓冲区
 	char buffer[BUF_SIZE];     
 
+	// 标志这个重叠I/O操作是做什么的，例如Accept/Recv等
+	int operationType;
+
 	// 接收到的数据量
 	DWORD bytesRecv;        
 
 	DWORD flags;   
-
-	// 标志这个重叠I/O操作是做什么的，例如Accept/Recv等
-	int operationType;         
 
 } PER_IO_DATA, *LPPER_IO_DATA;
 
@@ -55,6 +55,12 @@ typedef struct acptThreadParam
 	SOCKET sock;
 };
 
+typedef struct stringSocketMsg
+{
+	string msg;
+	SOCKET socket;
+};
+
 /*
 	连接处理器（单例）
 
@@ -79,6 +85,7 @@ typedef struct acptThreadParam
 class cnctHandler
 {
 public:
+
 	WSADATA wsaData;
 
 	static cnctHandler *getInstance();           //返回单例
@@ -90,16 +97,13 @@ public:
 	int startServer();
 
 	//出口：获取RTSP信令。请监听hsRTSPMsgArrived信号量。
-	static string getRTSPMsg();
+	static bool getRTSPMsg(string &msg, SOCKET &socket);
 
 	//出口：获取控制信令。请监听hsCtrlMsgArrived信号量。
-	static string getCtrlMsg();
-
-	//出口：获取SOCKET，与另外两个出口配合使用。
-	static SOCKET getSocket();
+	static bool getCtrlMsg(string &msg, SOCKET &socket);
 
 	//入口：（单纯）发送给定信息
-	int sendMessage(SOCKET socket, string msg);
+	int sendMessage(string msg, SOCKET socket);
 
 	//检查某个套接字是否还活动
 	bool isSocketAlive(SOCKET clientSocket);
@@ -113,10 +117,7 @@ private:
 		对于无意义（不符合格式的）消息，丢弃之
 	*/
 
-	static queue<string> rtspQueue, ctrlQueue;
-
-	//还有一个关键的队列……SOCKET队列
-	static queue<SOCKET> socketQueue;
+	static queue<stringSocketMsg> rtspQueue, ctrlQueue;
 
 	/*
 		线程相关

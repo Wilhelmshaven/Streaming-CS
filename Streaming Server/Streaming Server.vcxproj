@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camCap.cpp" />
+    <ClCompile Include="cnctHandler.cpp" />
     <ClCompile Include="ctrlMsgHandler.cpp" />
     <ClCompile Include="imgBuffer.cpp" />
     <ClCompile Include="Module Test.cpp" />
@@ -84,6 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camCap.h" />
+    <ClInclude Include="cnctHandler.h" />
     <ClInclude Include="CommonHeaders.h" />
     <ClInclude Include="ctrlMsgHandler.h" />
     <ClInclude Include="imgBuffer.h" />

@@ -56,6 +56,12 @@ namespace syncManager
 		rtp包出口
 	*/
 	const char rtpEncoded[] = "hsRTPEncoded";
+
+	/*
+		网络模块出入口
+	*/
+	const char msgArrivedRTSP[] = "hsMsgArrivedRTSP";
+	const char msgArrivedCtrl[] = "hsMsgArrivedCtrl";
 }
 
 //RTSP方法

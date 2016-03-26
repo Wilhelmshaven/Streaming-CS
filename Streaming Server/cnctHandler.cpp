@@ -3,15 +3,14 @@
 #include "cnctHandler.h"
 
 //网络模块：标记有新的RTSP信令信息来到
-HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::msgArrivedRTSP);
 
 //网络模块：标记有新的控制信令信息来到
-HANDLE hsCtrlMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+HANDLE hsCtrlMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::msgArrivedCtrl);
 
 cnctHandler *cnctHandler::instance = new cnctHandler;
 
-queue<string> cnctHandler::rtspQueue, cnctHandler::ctrlQueue;
-queue<SOCKET> cnctHandler::socketQueue;
+queue<stringSocketMsg> cnctHandler::rtspQueue, cnctHandler::ctrlQueue;
 
 /*
 	构造函数
@@ -29,10 +28,13 @@ cnctHandler::cnctHandler()
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 
 	//默认端口
-	srvPort = "8554";        
+	srvPort = "554";       
+
+	//获取系统信息（最主要是CPU核数，以便创建Worker线程）
+	GetSystemInfo(&sysInfo);
 
 	//建立完成端口
-	completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);   
+	completionPort = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, sysInfo.dwNumberOfProcessors);   
 
 	//获取并填写服务器信息：监听任意地址
 	srvAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
@@ -108,9 +110,6 @@ bool cnctHandler::isSocketAlive(SOCKET clientSocket)
 */
 void cnctHandler::buildThread()
 {
-	//获取系统信息（最主要是CPU核数，以便创建Worker线程）
-	GetSystemInfo(&sysInfo);
-
 	int cntThread = sysInfo.dwNumberOfProcessors;
 
 	workerThread.resize(cntThread);
@@ -151,47 +150,34 @@ int cnctHandler::startServer()
 	return status;
 }
 
-string cnctHandler::getRTSPMsg()
+bool cnctHandler::getRTSPMsg(string &msg, SOCKET &socket)
 {
-	string msg;
+	if (rtspQueue.empty())return false;
+	
+	msg = rtspQueue.front().msg;
 
-	if (!rtspQueue.empty())
-	{
-		msg = rtspQueue.front();
-		rtspQueue.pop();
-	}
+	socket = rtspQueue.front().socket;
 
-	return msg;
+	rtspQueue.pop();
+	
+	return true;
 }
 
-string cnctHandler::getCtrlMsg()
+bool cnctHandler::getCtrlMsg(string &msg, SOCKET &socket)
 {
-	string msg;
+	if (ctrlQueue.empty())return false;
+	
+	msg = ctrlQueue.front().msg;
 
-	if (!ctrlQueue.empty())
-	{
-		msg = ctrlQueue.front();
-		ctrlQueue.pop();
-	}
+	socket = ctrlQueue.front().socket;
 
-	return msg;
+	ctrlQueue.pop();
+	
+
+	return true;
 }
 
-SOCKET cnctHandler::getSocket()
-{
-	SOCKET soc;
-
-	if (!socketQueue.empty())
-	{
-		soc = socketQueue.front();
-
-		socketQueue.pop();
-	}
-
-	return soc;
-}
-
-int cnctHandler::sendMessage(SOCKET socket, string msg)
+int cnctHandler::sendMessage(string msg, SOCKET socket)
 {
 	int bytesSent = 0;
 
@@ -222,7 +208,7 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		SOCKET acptSocket;
 		SOCKADDR_IN clientAddr;
 		int addrSize = sizeof(clientAddr);
-
+		
 		//if (WaitForSingleObject(hSrvShutdown, 0))break;  //这个到底有没有用是个问题
 
 		/*
@@ -232,21 +218,21 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		acptSocket = accept(srvSocket, (SOCKADDR*)&clientAddr, &addrSize);
 
 		//保存客户端信息
-		PerHandleData = (LPPER_HANDLE_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(LPPER_HANDLE_DATA));
+		PerHandleData = (LPPER_HANDLE_DATA)malloc(sizeof(PER_HANDLE_DATA));
 		//PerHandleData->clientAddr = clientAddr;
 		PerHandleData->clientSocket = acptSocket;
 		memcpy(&(PerHandleData->clientAddr), &clientAddr, addrSize);
-
+		
 		//将接受套接字和完成端口关联
 		CreateIoCompletionPort((HANDLE)acptSocket, hCompletionPort, (DWORD)PerHandleData, 0);
-
+		
 		/*
 			准备一个重叠I/O
 		*/
-		PerIoData = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(LPPER_IO_DATA));	
+		PerIoData = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
 
 		//这个清零很重要！！否则会导致GetQueuedCompletionStatus不返回
-		ZeroMemory(&(PerIoData->overlapped), sizeof(OVERLAPPED));   
+		ZeroMemory(&(PerIoData->overlapped), sizeof(WSAOVERLAPPED));   
 
 		//缓存为最大
 		PerIoData->wsaBuf.len = BUF_SIZE;         
@@ -255,9 +241,11 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 
 		//设置模式为接收
 		PerIoData->operationType = compRecv;	       
-			
+		
+		PerIoData->flags = 0;
+
 		//在新建的套接字上投递一个或多个异步WSARecv或WSASend请求，并立即返回
-		WSARecv(PerHandleData->clientSocket, &PerIoData->wsaBuf, 1, &PerIoData->bytesRecv, &PerIoData->flags,
+		WSARecv(PerHandleData->clientSocket, &(PerIoData->wsaBuf), 1, &(PerIoData->bytesRecv), &(PerIoData->flags),
 			&(PerIoData->overlapped), NULL);
 	}
 
@@ -271,8 +259,6 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 */
 DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 {	
-	mwMsg *mwMsgHandler = mwMsg::getInstance();
-
 	//处理传入参数
 	HANDLE hCompletionPort = (HANDLE)lparam;
 
@@ -294,16 +280,25 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		*/
 		GetQueuedCompletionStatus(hCompletionPort, &bytesTransferred, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
 
+		if (bytesTransferred == 0)
+		{
+			closesocket(clientSocket);
+			continue;
+		}
+
+		/*
+			显示消息来源
+		*/
 		string incomingIP;
 		incomingIP.resize(16);
 		inet_ntop(AF_INET, &(handleInfo->clientAddr.sin_addr.S_un.S_addr), (char *)incomingIP.data(), 16);
 		cout << "Recv message from " << incomingIP << endl;
 
 		//结束服务器？这个到底有没有用是个问题
-		if (WaitForSingleObject(hSrvShutdown, 0) == WAIT_OBJECT_0)
-		{
-			break;  
-		}
+		//if (WaitForSingleObject(hSrvShutdown, 0) == WAIT_OBJECT_0)
+		//{
+		//	break;  
+		//}
 
 		clientSocket = handleInfo->clientSocket;
 
@@ -314,22 +309,29 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		*/
 
 		buf = ioInfo->buffer;
+		buf = buf.substr(0, bytesTransferred);
 
-		cout << "Recv:" << buf << endl;
+		//send(clientSocket, buf.c_str(), bytesTransferred, 0);
 
-		socketQueue.push(handleInfo->clientSocket);
+		stringSocketMsg myMsg;
+		myMsg.msg = buf;
+		myMsg.socket = clientSocket;
 
 		if (buf.find("RTSP"))
 		{
-			rtspQueue.push(buf);		
+			cout << "Recv RTSP Msg:" << buf << endl;
 
-			ReleaseSemaphore(hsRTSPMsgArrived, 10, NULL);
+			rtspQueue.push(myMsg);
+
+			ReleaseSemaphore(hsRTSPMsgArrived, 1, NULL);
 		}
 		else
 		{
-			ctrlQueue.push(buf);
+			cout << "Recv CTRL Msg" << endl;
 
-			ReleaseSemaphore(hsCtrlMsgArrived, 10, NULL);
+			ctrlQueue.push(myMsg);
+
+			ReleaseSemaphore(hsCtrlMsgArrived, 1, NULL);
 		}
 
 		/*
@@ -337,9 +339,9 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		*/
 
 		//准备一个重叠I/O
-		ioInfo = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(LPPER_IO_DATA));
+		ioInfo = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(PER_IO_DATA));
 
-		ZeroMemory(ioInfo, sizeof(ioInfo));
+		ZeroMemory(&(ioInfo->wsaBuf), sizeof(WSAOVERLAPPED));
 
 		//缓存为最大
 		ioInfo->wsaBuf.len = BUF_SIZE;    
@@ -347,7 +349,9 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		ioInfo->wsaBuf.buf = ioInfo->buffer; 
 
 		//设置模式为接收
-		ioInfo->operationType = compRecv;	       
+		ioInfo->operationType = compRecv;	
+
+		ioInfo->flags = 0;
 
 		WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, &(ioInfo->bytesRecv), &(ioInfo->flags), &(ioInfo->overlapped), NULL);
 	}

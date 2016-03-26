@@ -44,6 +44,9 @@
     <ClCompile Include="rtpHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="cnctHandler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camCap.h">
@@ -65,6 +68,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="rtpHandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cnctHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
