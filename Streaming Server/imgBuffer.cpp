@@ -17,7 +17,7 @@ imgBuffer::imgBuffer()
 
 }
 
-void imgBuffer::pushBuffer(imgHead head, vector<int> img)
+void imgBuffer::pushBuffer(imgHead head, vector<unsigned char> img)
 {
 	myImg image;
 
@@ -29,7 +29,7 @@ void imgBuffer::pushBuffer(imgHead head, vector<int> img)
 	ReleaseSemaphore(hsImageReady, 1, NULL);
 }
 
-bool imgBuffer::popBuffer(imgHead & head, vector<int> & img)
+bool imgBuffer::popBuffer(imgHead & head, vector<unsigned char> & img)
 {
 	if (!isBufEmpty())
 	{

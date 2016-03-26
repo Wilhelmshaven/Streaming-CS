@@ -169,9 +169,3 @@ private:
 	};
 	static CGarbo Garbo;
 };
-
-//网络模块：标记有新的RTSP信令信息来到
-static HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
-
-//网络模块：标记有新的控制信令信息来到
-static HANDLE hsCtrlMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

@@ -9,7 +9,9 @@
 
 	Usage：
 
-	string pack(SOCKET socket, vector<int> img)：传入套接字与图像数据，返回编码好的RTP包
+	void pack(SOCKET socket, vector<unsigned char> img)：传入套接字与图像数据编码RTP包
+
+	bool getPacket(string &msg)：取出RTP包
 
 */
 
@@ -19,8 +21,8 @@ public:
 
 	static rtpHandler* getInstance();
 
-	//传入套接字与图像数据，返回编码好的RTP包
-	void pack(SOCKET socket, vector<int> img);
+	//传入套接字与图像数据编码RTP包
+	void pack(SOCKET socket, vector<unsigned char> img);
 
 	bool getPacket(string &msg);
 

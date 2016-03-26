@@ -11,10 +11,10 @@ rtpHandler *rtpHandler::getInstance()
 	return instance;
 }
 
-void rtpHandler::pack(SOCKET socket, vector<int> img)
+void rtpHandler::pack(SOCKET socket, vector<unsigned char> img)
 {
 	string rtpPacket;
-	rtpPacket.resize(sizeof(rtpOverTcpHead) + sizeof(rtpHead));
+	rtpPacket.resize(sizeof(rtpOverTcpHead) + sizeof(rtpHead) + img.size());
 
 	auto aHead = (rtpOverTcpHead *)rtpPacket.c_str();
 
@@ -25,15 +25,12 @@ void rtpHandler::pack(SOCKET socket, vector<int> img)
 	aHead->channelNumber = 1;
 
 	/*
-		编码：首先把vector<int>转为string，然后再在前面加上各种头部
+		编码：首先把vector<unsigned char>转为string，然后再在前面加上各种头部
 	*/
-	string imgData;
-	imgData.resize(img.size());
-	imgData.assign(img.begin(), img.end());
 
 	encodeRTPHead(rtpPacket, socket);
 
-	rtpPacket += imgData;
+	memcpy(&rtpPacket[sizeof(rtpOverTcpHead) + sizeof(rtpHead)], &img[0], img.size());
 
 	packetQueue.push(rtpPacket);
 

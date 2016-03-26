@@ -2,8 +2,11 @@
 
 #include "cnctHandler.h"
 
-//加载消息中间件模块
-#include "middleWare.h"
+//网络模块：标记有新的RTSP信令信息来到
+HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+
+//网络模块：标记有新的控制信令信息来到
+HANDLE hsCtrlMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
 
 cnctHandler *cnctHandler::instance = new cnctHandler;
 
