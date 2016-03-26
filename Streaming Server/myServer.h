@@ -27,6 +27,8 @@ namespace myHandlerName
 	//
 	HANDLE hsCtrlMsgDecoded;
 	HANDLE hsCtrlMsgEncoded;
+
+	HANDLE hsRTPEncoded;
 }
 
 //class myMessage

@@ -2,6 +2,8 @@
 
 #include "rtpHandler.h"
 
+HANDLE rtpEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtpEncoded);
+
 rtpHandler* rtpHandler::instance = new rtpHandler;
 
 rtpHandler *rtpHandler::getInstance()
@@ -9,34 +11,54 @@ rtpHandler *rtpHandler::getInstance()
 	return instance;
 }
 
-string rtpHandler::pack(SOCKET socket, vector<int> img)
+void rtpHandler::pack(SOCKET socket, vector<int> img)
 {
 	string rtpPacket;
+	rtpPacket.resize(sizeof(rtpOverTcpHead) + sizeof(rtpHead));
 
-	//1.获取序列号，查表
-	short seq = getSeqNumber(socket);
+	auto aHead = (rtpOverTcpHead *)rtpPacket.c_str();
 
-	//2.信道。目前默认为一
-	int channel = 1;
+	aHead->magicNumber = '$';
+	aHead->enbeddedLength = sizeof(rtpHead) + img.size();
+
+	//信道，目前默认为1
+	aHead->channelNumber = 1;
 
 	/*
-		3.编码
-
-		首先把vector<int>转为string，然后再在前面加上各种头部
-
-		先加rtp头，再加TCP的小头
+		编码：首先把vector<int>转为string，然后再在前面加上各种头部
 	*/
-	rtpPacket.resize(img.size());
-	rtpPacket.assign(img.begin(), img.end());
+	string imgData;
+	imgData.resize(img.size());
+	imgData.assign(img.begin(), img.end());
 
-	rtpPacket = '$' + to_string(channel) + to_string(img.size()) + rtpPacket;
+	encodeRTPHead(rtpPacket, socket);
 
-	return rtpPacket;
+	rtpPacket += imgData;
+
+	packetQueue.push(rtpPacket);
+
+	ReleaseSemaphore(rtpEncoded, 1, NULL);
 }
 
-short rtpHandler::getSeqNumber(SOCKET socket)
+bool rtpHandler::getPacket(string & msg)
 {
-	short seq;
+	if (packetQueue.empty())
+	{
+		return false;
+	}
+	else
+	{
+		msg = packetQueue.front();
+
+		packetQueue.pop();
+	}
+
+	return true;
+}
+
+unsigned short rtpHandler::getSeqNumber(SOCKET socket)
+{
+	unsigned short seq;
 
 	auto iterator = seqManager.find(socket);
 
@@ -57,7 +79,7 @@ short rtpHandler::getSeqNumber(SOCKET socket)
 		seqManager.insert(make_pair(socket, seq));
 	}
 
-	return 0;
+	return seq;
 }
 
 /*
@@ -75,7 +97,51 @@ unsigned short rtpHandler::randSeq(SOCKET socket)
 	return distribution(randEngine);
 }
 
+void rtpHandler::encodeRTPHead(string & msg, SOCKET socket)
+{
+	auto rHead = (rtpHead *)(msg.c_str() + sizeof(rtpOverTcpHead));
+
+	//10000000
+	rHead->vpxcc = 0xC0;
+
+	//10011010
+	rHead->mpt = 0x9A;
+
+	//获取序列号，查表
+	rHead->seqNum = htons(getSeqNumber(socket));
+
+	//时间戳
+	rHead->timestamp = htonl(getTimeStamp(socket));
+
+	//SSRC，随便写了……
+	rHead->ssrc = htonl(0x12345678);
+}
+
 rtpHandler::rtpHandler()
 {
 
+}
+
+unsigned long rtpHandler::getTimeStamp(SOCKET socket)
+{
+	auto iter = timestampManager.find(socket);
+
+	/*
+		逻辑：已存在记录，则取出并递增
+		否则设初值为1
+	*/
+	if (iter != timestampManager.end())
+	{
+		++iter->second;
+
+		return iter->second;
+	}
+	else
+	{
+		unsigned long time = 1;
+
+		timestampManager.insert(make_pair(socket, time));
+
+		return 1;
+	}
 }

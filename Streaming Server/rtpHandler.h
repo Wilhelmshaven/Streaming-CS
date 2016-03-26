@@ -20,19 +20,30 @@ public:
 	static rtpHandler* getInstance();
 
 	//传入套接字与图像数据，返回编码好的RTP包
-	string pack(SOCKET socket, vector<int> img);
+	void pack(SOCKET socket, vector<int> img);
+
+	bool getPacket(string &msg);
 
 private:
 
+	//为了非阻塞
+	queue<string> packetQueue;
+
 	/*
-		序列号管理器
+		rtp包中的包序列号管理器
 	*/
 	map<SOCKET, unsigned short> seqManager;
 
-	short getSeqNumber(SOCKET socket);
+	unsigned short getSeqNumber(SOCKET socket);
 
 	//随机序列号生成器，使用标准库实现
 	unsigned short randSeq(SOCKET socket);
+
+	void encodeRTPHead(string &msg, SOCKET socket);
+
+	map<SOCKET, unsigned long> timestampManager;
+
+	unsigned long getTimeStamp(SOCKET socket);
 
 	/*
 		单例

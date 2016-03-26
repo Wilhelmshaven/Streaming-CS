@@ -51,6 +51,11 @@ namespace syncManager
 	*/
 	const char ctrlMsgEncoded[] = "hsCtrlMsgEncoded";
 	const char ctrlMsgDecoded[] = "hsCtrlMsgDecoded";
+
+	/*
+		rtp包出口
+	*/
+	const char rtpEncoded[] = "hsRTPEncoded";
 }
 
 //RTSP方法
@@ -168,6 +173,22 @@ typedef struct imgHead
 	int imgType;
 
 	//int matrixType;
+};
+
+typedef struct rtpHead
+{
+	BYTE vpxcc;
+	BYTE mpt;
+	WORD seqNum;
+	DWORD timestamp;
+	DWORD ssrc;
+};
+
+typedef struct rtpOverTcpHead
+{
+	BYTE magicNumber;
+	BYTE channelNumber;
+	WORD enbeddedLength;
 };
 
 enum keyboardLayout

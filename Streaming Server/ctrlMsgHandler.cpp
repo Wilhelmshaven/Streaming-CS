@@ -35,7 +35,7 @@ void ctrlMsgHandler::decodeMsg(string msg)
 
 	payloadType = aHead->payloadType;
 
-	session = aHead->session;
+	session = ntohl(aHead->session);
 
 	/*
 		根据信令类型处理
@@ -49,7 +49,7 @@ void ctrlMsgHandler::decodeMsg(string msg)
 		auto kbMsg = (keyboardMsg *)(msg.c_str() + 8);
 
 		//转换虚拟码为字符
-		char key = MapVirtualKey(kbMsg->unicode, MAPVK_VK_TO_CHAR);
+		char key = MapVirtualKey(ntohl(kbMsg->unicode), MAPVK_VK_TO_CHAR);
 
 		decodedMsg dMsg;
 
@@ -73,18 +73,18 @@ void ctrlMsgHandler::decodeMsg(string msg)
 	}
 }
 
-void ctrlMsgHandler::encodeMsg(imgHead head, int imgSize, int session)
+void ctrlMsgHandler::encodeMsg(imgHead head, unsigned int imgSize, unsigned int session)
 {
 	string msg;
 
 	msg.resize(sizeof(imgMsgHead));
 
-	imgMsgHead *msgHead = (imgMsgHead *)msg.c_str();
+	auto *msgHead = (imgMsgHead *)msg.c_str();
 
 	//填写结构体
-	msgHead->imgChannels = head.channels;
-	msgHead->imgCols = head.cols;
-	msgHead->imgRows = head.rows;
+	msgHead->imgChannels = htons(head.channels);
+	msgHead->imgCols = htons(head.cols);
+	msgHead->imgRows = htons(head.rows);
 	msgHead->imgType = head.imgType;
 
 	msgHead->payloadType = OPENCV_MAT;
@@ -93,7 +93,7 @@ void ctrlMsgHandler::encodeMsg(imgHead head, int imgSize, int session)
 
 	msgHead->msgFlag = 0x03;
 
-	msgHead->msgSize = imgSize + sizeof(imgMsgHead);
+	msgHead->msgSize = htons(imgSize + sizeof(imgMsgHead));
 
 	//加上公共头
 	msg = encodePublicHead(IMG_MSG, session, msg.size()) + msg;
@@ -103,7 +103,7 @@ void ctrlMsgHandler::encodeMsg(imgHead head, int imgSize, int session)
 	ReleaseSemaphore(hsCtrlMsgEncoded, 1, NULL);
 }
 
-bool ctrlMsgHandler::getDecodedMsg(unsigned int &session, char &ctrlKey)
+bool ctrlMsgHandler::getDecodedMsg(unsigned int &session, unsigned char &ctrlKey)
 {
 	if (decodedMsgQueue.empty())return false;
 
@@ -129,18 +129,18 @@ bool ctrlMsgHandler::getEncodedMsg(string & encodedMsg)
 	return true;
 }
 
-string ctrlMsgHandler::encodePublicHead(int payloadType, int session, int size)
+string ctrlMsgHandler::encodePublicHead(unsigned int payloadType, unsigned int session, unsigned int size)
 {
 	string msg;
 	msg.resize(sizeof(allMsgHead));
 
-	allMsgHead *publicHead = (allMsgHead *)msg.c_str();
+	auto *publicHead = (allMsgHead *)msg.c_str();
 
 	//填写结构体
 	publicHead->cks = 0;
 	publicHead->payloadType = payloadType;
-	publicHead->session = session;
-	publicHead->msgSize = sizeof(allMsgHead) + size;
+	publicHead->session = htonl(session);
+	publicHead->msgSize = htons(sizeof(allMsgHead) + size);
 
 	return msg;
 }
