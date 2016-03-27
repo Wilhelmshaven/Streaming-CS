@@ -177,13 +177,29 @@ bool cnctHandler::getCtrlMsg(string &msg, SOCKET &socket)
 	return true;
 }
 
-int cnctHandler::sendMessage(string msg, SOCKET socket)
+void cnctHandler::sendMessage(string msg, SOCKET socket)
 {
-	int bytesSent = 0;
+	//bytesSent = send(socket, msg.c_str(), msg.length(), NULL);
 
-	bytesSent = send(socket, msg.c_str(), msg.length(), NULL);
+	LPPER_IO_DATA ioInfo = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
 
-	return bytesSent;
+	ZeroMemory(&(ioInfo->overlapped), sizeof(WSAOVERLAPPED));
+
+	//缓存为最大
+	ioInfo->wsaBuf.len = msg.length();
+
+	ioInfo->wsaBuf.buf = ioInfo->buffer;
+
+	memcpy(ioInfo->buffer, msg.c_str(), msg.length());
+
+	//设置模式为发送
+	ioInfo->operationType = compSend;
+
+	ioInfo->flags = 0;
+
+	WSASend(socket, &(ioInfo->wsaBuf), 1, NULL, ioInfo->flags, &(ioInfo->overlapped), NULL);
+
+	free(ioInfo);
 }
 
 /*
@@ -208,8 +224,6 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		SOCKET acptSocket;
 		SOCKADDR_IN clientAddr;
 		int addrSize = sizeof(clientAddr);
-		
-		//if (WaitForSingleObject(hSrvShutdown, 0))break;  //这个到底有没有用是个问题
 
 		/*
 			接收连接
@@ -249,7 +263,9 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 			&(PerIoData->overlapped), NULL);
 	}
 
-	delete param;
+	free(param);
+	free(PerHandleData);
+	free(PerIoData);
 
 	return 0;
 }
@@ -280,58 +296,58 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		*/
 		GetQueuedCompletionStatus(hCompletionPort, &bytesTransferred, (LPDWORD)&handleInfo, (LPOVERLAPPED *)&ioInfo, INFINITE);
 
-		if (bytesTransferred == 0)
-		{
-			closesocket(clientSocket);
-			continue;
-		}
-
-		/*
-			显示消息来源
-		*/
-		string incomingIP;
-		incomingIP.resize(16);
-		inet_ntop(AF_INET, &(handleInfo->clientAddr.sin_addr.S_un.S_addr), (char *)incomingIP.data(), 16);
-		cout << "Recv message from " << incomingIP << endl;
-
-		//结束服务器？这个到底有没有用是个问题
-		//if (WaitForSingleObject(hSrvShutdown, 0) == WAIT_OBJECT_0)
-		//{
-		//	break;  
-		//}
-
 		clientSocket = handleInfo->clientSocket;
 
 		/*
-			处理信令
-			首先解析是流媒体还是控制，然后塞到对应队列中，最后激活信号量
-			注意把SOCKET一起丢进去……要不然回发，回给谁啊？？？！
+			传入消息处理
 		*/
-
-		buf = ioInfo->buffer;
-		buf = buf.substr(0, bytesTransferred);
-
-		//send(clientSocket, buf.c_str(), bytesTransferred, 0);
-
-		stringSocketMsg myMsg;
-		myMsg.msg = buf;
-		myMsg.socket = clientSocket;
-
-		if (buf.find("RTSP"))
+		if (ioInfo->operationType == compRecv)
 		{
-			cout << "Recv RTSP Msg:" << buf << endl;
+			//EOF，连接关闭
+			if (bytesTransferred == 0)
+			{
+				closesocket(clientSocket);
+				free(handleInfo);
+				free(ioInfo);
+				continue;
+			}
+			/*
+				显示消息来源
+			*/
+			string incomingIP;
+			incomingIP.resize(16);
+			inet_ntop(AF_INET, &(handleInfo->clientAddr.sin_addr.S_un.S_addr), (char *)incomingIP.data(), 16);
+			cout << "Recv message from " << incomingIP << endl;		
 
-			rtspQueue.push(myMsg);
+			/*
+				处理信令
+				首先解析是流媒体还是控制，然后塞到对应队列中，最后激活信号量
+				注意把SOCKET一起丢进去……要不然回发，回给谁啊？？？！
+			*/
 
-			ReleaseSemaphore(hsRTSPMsgArrived, 1, NULL);
-		}
-		else
-		{
-			cout << "Recv CTRL Msg" << endl;
+			buf = ioInfo->buffer;
+			buf = buf.substr(0, bytesTransferred);
 
-			ctrlQueue.push(myMsg);
+			stringSocketMsg myMsg;
+			myMsg.msg = buf;
+			myMsg.socket = clientSocket;
 
-			ReleaseSemaphore(hsCtrlMsgArrived, 1, NULL);
+			if (buf.find("RTSP") != string::npos)
+			{
+				cout << "Recv RTSP Msg:" << buf << endl;
+
+				rtspQueue.push(myMsg);
+
+				ReleaseSemaphore(hsRTSPMsgArrived, 1, NULL);
+			}
+			else
+			{
+				cout << "Recv CTRL Msg" << endl;
+
+				ctrlQueue.push(myMsg);
+
+				ReleaseSemaphore(hsCtrlMsgArrived, 1, NULL);
+			}
 		}
 
 		/*
@@ -341,19 +357,19 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		//准备一个重叠I/O
 		ioInfo = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(PER_IO_DATA));
 
-		ZeroMemory(&(ioInfo->wsaBuf), sizeof(WSAOVERLAPPED));
+		ZeroMemory(&(ioInfo->overlapped), sizeof(WSAOVERLAPPED));
 
 		//缓存为最大
-		ioInfo->wsaBuf.len = BUF_SIZE;    
+		ioInfo->wsaBuf.len = BUF_SIZE;
 
-		ioInfo->wsaBuf.buf = ioInfo->buffer; 
+		ioInfo->wsaBuf.buf = ioInfo->buffer;
 
 		//设置模式为接收
-		ioInfo->operationType = compRecv;	
+		ioInfo->operationType = compRecv;
 
 		ioInfo->flags = 0;
 
-		WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, &(ioInfo->bytesRecv), &(ioInfo->flags), &(ioInfo->overlapped), NULL);
+		WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, &(ioInfo->bytesRecv), &(ioInfo->flags), &(ioInfo->overlapped), NULL);		
 	}
 
 	return 0;

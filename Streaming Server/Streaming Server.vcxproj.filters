@@ -24,12 +24,12 @@
       <Filter>资源文件</Filter>
     </None>
     <None Include="ClassDiagram.cd" />
+    <None Include="config\static\systemErrCodeList.csv">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="camCap.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Module Test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="imgBuffer.cpp">
@@ -45,6 +45,15 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="cnctHandler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="middleWare.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="errHandler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="myServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -71,6 +80,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="cnctHandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="middleWare.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="errHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

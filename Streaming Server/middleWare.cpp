@@ -6,108 +6,167 @@
 	加载该中间件所需要对接的模块
 */
 
-//加载网络处理模块
+#include "camCap.h"
 #include "cnctHandler.h"
-
-//加载流媒体信令处理模块
+#include "ctrlMsgHandler.h"
+#include "imgBuffer.h"
+#include "rtpHandler.h"
 #include "rtspHandler.h"
 
-//加载控制信令处理模块
-#include "ctrlMsgHandler.h"
+#include "errHandler.h"
 
-//加载摄像头（模拟渲染器）模块
-#include "camCap.h"
+#include "myServer.h"
 
-//加载图像缓存
-#include "imageQueue.h"
+using namespace syncManager;
 
-//加载RTP打包模块
-#include "rtpHandler.h"
+//全局事件：结束服务器的事件
+HANDLE heShutdownSrv;
 
-mwMsg* mwMsg::instance = new mwMsg;
+//图像源出入口
+HANDLE hsRenderInput;
+HANDLE hsRenderOutput;
 
-mwMsg * mwMsg::getInstance()
+//缓存出入口
+HANDLE hsImgBufferInput;
+HANDLE hsImgBufferOutput;
+
+//流媒体信令多个出口
+HANDLE hsRTSPPlay;
+HANDLE hsRTSPPause;
+HANDLE hsRTSPStop;
+
+//
+HANDLE hsCtrlMsgDecoded;
+HANDLE hsCtrlMsgEncoded;
+
+HANDLE hsRTPEncoded;
+
+HANDLE hsMsgArrivedRTSP;
+HANDLE hsMsgArrivedCtrl;
+
+middleWare* middleWare::instance = new middleWare;
+
+middleWare * middleWare::getInstance()
 {
 	return instance;
 }
 
-void mwMsg::startMiddleWare()
+void middleWare::startMiddleWare()
 {
+
+
 	CreateThread(NULL, NULL, mwCtrlMsgThread, NULL, NULL, NULL);
 
 	CreateThread(NULL, NULL, mwRTSPMsgThread, NULL, NULL, NULL);
 }
 
-DWORD mwMsg::mwCtrlMsgThread(LPVOID lparam)
+void middleWare::initHandles()
+{
+	heShutdownSrv = CreateEvent(NULL, TRUE, FALSE, NULL);
+	
+	//hsRenderInput = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::renderInput));
+	hsRenderOutput = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::renderOutput));
+	
+	//hsImgBufferInput= CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::imgBufferInput));
+	hsImgBufferOutput = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::imgBufferOutput));
+	
+	hsCtrlMsgDecoded = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::ctrlMsgDecoded));
+	hsCtrlMsgEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::ctrlMsgEncoded));
+	
+	hsRTPEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::rtpEncoded));
+	
+	hsMsgArrivedRTSP = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::msgArrivedRTSP));
+	hsMsgArrivedCtrl = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::msgArrivedCtrl));
+}
+
+DWORD middleWare::mwCtrlMsgThread(LPVOID lparam)
 {
 	cnctHandler *netModule = cnctHandler::getInstance();
-
 	ctrlMsgHandler *ctrlMsgModule = ctrlMsgHandler::getInstance();
-
 	camCap *renderer = camCap::getInstance();
-
-	imgBuffer *imgBuf = imgBuffer::getInstance();
-
+	imgBuffer *imgBufModule = imgBuffer::getInstance();
 	rtpHandler *rtpModule = rtpHandler::getInstance();
 
+	errHandler *errorHandler = errHandler::getInstance();
+
 	string ctrlMsg;
-
-	char key;
-
-	vector<int> img;
-
-	imgHead imageHead;
-
-	string rtpPacket;
-
-	string imageHeadMsg;
-
-	int session;
-
 	SOCKET clientSocket;
+
+	unsigned int session;
+	unsigned char key;
+
+	imgHead iHead;
+	vector<unsigned char> imgData;
+
+	string rtpMsg;
+
+	string imgHeadMsg;
 
 	while (1)
 	{
-		WaitForSingleObject(hsCtrlMsgArrived, INFINITE);
+		WaitForSingleObject(hsMsgArrivedCtrl, INFINITE);
 
-		if (WaitForSingleObject(hSrvShutdown, 0) == WAIT_OBJECT_0)
+		//1.从网络模块拿信令以及SOCKET
+		if (!netModule->getCtrlMsg(ctrlMsg, clientSocket))
 		{
-			break;
+			errorHandler->handleError(101);
+
+			continue;
 		}
 
-		//1.从网络模块拿信令以及SOCKET！
-		ctrlMsg = netModule->getCtrlMsg();
-
-		clientSocket = netModule->getSocket();
-
 		//2.丢给控制信令处理模块，并获取会话号
-		session = ctrlMsgModule->decodeMsg(ctrlMsg);
+		ctrlMsgModule->decodeMsg(ctrlMsg);
 
 		//3.等解码好了，拿回来
-		key = 0;
+		WaitForSingleObject(hsCtrlMsgDecoded, INFINITE);
 
-		WaitForSingleObject(hsCtrlMsg, INFINITE);
+		if (!ctrlMsgModule->getDecodedMsg(session, key))
+		{
+			errorHandler->handleError(102);
 
-		key = ctrlMsgModule->getCtrlKey();
+			continue;
+		}
 
 		//4.然后塞给渲染器
 		renderer->render(key);
 
 		//5.然后等图像好了，取出来。注意，从图像缓存中取
-		WaitForSingleObject(hsImageReady, INFINITE);
+		WaitForSingleObject(hsRenderOutput, INFINITE);
 
-		imgBuf->popBuffer(imageHead, img);
+		if (!imgBufModule->popBuffer(iHead, imgData))
+		{
+			errorHandler->handleError(103);
+
+			continue;
+		}
 
 		//6.把图像塞给RTP打包模块，并且推入SOCKET以构建序列号
-		rtpPacket = rtpModule->pack(clientSocket, img);
+		rtpModule->pack(clientSocket, imgData);
+
+		WaitForSingleObject(hsRTPEncoded, INFINITE);
+
+		if (!rtpModule->getPacket(rtpMsg))
+		{
+			errorHandler->handleError(104);
+
+			continue;
+		}
 
 		//7.编码图像头
-		imageHeadMsg = ctrlMsgModule->encodeMsg(imageHead, img.size(), session);
+		ctrlMsgModule->encodeMsg(iHead, imgData.size(), session);
+
+		WaitForSingleObject(hsCtrlMsgEncoded, INFINITE);
+
+		if (!ctrlMsgModule->getEncodedMsg(imgHeadMsg))
+		{
+			errorHandler->handleError(105);
+
+			continue;
+		}
 
 		//8.把RTP包交给网络模块发送。先发送头再发送数据
-		netModule->sendMessage(clientSocket, imageHeadMsg);
-
-		netModule->sendMessage(clientSocket, rtpPacket);
+		netModule->sendMessage(imgHeadMsg,clientSocket);
+		netModule->sendMessage(rtpMsg, clientSocket);
 	}
 
 	return 0;
@@ -117,44 +176,42 @@ DWORD mwMsg::mwCtrlMsgThread(LPVOID lparam)
 	专门处理流媒体信令的线程
 	对接网络模块与流媒体信令处理模块
 */
-DWORD mwMsg::mwRTSPMsgThread(LPVOID lparam)
+DWORD middleWare::mwRTSPMsgThread(LPVOID lparam)
 {
 
 	cnctHandler *netModule = cnctHandler::getInstance();
-
 	rtspHandler *rtspModule = rtspHandler::getInstance();
 
-	SOCKET clientSocket;
-	string rtspMsg;
+	errHandler *errorHandler = errHandler::getInstance();
 
-	int bytesSent;
+	string rtspMsg;
+	SOCKET clientSocket;
+
+	string respondMsg;
 
 	while (1)
 	{
-		WaitForSingleObject(hsRTSPMsgArrived, INFINITE);
-
-		if (WaitForSingleObject(hSrvShutdown, 0) == WAIT_OBJECT_0)
-		{
-			break;
-		}
+		WaitForSingleObject(hsMsgArrivedRTSP, INFINITE);
 
 		//1.从网络模块获取信令
-		rtspMsg = netModule->getRTSPMsg();
+		if (!netModule->getRTSPMsg(rtspMsg, clientSocket))
+		{
+			errorHandler->handleError(201);
 
-		//2.从网络模块获取Socket
-		clientSocket = netModule->getSocket();
+			continue;
+		}
 
-		//3.调用流媒体信令处理模块解码并获得答令
-		rtspMsg = rtspModule->msgCodec(clientSocket, rtspMsg);
+		//2.调用流媒体信令处理模块解码并获得答令
+		respondMsg = rtspModule->msgCodec(clientSocket, rtspMsg);
 
-		//4.调用网络模块发送答令
-		bytesSent = netModule->sendMessage(clientSocket, rtspMsg);
+		//3.调用网络模块发送答令
+		netModule->sendMessage(respondMsg, clientSocket);
 	}
 
 	return 0;
 }
 
-mwMsg::mwMsg()
+middleWare::middleWare()
 {
 
 }

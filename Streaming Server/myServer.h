@@ -29,11 +29,15 @@ namespace myHandlerName
 	HANDLE hsCtrlMsgEncoded;
 
 	HANDLE hsRTPEncoded;
+
+	HANDLE hsMsgArrivedRTSP;
+	HANDLE hsMsgArrivedCtrl;
 }
 
-//class myMessage
-//{
-//public:
-//	myMessage();
-//};
-//
+class myMessage
+{
+public:
+
+	myMessage();
+
+};

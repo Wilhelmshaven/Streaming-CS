@@ -68,17 +68,15 @@ typedef struct stringSocketMsg
 
 	使用：
 	
-	int srvConfig(int port)：设置服务器参数，默认返回值为0
+	int srvConfig(int port = 8554)：设置服务器参数，默认返回值为0
 
 	int startServer()：启动服务器并监听传入连接，返回值为winsock中listen函数的返回值
 
-	static string getRTSPMsg()：出口，获取RTSP信令。请监听hsRTSPMsgArrived信号量。
+	static bool getRTSPMsg(string &msg, SOCKET &socket)：出口，获取RTSP信令。请监听hsRTSPMsgArrived信号量。
 
-	static string getCtrlMsg()：出口，获取控制信令。请监听hsCtrlMsgArrived信号量。
+	static bool getCtrlMsg(string &msg, SOCKET &socket)：出口，获取控制信令。请监听hsCtrlMsgArrived信号量。
 
-	static SOCKET getSocket()：出口，获取SOCKET，与另外两个出口配合使用。
-
-	int sendMessage(SOCKET socket, string msg)：入口，（单纯）发送给定信息
+	void sendMessage(string msg, SOCKET socket)：入口，（单纯）发送给定信息
 
 	bool isSocketAlive(SOCKET clientSocket)：检查某个套接字是否还活动
 */
@@ -103,7 +101,7 @@ public:
 	static bool getCtrlMsg(string &msg, SOCKET &socket);
 
 	//入口：（单纯）发送给定信息
-	int sendMessage(string msg, SOCKET socket);
+	void sendMessage(string msg, SOCKET socket);
 
 	//检查某个套接字是否还活动
 	bool isSocketAlive(SOCKET clientSocket);

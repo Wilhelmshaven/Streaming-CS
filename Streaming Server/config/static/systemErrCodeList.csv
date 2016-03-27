@@ -1,0 +1,6 @@
+101,Can't get control message from network module
+102,Can't get decoded control msg from decodoer
+103,Can't get image from renderer
+104,Can't get packed packet from RTP module
+105,Can't get encoded image head message from encoder
+201,Can't get RTSP message from network module

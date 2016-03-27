@@ -12,15 +12,17 @@
 	关闭依赖于服务器关闭事件
 */
 
-class mwMsg
+class middleWare
 {
 public:
 
-	static mwMsg* getInstance();
+	static middleWare* getInstance();
 
 	void startMiddleWare();
 
 private:
+
+	void initHandles();
 
 	static DWORD WINAPI mwCtrlMsgThread(LPVOID lparam);
 
@@ -30,12 +32,12 @@ private:
 		单例模式
 	*/
 
-	mwMsg();
+	middleWare();
 
-	static mwMsg* instance;
+	static middleWare* instance;
 	
-	mwMsg(const mwMsg&);
-	mwMsg &operator=(const mwMsg&);
+	middleWare(const middleWare&);
+	middleWare &operator=(const middleWare&);
 	class CGarbo
 	{
 	public:

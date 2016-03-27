@@ -84,7 +84,7 @@ enum rtspMethod
 
 enum CustomDefine
 {
-	BUF_SIZE = 2048,
+	BUF_SIZE = 4096,
 	//下面是完成端口的操作模式标记
 	compRecv = 3,
 	compSend = 5,

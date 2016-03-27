@@ -31,7 +31,7 @@ void rtspErrHandler::buildErrList()
 	fstream fileStream;
 
 	//以只读方式打开文件
-	fileStream.open(settingFile.c_str(), ios_base::in);
+	fileStream.open(settingFile, ios_base::in);
 
 	string buf, code, msg;
 	int errCode;
