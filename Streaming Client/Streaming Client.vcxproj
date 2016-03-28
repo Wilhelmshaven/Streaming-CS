@@ -79,11 +79,13 @@
     <ClInclude Include="cvPlayer.h" />
     <ClInclude Include="imageBuffer.h" />
     <ClInclude Include="myClient.h" />
+    <ClInclude Include="rtpHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cvPlayer.cpp" />
     <ClCompile Include="imageBuffer.cpp" />
     <ClCompile Include="ModularTest.cpp" />
+    <ClCompile Include="rtpHandler.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

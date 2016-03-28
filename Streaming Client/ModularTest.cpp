@@ -16,6 +16,8 @@ namespace myHandle
 	HANDLE hsPlayerOutput;
 
 	HANDLE hsBufferOutput;
+
+	HANDLE hsRTPOutput;
 };
 
 using namespace myHandle;
@@ -30,6 +32,8 @@ void initServer()
 	hsPlayerOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::playerOutput);
 
 	hsBufferOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::bufferOutput);
+
+	hsRTPOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtpOutput);
 }
 
 int main()

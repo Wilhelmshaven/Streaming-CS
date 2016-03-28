@@ -17,6 +17,8 @@
 	data - data packet, ie RTP packet, with the total length of the embedded data length
 	数据 - 数据包，比如说RTP包，总长度与上面的数据长度相同
 	Below is a full example of the communication exchanged
+
+	随后，再附上通常的的RTP包，包括一个大头部
 */
 
 /*
@@ -26,13 +28,11 @@
 	但是上面是应用UDP传输的
 	这里使用TCP的话，那么就是RTP over RTSP的传输方式
 	即使用同一个套接字进行传输
-	所以，接收统一由网络模块负责（按目前的情况，准确点说，是main函数……懒得改了），若检测到是RTP数据包，则再转给本模块处理
-
-	pps.发送RTP数据前，务必先发送一个图片头……
+	所以，接收统一由网络模块负责，若检测到是RTP数据包，则再转给本模块处理
 
 	使用：
 
-	void unpackRTP(imgHead head, string rtpPacket)：送入待解码的RTP数据包
+	void unpackRTP(string mediaPacket)：送入待解码的媒体数据包
 
 	void getMedia(imgHead &head, vector<int> &img)：传出媒体数据
 
@@ -43,13 +43,19 @@ public:
 
 	static rtpHandler* getInstance();
 
-	void unpackRTP(string rtpPacket);
+	void unpackRTP(string mediaPacket);
 
-	void getMedia(vector<int> &img);
+	bool getMedia(imgHead &head, vector<char> &img);
 
 private:
 
-	queue<vector<int>> rtpQueue;
+	typedef struct myImage
+	{
+		imgHead head;
+		vector<char> img;
+	};
+
+	queue<myImage> imageQueue;
 
 	/*
 		单例模式相关
@@ -70,6 +76,3 @@ private:
 	};
 	CGarbo garbo;
 };
-
-//RTP模块：标记RTP数据包已经解包完成
-static HANDLE hsRTPUnpacked = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
