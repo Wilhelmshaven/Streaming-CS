@@ -15,34 +15,34 @@
 
 #include "errHandler.h"
 
-#include "myServer.h"
+namespace myHandlerNameA
+{
+	//全局事件：结束服务器的事件
+	HANDLE heShutdownSrv;
 
-using namespace syncManager;
+	//图像源出入口
+	HANDLE hsRenderInput;
+	HANDLE hsRenderOutput;
 
-//全局事件：结束服务器的事件
-HANDLE heShutdownSrv;
+	//缓存出入口
+	HANDLE hsImgBufferInput;
+	HANDLE hsImgBufferOutput;
 
-//图像源出入口
-HANDLE hsRenderInput;
-HANDLE hsRenderOutput;
+	//流媒体信令多个出口
+	HANDLE hsRTSPPlay;
+	HANDLE hsRTSPPause;
+	HANDLE hsRTSPStop;
 
-//缓存出入口
-HANDLE hsImgBufferInput;
-HANDLE hsImgBufferOutput;
+	//
+	HANDLE hsCtrlMsgDecoded;
+	HANDLE hsCtrlMsgEncoded;
 
-//流媒体信令多个出口
-HANDLE hsRTSPPlay;
-HANDLE hsRTSPPause;
-HANDLE hsRTSPStop;
+	HANDLE hsRTPEncoded;
 
-//
-HANDLE hsCtrlMsgDecoded;
-HANDLE hsCtrlMsgEncoded;
-
-HANDLE hsRTPEncoded;
-
-HANDLE hsMsgArrivedRTSP;
-HANDLE hsMsgArrivedCtrl;
+	HANDLE hsMsgArrivedRTSP;
+	HANDLE hsMsgArrivedCtrl;
+}
+using namespace myHandlerNameA;
 
 middleWare* middleWare::instance = new middleWare;
 

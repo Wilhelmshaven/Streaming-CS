@@ -755,7 +755,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		if (clientList.getClientInfo(client.session, client.socket, client.streamingPort, client.enableUDP))
 		{
 			/*
-			通知RTP模块停止播放
+				通知RTP模块停止播放
 			*/
 
 			stopQueue.push(client);

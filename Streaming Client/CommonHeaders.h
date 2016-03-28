@@ -25,6 +25,18 @@
 
 using namespace std;
 
+namespace syncManager
+{
+	const char clientClose[] = "heClientClost";
+
+	const char playerInput[] = "hsPlayerInput";
+	const char playerOutput[] = "hsPlayerOutput";
+};
+
+//配置文件
+const string srvSettingFile = "config/ServerInfo.xml";             //服务器信息配置文件
+const string rtspErrFile = "config/static/rtspErrCodeList.csv";    //rtsp错误消息
+
 /*---------------------自定义常量区，少的话这里写，多的话，不如用map，例如rtsp错误信息--------------------*/
 //服务器自定义结构体中涉及的服务器信息，但全局可用
 //类：cnctHandler
@@ -62,42 +74,6 @@ enum CustomDefine
 {
 	BUF_SIZE = 8192,
 };
-
-//配置文件
-const string srvSettingFile = "config/ServerInfo.xml";             //服务器信息配置文件
-const string rtspErrFile = "config/static/rtspErrCodeList.csv";    //rtsp错误消息
-
-/*
-	全局信号量，为模块之间的信息流服务
-	各模块是没办法知道前一个模块什么时候有信息过来的
-	所以信号量就是必需品了
-
-	TODO：以后可以改成专门的Ctrl Center来管理
-*/
-
-//播放器模块：获取到了操作，通知中间件取走
-extern HANDLE hsNewCtrlKey;
-
-//媒体缓存模块：标记有图像了，请取走播放
-extern HANDLE hsPlayBuffer;
-
-//RTP模块：标记RTP数据包已经解包完成
-extern HANDLE hsRTPUnpacked;
-
-//网络模块：标记有消息需要发送
-extern HANDLE hsNewSendMsg;
-
-//网络模块：标记接收到了新的消息，至于是控制还是RTSP，给中间件解决好了
-extern HANDLE hsNewRecvMsg;
-
-//监控模块：标记是否有超时的情况
-extern HANDLE hsTimeOut;
-
-//中间件：标记收到的RTSP信令是否OK
-extern HANDLE hsIsRTSPOK;
-
-//中间件：标记是否开始心跳
-extern HANDLE heStartHeartBeat;
 
 /*
 	各信令结构体与对应的常量表

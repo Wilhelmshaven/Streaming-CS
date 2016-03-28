@@ -47,9 +47,6 @@
     <ClCompile Include="cnctHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="middleWare.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="errHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -80,9 +77,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="cnctHandler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="middleWare.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="errHandler.h">

@@ -3,41 +3,57 @@
 
 #define myNS myHandlerName
 
-/*
-	信号量/互斥量/事件
-*/
-namespace myHandlerName
-{
-	//全局事件：结束服务器的事件
-	HANDLE heShutdownSrv;
-
-	//图像源出入口
-	HANDLE hsRenderInput;
-	HANDLE hsRenderOutput;
-
-	//缓存出入口
-	HANDLE hsImgBufferInput;
-	HANDLE hsImgBufferOutput;
-
-	//流媒体信令多个出口
-	HANDLE hsRTSPPlay;
-	HANDLE hsRTSPPause;
-	HANDLE hsRTSPStop;
-
-	//
-	HANDLE hsCtrlMsgDecoded;
-	HANDLE hsCtrlMsgEncoded;
-
-	HANDLE hsRTPEncoded;
-
-	HANDLE hsMsgArrivedRTSP;
-	HANDLE hsMsgArrivedCtrl;
-}
-
 class myMessage
 {
 public:
 
 	myMessage();
+
+};
+
+/*
+	消息中间件
+
+	使用：
+
+	请务必先调用startMiddleWare()启动本模块
+	关闭依赖于服务器关闭事件
+*/
+
+class middleWare
+{
+public:
+
+	static middleWare* getInstance();
+
+	void startMiddleWare();
+
+private:
+
+	void initHandles();
+
+	static DWORD WINAPI mwCtrlMsgThread(LPVOID lparam);
+
+	static DWORD WINAPI mwRTSPMsgThread(LPVOID lparam);
+
+	/*
+		单例模式
+	*/
+
+	middleWare();
+
+	static middleWare* instance;
+
+	middleWare(const middleWare&);
+	middleWare &operator=(const middleWare&);
+	class CGarbo
+	{
+	public:
+		~CGarbo()
+		{
+			if (instance)delete instance;
+		}
+	};
+	static CGarbo garbo;
 
 };

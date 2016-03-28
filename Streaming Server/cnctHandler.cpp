@@ -298,6 +298,10 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 
 		clientSocket = handleInfo->clientSocket;
 
+		string incomingIP;
+		incomingIP.resize(16);
+		inet_ntop(AF_INET, &(handleInfo->clientAddr.sin_addr.S_un.S_addr), (char *)incomingIP.data(), 16);
+
 		/*
 			传入消息处理
 		*/
@@ -306,17 +310,18 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 			//EOF，连接关闭
 			if (bytesTransferred == 0)
 			{
+				cout << "Connection close: " << incomingIP << endl;
+
 				closesocket(clientSocket);
-				free(handleInfo);
-				free(ioInfo);
+
+				//free(handleInfo);
+
+				//free(ioInfo);
+
 				continue;
 			}
-			/*
-				显示消息来源
-			*/
-			string incomingIP;
-			incomingIP.resize(16);
-			inet_ntop(AF_INET, &(handleInfo->clientAddr.sin_addr.S_un.S_addr), (char *)incomingIP.data(), 16);
+
+			//显示消息来源
 			cout << "Recv message from " << incomingIP << endl;		
 
 			/*
