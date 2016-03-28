@@ -77,10 +77,12 @@
   <ItemGroup>
     <ClInclude Include="CommonHeaders.h" />
     <ClInclude Include="cvPlayer.h" />
+    <ClInclude Include="imageBuffer.h" />
     <ClInclude Include="myClient.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cvPlayer.cpp" />
+    <ClCompile Include="imageBuffer.cpp" />
     <ClCompile Include="ModularTest.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

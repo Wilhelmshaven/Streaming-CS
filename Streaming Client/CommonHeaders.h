@@ -31,6 +31,8 @@ namespace syncManager
 
 	const char playerInput[] = "hsPlayerInput";
 	const char playerOutput[] = "hsPlayerOutput";
+
+	const char bufferOutput[] = "hsBufferOutput";
 };
 
 //ÅäÖÃÎÄ¼ş
