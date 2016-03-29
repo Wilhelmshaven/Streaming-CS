@@ -2,13 +2,6 @@
 
 #include "rtspHandler.h"
 
-rtspErrHandler::rtspErrHandler()
-{
-	settingFile = rtspErrFile;
-
-	buildErrList();
-}
-
 rtspErrHandler::rtspErrHandler(string file)
 {
 	settingFile = file;
@@ -57,7 +50,7 @@ string rtspErrHandler::getErrMsg(int code)
 {
 	string msg;
 
-	map<int, string>::iterator iter = errCodeList.find(code);
+	auto iter = errCodeList.find(code);
 
 	if (iter != errCodeList.end())
 	{
@@ -65,7 +58,7 @@ string rtspErrHandler::getErrMsg(int code)
 	}
 	else
 	{
-		msg = "未知/非法的错误";
+		msg = "Invalid Error Code.";
 	}
 
 	return msg;
@@ -126,7 +119,11 @@ string rtspHandler::getHandlerInfo()
 {
 	string msg;
 
-	//Tips. 这是我目前发现唯一适合使用三目运算符的情况……当然不止一处适用，我只是讨厌那些滥用三目的人，可读性至上好吗！（而不是长度
+	/*
+		Tips. 这是我目前发现唯一适合使用三目运算符的情况……
+		当然不止一处适用，我只是讨厌那些滥用三目的人，可读性至上好吗！（而不是长度
+	*/
+
 	sprintf_s((char *)msg.data(), BUF_SIZE, "RTSP版本：%s\r\n会话号（session）：%s\r\n端口号：%d\r\n传输方式：%s\r\n",
 		rtspVersion,
 		session,
@@ -155,12 +152,8 @@ string rtspHandler::encodeMsg(int method)
 		CSeq: X
 		仅仅只是为了缩短代码而已……因为都要的
 	*/
-	string reqLine;
-	reqLine.resize(BUF_SIZE);
-	sprintf_s((char *)reqLine.data(), BUF_SIZE, " %s RTSP/%s\r\nCSeq:%d\r\n", URI.c_str(), rtspVersion.c_str(), seqNum);
 
-	//Tips. 去掉过长的空结尾，否则会影响字符拼接……
-	reqLine = reqLine.substr(0, reqLine.rfind('\n') + 1);
+	string reqLine = " " + URI + " RTSP/" + rtspVersion + "\r\nCSeq: " + to_string(seqNum) + "\r\n";
 
 	switch (method)
 	{
@@ -205,6 +198,7 @@ string rtspHandler::encodeMsg(int method)
 		Transport: RTP/AVP;unicast;client_port=8554-8555
 
 		*/
+
 		sprintf_s((char *)msg.data(), BUF_SIZE, "Transport: RTP/AVP%s;unicast;client_port=%d-%d\r\n",
 			enableUDP ? "" : "/TCP",
 			streamingPort,
@@ -226,8 +220,8 @@ string rtspHandler::encodeMsg(int method)
 		Range: npt=0.000-
 
 		*/
-		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\nRange: npt=0.000-\r\n",
-			session.c_str());
+
+		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\nRange: npt=0.000-\r\n", session.c_str());
 
 		msg = "PLAY" + reqLine + msg;
 
@@ -244,8 +238,8 @@ string rtspHandler::encodeMsg(int method)
 		Session: 12345678
 
 		*/
-		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\n",
-			session);
+
+		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\n", session);
 
 		msg = "TEARDOWN" + reqLine + msg;
 
@@ -262,8 +256,8 @@ string rtspHandler::encodeMsg(int method)
 		Session: 12345678
 
 		*/
-		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\n",
-			session.c_str());
+
+		sprintf_s((char *)msg.data(), BUF_SIZE, "Session: %s\r\n", session.c_str());
 
 		msg = "GET_PARAMETER" + reqLine + msg;
 
@@ -273,7 +267,7 @@ string rtspHandler::encodeMsg(int method)
 		break;
 	}
 
-	//在拼接好的信令末尾补上一个回车换行符
+	//在拼接好的信令末尾补上一个回车换行符，并且去掉多余的长度
 	msg = msg.substr(0, msg.rfind("\n") + 1) + "\r\n";
 
 	//重要！序列号自增！
@@ -314,6 +308,12 @@ int rtspHandler::decodeMsg(string msg)
 	//errCode = atoi(buf.c_str());
 	errCode = stoi(buf, nullptr, 10);
 
+	if (errCode != 200)
+	{
+		cout << "RTSP Error: " << errCode << " " << getErrMsg(errCode) << endl;
+	}
+
+
 	/*
 		提取序列号
 		TODO：这里提取了但没有说明怎么用。用法可以是，核对序列号确认是我发出去的回复（序列号一样）
@@ -326,7 +326,7 @@ int rtspHandler::decodeMsg(string msg)
 	//提取会话号（如果处理器的会话号为空则写入，否则校验）
 	if (session.empty())
 	{
-		if (msg.find("Session: ") != string::npos)session = msg.substr(msg.find("Session: ") + 9, 8);
+		if (msg.find("Session: ") != string::npos)session = msg.substr(msg.find("Session: ") + 9, 9);
 	}
 	else
 	{

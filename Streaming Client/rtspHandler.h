@@ -17,9 +17,7 @@ class rtspErrHandler
 {
 public:
 
-	rtspErrHandler();
-
-	rtspErrHandler(string file);
+	rtspErrHandler(string file = "config/static/rtspErrCodeList.csv");
 
 	//Êä³ö´íÎóĞÅÏ¢
 	string getErrMsg(int code);              

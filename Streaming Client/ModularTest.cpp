@@ -2,12 +2,7 @@
 
 #include "myClient.h"
 
-#include "opencv2\highgui\highgui.hpp"
-
-#include "cvPlayer.h"
-#include "imageBuffer.h"
-
-using namespace cv;
+#include "rtspHandler.h"
 
 namespace myHandle
 {
@@ -40,51 +35,65 @@ int main()
 {
 	initServer();
 
-	cvPlayer *camera = cvPlayer::getInstance();
+	rtspHandler *rtsp = rtspHandler::getInstance();
 
-	imgBuffer *buffer = imgBuffer::getInstance();
+	for (int i = 1; i < 12;++i)cout << rtsp->encodeMsg(i) << endl;
 
-	VideoCapture capture(0);
+	string msg = "RTSP/1.0 200 OK\r\nCSeq: 1\r\n\r\n";
 
-	Mat frame;
+	cout << rtsp->decodeMsg(msg) << endl;
 
-	camera->play();
+	msg= "RTSP/1.0 111 DAMN\r\nCSeq: 1\r\n\r\n";
 
-	vector<char> img;
+	rtsp->decodeMsg(msg);
 
-	imgHead head;
+	system("pause");
 
-	while (1)
-	{
-		capture >> frame;
+	//cvPlayer *camera = cvPlayer::getInstance();
 
-		string s;
+	//imgBuffer *buffer = imgBuffer::getInstance();
 
-		img = frame.reshape(1, 1);
+	//VideoCapture capture(0);
 
-		head.xAxis.cols = frame.rows;
-		head.imgType = frame.type();
-		head.channels = frame.channels();
+	//Mat frame;
 
-		buffer->pushBuffer(head, img);
+	//camera->play();
 
-		WaitForSingleObject(hsBufferOutput, INFINITE);
+	//vector<char> img;
 
-		buffer->popBuffer(head, img);
+	//imgHead head;
 
-		camera->insertImage(head, img);
+	//while (1)
+	//{
+	//	capture >> frame;
 
-		waitKey(50);
+	//	string s;
 
-		if (WaitForSingleObject(hsPlayerOutput, 0) == WAIT_OBJECT_0)
-		{
-			char key;
+	//	img = frame.reshape(1, 1);
 
-			camera->getCtrlKey(key);
+	//	head.xAxis.cols = frame.rows;
+	//	head.imgType = frame.type();
+	//	head.channels = frame.channels();
 
-			cout << key << endl;
-		}
-	}
+	//	buffer->pushBuffer(head, img);
+
+	//	WaitForSingleObject(hsBufferOutput, INFINITE);
+
+	//	buffer->popBuffer(head, img);
+
+	//	camera->insertImage(head, img);
+
+	//	waitKey(50);
+
+	//	if (WaitForSingleObject(hsPlayerOutput, 0) == WAIT_OBJECT_0)
+	//	{
+	//		char key;
+
+	//		camera->getCtrlKey(key);
+
+	//		cout << key << endl;
+	//	}
+	//}
 
 	return 0;
 }

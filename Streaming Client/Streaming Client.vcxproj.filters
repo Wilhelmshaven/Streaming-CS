@@ -34,7 +34,7 @@
     <ClInclude Include="imageBuffer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="rtpHandler.h">
+    <ClInclude Include="rtspHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -48,7 +48,7 @@
     <ClCompile Include="imageBuffer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="rtpHandler.cpp">
+    <ClCompile Include="rtspHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
