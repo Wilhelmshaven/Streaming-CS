@@ -3,7 +3,7 @@
 #include "rtpHandler.h"
 
 //RTP模块：标记RTP数据包已经解包完成
-HANDLE hsRTPOutput = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
+HANDLE hsRTPOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtpOutput);
 
 rtpHandler *rtpHandler::instance = new rtpHandler;
 
@@ -31,31 +31,29 @@ void rtpHandler::unpackRTP(string mediaPacket)
 	/*
 		首先提取出图像头
 		直接取出第9-20共12字节长度，就是了
+
+		然后，验证什么的，算了，就不做了
+		所以……RTP信息通通直接不要
+
+		//TODO：让他们发挥作用
 	*/
 	auto head = (imgHead *)mediaPacket.substr(8, 12).c_str();
 
 	image.head = *head;
 
 	/*
-		然后，验证什么的，算了，就不做了
-		所以……RTP信息通通直接不要
-
-		//TODO：让他们发挥作用
-	*/
-
-	/*
 		最后提取RTP包
 	*/
-	auto imgData = (vector<char> *)mediaPacket.substr(36, mediaPacket.length() - 36).c_str();
+	image.img.resize(mediaPacket.size() - 36);
 
-	image.img = *imgData;
+	memcpy(&image.img[0], &mediaPacket[36], mediaPacket.size() - 36);
 
 	imageQueue.push(image);
 
 	ReleaseSemaphore(hsRTPOutput, 1, NULL);
 }
 
-bool rtpHandler::getMedia(imgHead &head, vector<char>& img)
+bool rtpHandler::getMedia(imgHead &head, vector<unsigned char>& img)
 {
 	if (imageQueue.empty())
 	{

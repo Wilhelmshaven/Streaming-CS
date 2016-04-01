@@ -2,7 +2,7 @@
 
 #include "myClient.h"
 
-#include "ctrlMsgHandler.h"
+#include "rtpHandler.h"
 
 namespace myHandle
 {
@@ -38,6 +38,27 @@ void initServer()
 int main()
 {
 	initServer();
+
+	//rtpHandler *rtp = rtpHandler::getInstance();
+
+	//string msg;
+
+	//vector<unsigned char> a = { 201,202,203,204,205,206,207,208 };
+
+	//msg.resize(36 + a.size());
+
+	//memcpy(&msg[36], &a[0], a.size());
+
+	//rtp->unpackRTP(msg);
+
+	//WaitForSingleObject(hsRTPOutput, INFINITE);
+
+	//imgHead aa;
+	//vector<unsigned char> bb;
+
+	//rtp->getMedia(aa, bb);
+
+	//system("pause");
 
 	//ctrlMsgHandler *msgHandler = ctrlMsgHandler::getInstance();
 

@@ -34,7 +34,7 @@
 
 	void unpackRTP(string mediaPacket)：送入待解码的媒体数据包
 
-	void getMedia(imgHead &head, vector<int> &img)：传出媒体数据
+	bool getMedia(imgHead &head, vector<unsigned char> &img)：传出媒体数据
 
 */
 class rtpHandler
@@ -45,14 +45,14 @@ public:
 
 	void unpackRTP(string mediaPacket);
 
-	bool getMedia(imgHead &head, vector<char> &img);
+	bool getMedia(imgHead &head, vector<unsigned char> &img);
 
 private:
 
 	typedef struct myImage
 	{
 		imgHead head;
-		vector<char> img;
+		vector<unsigned char> img;
 	};
 
 	queue<myImage> imageQueue;
