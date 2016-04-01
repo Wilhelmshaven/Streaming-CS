@@ -35,6 +35,8 @@ namespace syncManager
 	const char bufferOutput[] = "hsBufferOutput";
 
 	const char rtpOutput[] = "hsRTPOutput";
+
+	const char ctrlMsgOutput[] = "hsCtrlMsgOutput";
 };
 
 //ÅäÖÃÎÄ¼ş

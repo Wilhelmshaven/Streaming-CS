@@ -14,7 +14,6 @@
 	bool getPacket(string &msg)£ºÈ¡³öRTP°ü
 
 */
-
 class rtpHandler
 {
 public:

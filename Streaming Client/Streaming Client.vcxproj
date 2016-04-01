@@ -78,6 +78,7 @@
     <ClInclude Include="CommonHeaders.h" />
     <ClInclude Include="cvPlayer.h" />
     <ClInclude Include="imageBuffer.h" />
+    <ClInclude Include="ctrlMsgHandler.h" />
     <ClInclude Include="myClient.h" />
     <ClInclude Include="rtspHandler.h" />
   </ItemGroup>
@@ -85,6 +86,7 @@
     <ClCompile Include="cvPlayer.cpp" />
     <ClCompile Include="imageBuffer.cpp" />
     <ClCompile Include="ModularTest.cpp" />
+    <ClCompile Include="ctrlMsgHandler.cpp" />
     <ClCompile Include="rtspHandler.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

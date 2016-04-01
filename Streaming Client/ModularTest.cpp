@@ -2,7 +2,7 @@
 
 #include "myClient.h"
 
-#include "rtspHandler.h"
+#include "ctrlMsgHandler.h"
 
 namespace myHandle
 {
@@ -13,6 +13,8 @@ namespace myHandle
 	HANDLE hsBufferOutput;
 
 	HANDLE hsRTPOutput;
+
+	HANDLE hsCtrlMsgOutput;
 };
 
 using namespace myHandle;
@@ -29,25 +31,39 @@ void initServer()
 	hsBufferOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::bufferOutput);
 
 	hsRTPOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtpOutput);
+
+	hsCtrlMsgOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgOutput);
 }
 
 int main()
 {
 	initServer();
 
-	rtspHandler *rtsp = rtspHandler::getInstance();
+	//ctrlMsgHandler *msgHandler = ctrlMsgHandler::getInstance();
 
-	for (int i = 1; i < 12;++i)cout << rtsp->encodeMsg(i) << endl;
+	//msgHandler->keyboardMsgEncode('A');
 
-	string msg = "RTSP/1.0 200 OK\r\nCSeq: 1\r\n\r\n";
+	//string msg;
+	//
+	//WaitForSingleObject(hsCtrlMsgOutput, INFINITE);
 
-	cout << rtsp->decodeMsg(msg) << endl;
+	//msgHandler->getEncodedMsg(msg);
+	//
+	//system("pause");
 
-	msg= "RTSP/1.0 111 DAMN\r\nCSeq: 1\r\n\r\n";
+	//rtspHandler *rtsp = rtspHandler::getInstance();
 
-	rtsp->decodeMsg(msg);
+	//for (int i = 1; i < 12;++i)cout << rtsp->encodeMsg(i) << endl;
 
-	system("pause");
+	//string msg = "RTSP/1.0 200 OK\r\nCSeq: 1\r\n\r\n";
+
+	//cout << rtsp->decodeMsg(msg) << endl;
+
+	//msg= "RTSP/1.0 111 DAMN\r\nCSeq: 1\r\n\r\n";
+
+	//rtsp->decodeMsg(msg);
+
+	//system("pause");
 
 	//cvPlayer *camera = cvPlayer::getInstance();
 
