@@ -2,39 +2,59 @@
 
 #include "rtpHandler.h"
 
+//
+#include "clientManager.h"
+
 HANDLE rtpEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtpEncoded);
 
 rtpHandler* rtpHandler::instance = new rtpHandler;
+
+clientManager* clientList = clientManager::getInstance();
 
 rtpHandler *rtpHandler::getInstance()
 {
 	return instance;
 }
 
-void rtpHandler::pack(SOCKET socket, vector<unsigned char> img)
+/*
+	RTP包打包结构
+
+	TCP的RTP头+RTP头+图像头+图像数据
+
+	一张图一个RTP包 -> 这是基于TCP的特点确定的
+
+	如果连接没有建立，或者已经被Teardown，那么直接返回否
+*/
+bool rtpHandler::pack(SOCKET socket, imgHead head, vector<unsigned char> img)
 {
+	if (!clientList->searchClient(socket))
+	{
+		return false;
+	}
+
+	size_t headSize = sizeof(rtpOverTcpHead) + sizeof(rtpHead) + sizeof(imgHead);
+
 	string rtpPacket;
-	rtpPacket.resize(sizeof(rtpOverTcpHead) + sizeof(rtpHead) + img.size());
 
-	auto aHead = (rtpOverTcpHead *)rtpPacket.c_str();
-
-	aHead->magicNumber = '$';
-	aHead->enbeddedLength = sizeof(rtpHead) + img.size();
-
-	//信道，目前默认为1
-	aHead->channelNumber = 1;
+	rtpPacket.resize(headSize + img.size());
 
 	/*
 		编码：首先把vector<unsigned char>转为string，然后再在前面加上各种头部
 	*/
 
+	encodeRTPTCPHead(rtpPacket, headSize + img.size());
+
 	encodeRTPHead(rtpPacket, socket);
 
-	memcpy(&rtpPacket[sizeof(rtpOverTcpHead) + sizeof(rtpHead)], &img[0], img.size());
+	encodeImgHead(rtpPacket, head);
+
+	memcpy(&rtpPacket[headSize], &img[0], img.size());
 
 	packetQueue.push(rtpPacket);
 
 	ReleaseSemaphore(rtpEncoded, 1, NULL);
+
+	return true;
 }
 
 bool rtpHandler::getPacket(string & msg)
@@ -43,12 +63,10 @@ bool rtpHandler::getPacket(string & msg)
 	{
 		return false;
 	}
-	else
-	{
-		msg = packetQueue.front();
 
-		packetQueue.pop();
-	}
+	msg = packetQueue.front();
+
+	packetQueue.pop();
 
 	return true;
 }
@@ -94,6 +112,18 @@ unsigned short rtpHandler::randSeq(SOCKET socket)
 	return distribution(randEngine);
 }
 
+void rtpHandler::encodeRTPTCPHead(string & msg, size_t size)
+{
+	auto aHead = (rtpOverTcpHead *)msg.c_str();
+
+	aHead->magicNumber = '$';
+
+	aHead->enbeddedLength = size;
+
+	//信道，目前默认为1
+	aHead->channelNumber = 1;
+}
+
 void rtpHandler::encodeRTPHead(string & msg, SOCKET socket)
 {
 	auto rHead = (rtpHead *)(msg.c_str() + sizeof(rtpOverTcpHead));
@@ -112,6 +142,19 @@ void rtpHandler::encodeRTPHead(string & msg, SOCKET socket)
 
 	//SSRC，随便写了……
 	rHead->ssrc = htonl(0x12345678);
+}
+
+void rtpHandler::encodeImgHead(string & msg, imgHead head)
+{
+	auto iHead = (imgHead *)(msg.c_str() + sizeof(rtpOverTcpHead) + sizeof(rtpHead));
+
+	iHead->channels = head.channels;
+
+	iHead->cols = head.cols;
+
+	iHead->rows = head.rows;
+
+	iHead->imgType = head.imgType;
 }
 
 rtpHandler::rtpHandler()
@@ -133,12 +176,10 @@ unsigned long rtpHandler::getTimeStamp(SOCKET socket)
 
 		return iter->second;
 	}
-	else
-	{
-		unsigned long time = 1;
 
-		timestampManager.insert(make_pair(socket, time));
+	unsigned long time = 1;
 
-		return 1;
-	}
+	timestampManager.insert(make_pair(socket, time));
+
+	return 1;
 }

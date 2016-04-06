@@ -2,10 +2,20 @@
 
 #include "cnctHandler.h"
 
+//网络模块：标记有消息需要发送
+HANDLE hsNewSendMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctInput);
+
+//网络模块：标记接收到了新的RTP消息
+HANDLE hsNewRTPMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctRTPOutput);
+
+//网络模块：标记接收到了新的RTSP消息
+HANDLE hsNewRTSPMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctRTSPOutput);
+
 cnctHandler *cnctHandler::instance = new cnctHandler(srvSettingFile);
 
-queue<string> cnctHandler::recvMsgQueue;
 queue<string> cnctHandler::sendMsgQueue;
+queue<string> cnctHandler::recvRTPQueue;
+queue<string> cnctHandler::recvRTSPQueue;
 
 /*
 	构造函数（传入文件名为参数，否则读取公共头中指定的文件路径）
@@ -15,6 +25,11 @@ cnctHandler::cnctHandler(string file)
 	fileName = file;
 
 	defaultSettings();
+}
+
+cnctHandler* cnctHandler::getInstance()
+{
+	return instance;
 }
 
 /*
@@ -106,6 +121,9 @@ int cnctHandler::connectServer()
 				displayAddr = serverTmp;
 				srvSocket = socketTmp;
 
+				//显示服务器信息
+				showSrvInfo();
+
 				//启动收发线程
 				startThread();
 
@@ -121,23 +139,18 @@ int cnctHandler::connectServer()
 		}
 	}
 
+	//如果一组都不成功，就输出无可用服务器
 	if (isConnected != 0)
-	{
-		//如果一组都不成功，就输出无可用服务器
+	{		
 		cout << "无可用服务器." << endl;
 	}
 
 	return isConnected;
 }
 
-cnctHandler* cnctHandler::getInstance()
-{
-	return instance;
-}
-
+//在控制台显示当前使用的服务器信息
 void cnctHandler::showSrvInfo()
-{
-	//在控制台显示当前使用的服务器信息
+{	
 	cout << "----当前使用的服务器信息----" << endl;
 	cout << "服务器类型：" << getCfgByIndex(srvType) << endl;
 	cout << "播放地址：" << getCfgByIndex(displayRoute) << endl;
@@ -156,16 +169,6 @@ void cnctHandler::sendMessage(string msg)
 	sendMsgQueue.push(msg);
 
 	ReleaseSemaphore(hsNewSendMsg, 1, NULL);
-}
-
-void cnctHandler::getRecvMessage(string & msg)
-{
-	if (!recvMsgQueue.empty())
-	{
-		msg = recvMsgQueue.front();
-
-		recvMsgQueue.pop();
-	}
 }
 
 cnctHandler::~cnctHandler()
@@ -233,11 +236,26 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 		//TODO：这里可能有问题，待测试
 		recv(socket, (char *)msg.data(), BUF_SIZE, NULL);
 
-		cout << "Recv:" << endl << msg << endl;
+		//这里分析接收到的信息类型，塞入相应的队列并激活信号量
 
-		recvMsgQueue.push(msg);
+		if (msg[0] == '$')
+		{
+			//RTP数据
 
-		ReleaseSemaphore(hsNewRecvMsg, 1, NULL);
+			recvRTPQueue.push(msg);
+
+			ReleaseSemaphore(hsNewRTPMsg, 1, NULL);
+		}
+		
+		if (msg.find("RTSP"))
+		{
+			//RTSP数据
+			cout << "Recv:" << endl << msg << endl;
+
+			recvRTSPQueue.push(msg);
+
+			ReleaseSemaphore(hsNewRTSPMsg, 1, NULL);
+		}
 	}
 
 	return 0;
@@ -326,11 +344,15 @@ void cnctHandler::getLabelMsg(string name, string buf)
 {
 	int index = 0;
 
-	if (name == "type")index = 1;
-	if (name == "protocol")index = 2;
-	if (name == "hostname")index = 3;
-	if (name == "port")index = 4;
-	if (name == "display")index = 5;
+	if (name == "type")index = srvType;
+
+	if (name == "protocol")index = protocol;
+
+	if (name == "hostname")index = hostName;
+
+	if (name == "port")index = port;
+
+	if (name == "display")index = displayRoute;
 
 	//提取标签中的内容
 	mySrvList->srvArgs[index] = buf.substr(buf.find('>') + 1, buf.rfind('<') - buf.find('>') - 1);

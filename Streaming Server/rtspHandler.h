@@ -4,36 +4,6 @@
 #include "CommonHeaders.h"
 
 /*
-	RTSP错误信息翻译器
-
-	使用：
-
-	rtspErrHandler(string filePath = "config/static/rtspErrCodeList.csv")：（可选）指定错误表相对地址创建翻译器
-
-	string getErrMsg(int code)：输入错误码，返回错误信息
-*/
-class rtspErrHandler
-{
-public:
-
-	rtspErrHandler(string filePath = "config/static/rtspErrCodeList.csv");
-
-	//输出错误信息：输入错误码，返回错误信息字符串
-	string getErrMsg(int code);      
-
-private:
-
-	//rtsp错误消息文件的文件地址（相对地址）  
-	string settingFile;
-
-	//建立错误链接表，暂时就不考虑内容不合格式了
-	void buildErrList();             
-
-	//错误链接表：Key-Value Map
-	map<int, string> errCodeList;    
-};
-
-/*
 	NTP时间获取类
 
 	使用：
@@ -127,56 +97,6 @@ private:
 };
 
 /*
-	客户端列表类
-
-	使用：
-
-	bool addClient(unsigned long session, SOCKET socket, int port, bool enableUDP)：插入客户端
-
-	bool searchClient(unsigned long session)：查询客户端是否存在
-
-	bool getClientInfo(unsigned long session, SOCKET &socket, int &port, bool &enableUDP)：获得客户端信息
-
-	bool removeClient(unsigned long session)：移除客户端
-*/
-class clientManager
-{
-public: 
-
-	//插入客户端
-	bool addClient(unsigned long session, SOCKET socket, int port, bool enableUDP);   
-	
-	//查询客户端是否存在
-	bool searchClient(unsigned long session); 
-	
-	//获得客户端信息
-	bool getClientInfo(unsigned long session, SOCKET &socket, int &port, bool &enableUDP);
-
-	//移除客户端
-	bool removeClient(unsigned long session);                          
-	 
-	clientManager();
-
-private:
-
-	/*
-		为每一个会话存储对应数据的结构体
-		包括：套接字，端口号，传输模式（TCP/UDP）
-	*/
-	typedef struct PerClientData
-	{
-		SOCKET socket;
-
-		int streamingPort;
-
-		bool enableUDP;
-	};
-
-	//Key-Value MAP
-	map<unsigned long, PerClientData> clientList;
-};
-
-/*
 	RTSP消息处理类
 
 	使用：
@@ -206,16 +126,10 @@ public:
 	void srvConfig(string URI = "http://localhost:8554", unsigned int srvPort = 8554);
 
 	//编解码一体，输入待解码信息，返回编码好的答复，不负责发送
-	string msgCodec(SOCKET socket, string msg);
-
-	//返回错误代码所表示的信息
-	string getErrMsg(int code);      
+	string msgCodec(SOCKET socket, string msg); 
 
 	//获取rtsp处理器的相关信息
 	string getHandlerInfo();         
-
-	//出口：取出待处理的会话，交给RTP模块发送
-	bool getWaitingSession(unsigned long &session, SOCKET &socket, bool &enableUDP);
 
 private:
 
@@ -225,16 +139,10 @@ private:
 
 		SOCKET socket;
 
-		int streamingPort;
+		unsigned int streamingPort;
 
 		bool enableUDP;
 	};
-
-	//等待RTP处理的会话序列
-	queue<PerClientData> sendQueue, stopQueue;
-
-	//一个Session与客户端参数的对应表 
-	clientManager clientList;
 
 	//服务器RTSP方法
 	vector<string> rtspMethod;                 
@@ -258,9 +166,6 @@ private:
 	/*
 		挂载其它小模块
 	*/
-
-	//错误信息处理器
-	rtspErrHandler errHandler;  
 
 	//SDP编码器
 	sdpEncoder sdpHandler;                             

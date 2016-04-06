@@ -32,6 +32,8 @@ private:
 
 	void initHandles();
 
+
+
 	static DWORD WINAPI mwCtrlMsgThread(LPVOID lparam);
 
 	static DWORD WINAPI mwRTSPMsgThread(LPVOID lparam);

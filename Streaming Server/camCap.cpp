@@ -12,7 +12,7 @@ HANDLE hsRenderDone = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::rende
 HANDLE camCap::hEventStartCap;
 HANDLE camCap::hEventShutDown;
 HANDLE camCap::hEventShowImg;
-queue<char> camCap::cmdQueue;
+queue<unsigned char> camCap::cmdQueue;
 queue<Mat> camCap::imgQueue;
 
 camCap *camCap::instance = new camCap;
@@ -87,7 +87,7 @@ void camCap::showImg()
 	}
 }
 
-void camCap::render(char cmd)
+void camCap::render(unsigned char cmd)
 {
 	cmdQueue.push(cmd);
 

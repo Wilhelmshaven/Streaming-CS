@@ -49,7 +49,7 @@ void ctrlMsgHandler::decodeMsg(string msg)
 		auto kbMsg = (keyboardMsg *)(msg.c_str() + 8);
 
 		//转换虚拟码为字符
-		char key = MapVirtualKey(ntohl(kbMsg->unicode), MAPVK_VK_TO_CHAR);
+		unsigned char key = MapVirtualKey(ntohl(kbMsg->unicode), MAPVK_VK_TO_CHAR);
 
 		decodedMsg dMsg;
 
@@ -73,35 +73,35 @@ void ctrlMsgHandler::decodeMsg(string msg)
 	}
 }
 
-void ctrlMsgHandler::encodeMsg(imgHead head, unsigned int imgSize, unsigned int session)
-{
-	string msg;
-
-	msg.resize(sizeof(imgMsgHead));
-
-	auto *msgHead = (imgMsgHead *)msg.c_str();
-
-	//填写结构体
-	msgHead->imgChannels = htons(head.channels);
-	msgHead->imgCols = htons(head.cols);
-	msgHead->imgRows = htons(head.rows);
-	msgHead->imgType = head.imgType;
-
-	msgHead->payloadType = OPENCV_MAT;
-
-	msgHead->msgType = IMG_HEAD;
-
-	msgHead->msgFlag = 0x03;
-
-	msgHead->msgSize = htons(imgSize + sizeof(imgMsgHead));
-
-	//加上公共头
-	msg = encodePublicHead(IMG_MSG, session, msg.size()) + msg;
-
-	encodedMsgQueue.push(msg);
-
-	ReleaseSemaphore(hsCtrlMsgEncoded, 1, NULL);
-}
+//void ctrlMsgHandler::encodeMsg(imgHead head, unsigned int imgSize, unsigned int session)
+//{
+//	string msg;
+//
+//	msg.resize(sizeof(imgMsgHead));
+//
+//	auto *msgHead = (imgMsgHead *)msg.c_str();
+//
+//	//填写结构体
+//	msgHead->imgChannels = htons(head.channels);
+//	msgHead->imgCols = htons(head.cols);
+//	msgHead->imgRows = htons(head.rows);
+//	msgHead->imgType = head.imgType;
+//
+//	msgHead->payloadType = OPENCV_MAT;
+//
+//	msgHead->msgType = IMG_HEAD;
+//
+//	msgHead->msgFlag = 0x03;
+//
+//	msgHead->msgSize = htons(imgSize + sizeof(imgMsgHead));
+//
+//	//加上公共头
+//	msg = encodePublicHead(IMG_MSG, session, msg.size()) + msg;
+//
+//	encodedMsgQueue.push(msg);
+//
+//	ReleaseSemaphore(hsCtrlMsgEncoded, 1, NULL);
+//}
 
 bool ctrlMsgHandler::getDecodedMsg(unsigned int &session, unsigned char &ctrlKey)
 {
@@ -118,16 +118,16 @@ bool ctrlMsgHandler::getDecodedMsg(unsigned int &session, unsigned char &ctrlKey
 	return true;
 }
 
-bool ctrlMsgHandler::getEncodedMsg(string & encodedMsg)
-{
-	if (encodedMsgQueue.empty())return false;
-
-	encodedMsg = encodedMsgQueue.front();
-
-	encodedMsgQueue.pop();
-
-	return true;
-}
+//bool ctrlMsgHandler::getEncodedMsg(string & encodedMsg)
+//{
+//	if (encodedMsgQueue.empty())return false;
+//
+//	encodedMsg = encodedMsgQueue.front();
+//
+//	encodedMsgQueue.pop();
+//
+//	return true;
+//}
 
 string ctrlMsgHandler::encodePublicHead(unsigned int payloadType, unsigned int session, unsigned int size)
 {

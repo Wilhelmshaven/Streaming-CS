@@ -43,8 +43,6 @@ typedef struct threadParam
 
 	int connectServer()：连接服务器，成功返回0，否则为-1（代表无可用服务器）或其它值（能连接上但出错，此时代表connect函数返回的错误码，参见MSDN）
 
-	void showSrvInfo():在控制台显示当前使用的服务器信息
-
 	string getDisplayAddr()：获取完整播放地址（用来设置流媒体信令处理器的）
 
 	static void sendMessage(string msg)：发送给定的数据
@@ -59,15 +57,15 @@ public:
 
 	static cnctHandler *getInstance();
 
-	int connectServer();             
-
-	void showSrvInfo();         
+	int connectServer();                      
 
 	string getDisplayAddr();
 
 	static void sendMessage(string msg);
 
-	static void getRecvMessage(string &msg);
+	static void getRTPMessage(string &msg);
+
+	static void getRTSPMessage(string &msg);
 
 	~cnctHandler();
 
@@ -77,10 +75,11 @@ private:
 	void startThread();
 
 	//消息队列
-
-	static queue<string> recvMsgQueue;
-
 	static queue<string> sendMsgQueue;
+
+	static queue<string> recvRTPQueue;
+
+	static queue<string> recvRTSPQueue;
 
 	static DWORD WINAPI sendThread(LPVOID lparam);
 
@@ -114,7 +113,9 @@ private:
 	sockaddr_in srvAddr;   
 
 	//完整的播放地址，eg. http://www.rayion.com/desktop
-	string displayAddr;        
+	string displayAddr;    
+
+	void showSrvInfo();
 
 	/*
 		以下为单例模式相关
@@ -143,9 +144,3 @@ private:
 	};
 	static CGarbo Garbo;
 };
-
-//网络模块：标记有消息需要发送
-static HANDLE hsNewSendMsg = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
-
-//网络模块：标记接收到了新的消息，至于是控制还是RTSP，给中间件解决好了
-static HANDLE hsNewRecvMsg = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);

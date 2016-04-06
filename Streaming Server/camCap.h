@@ -34,7 +34,7 @@ using namespace cv;
 
 	void camCap::showImg()：开启/关闭视频窗口，若开则关，若关则开。初始状态为开启。
 
-	（入口方法）static void render(char cmd = 0)：输入指令渲染图像
+	（入口方法）static void render(unsigned char cmd = 0)：输入指令渲染图像
 	（入口信号）static HANDLE hsRenderImage = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(renderImage))
 
 	（出口方法）Mat getImage()：获取图像
@@ -59,7 +59,7 @@ public:
 	void showImg();
 
 	//输入指令渲染图像
-	static void render(char cmd = 0);
+	static void render(unsigned char cmd = 0);
 
 	//获取图像
 	Mat getImage();
@@ -72,7 +72,7 @@ private:
 	static queue<Mat> imgQueue;
 
 	//控制指令队列，供中间件写入
-	static queue<char> cmdQueue;
+	static queue<unsigned char> cmdQueue;
 
 	//开始抓取事件
 	static HANDLE hEventStartCap;

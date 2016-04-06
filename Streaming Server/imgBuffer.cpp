@@ -50,7 +50,7 @@ bool imgBuffer::isBufEmpty()
 	return imgQueue.empty();
 }
 
-int imgBuffer::dropFrame(int cnt)
+int imgBuffer::dropFrame(unsigned int cnt)
 {
 	for (int i = 0; i < cnt; ++i)
 	{

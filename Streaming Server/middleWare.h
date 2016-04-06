@@ -11,7 +11,6 @@
 	请务必先调用startMiddleWare()启动本模块
 	关闭依赖于服务器关闭事件
 */
-
 class middleWare
 {
 public:
@@ -24,9 +23,19 @@ private:
 
 	void initHandles();
 
-	static DWORD WINAPI mwCtrlMsgThread(LPVOID lparam);
+	static DWORD WINAPI mw_Cam_Buf_Thread(LPVOID lparam);
 
-	static DWORD WINAPI mwRTSPMsgThread(LPVOID lparam);
+	static DWORD WINAPI mw_Buf_RTP_Thread(LPVOID lparam);
+
+	static DWORD WINAPI mw_RTP_Cnct_Thread(LPVOID lparam);
+
+	static DWORD WINAPI mw_RTSP_Cnct_Thread(LPVOID lparam);
+
+	static DWORD WINAPI mw_Cnct_Ctrl_Thread(LPVOID lparam);
+
+	static DWORD WINAPI mw_Cnct_RTSP_Thread(LPVOID lparam);
+
+	static DWORD WINAPI mw_Ctrl_Cam_Thread(LPVOID lparam);
 
 	/*
 		单例模式

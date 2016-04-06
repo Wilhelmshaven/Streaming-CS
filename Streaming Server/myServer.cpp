@@ -115,6 +115,8 @@ int main()
 	return 0;
 }
 
+//================================= 中间件代码部分 =================================//
+
 middleWare* middleWare::instance = new middleWare;
 
 middleWare * middleWare::getInstance()
@@ -124,8 +126,6 @@ middleWare * middleWare::getInstance()
 
 void middleWare::startMiddleWare()
 {
-
-
 	CreateThread(NULL, NULL, mwCtrlMsgThread, NULL, NULL, NULL);
 
 	CreateThread(NULL, NULL, mwRTSPMsgThread, NULL, NULL, NULL);
@@ -201,7 +201,9 @@ DWORD middleWare::mwCtrlMsgThread(LPVOID lparam)
 		//4.然后塞给渲染器
 		renderer->render(key);
 
-		//5.然后等图像好了，取出来。注意，从图像缓存中取
+		//这里漏了一大截！！
+
+		//5.然后等图像好了，取出来。注意，从图像缓存中取-->错啦！！！
 		WaitForSingleObject(hsRenderOutput, INFINITE);
 
 		if (!imgBufModule->popBuffer(iHead, imgData))

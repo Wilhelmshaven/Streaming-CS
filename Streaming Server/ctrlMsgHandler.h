@@ -13,14 +13,13 @@
 	
 	void decodeMsg(string msg)：解码信令
 
-	void encodeMsg(imgHead head, unsigned int imgSize, unsigned int session)：编码信令
+	//void encodeMsg(imgHead head, unsigned int imgSize, unsigned int session)：编码信令
 
 	bool getDecodedMsg(unsigned int &session, unsigned char &ctrlKey)：取出解码结果
 
-	bool getEncodedMsg(string &encodedMsg)：取出编码结果
+	//bool getEncodedMsg(string &encodedMsg)：取出编码结果
 
 */
-
 class ctrlMsgHandler
 {
 public:
@@ -29,11 +28,11 @@ public:
 
 	void decodeMsg(string msg);
 
-	void encodeMsg(imgHead head, unsigned int imgSize, unsigned int session);
+	//void encodeMsg(imgHead head, unsigned int imgSize, unsigned int session);
 
 	bool getDecodedMsg(unsigned int &session, unsigned char &ctrlKey);
 
-	bool getEncodedMsg(string &encodedMsg);
+	//bool getEncodedMsg(string &encodedMsg);
 
 private:
 

@@ -2,97 +2,20 @@
 
 #include "rtspHandler.h"
 
+//加载客户端管理器
+#include "clientManager.h"
+
+//加载错误处理模块
+#include "errHandler.h"
+
 //流媒体信令模块：标记有新的播放请求，请RTP模块拿走相关信息
 HANDLE hsPlaySession = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtspPlay);
 
 //流媒体信令模块：标记有新的停止播放请求，请RTP模块拿走相关信息
 HANDLE hsStopSession = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtspTeardown);
 
-/*----------------------RTSP错误信息处理器：RTSP 错误码信息查询---------------------*/
-/*
-	构造函数：写入文件名，建立错误列表
-*/
-rtspErrHandler::rtspErrHandler(string filePath)
-{
-	settingFile = filePath;
-
-	buildErrList();
-}
-
-/*
-	函数：建立RTSP错误信息表
-	
-	错误映射表用CSV格式存储
-	CSV格式数据逗号分隔，非常方便，极其好扩展，直接EXCEL编辑即可
-*/
-void rtspErrHandler::buildErrList()
-{
-	//文件流对象
-	fstream fileStream;
-
-	//以只读方式打开文件
-	fileStream.open(settingFile, ios_base::in);
-
-	string buf, code, msg;
-	int errCode;
-	int commaPos;
-
-	if (!fileStream.is_open())
-	{
-		cout << "建立RTSP错误信息表失败：表文件不存在" << endl;
-	}
-	else
-	{
-		/*
-			成功打开文件，则一直读取到文件结束
-			按行读取并解析
-		*/
-		while (!fileStream.eof())
-		{
-			getline(fileStream, buf);
-
-			//已修复：如果表尾有空行，后面会报错
-			if (buf.empty() || buf.find_first_not_of(' ') == string::npos)
-			{
-				break;
-			}
-
-			/*
-				有内容，则解析之，先找逗号位置，前后分别处理
-			*/
-
-			commaPos = buf.find(',');
-
-			errCode = stoi(buf.substr(0, commaPos), nullptr, 10);
-
-			msg = buf.substr(commaPos + 1, buf.length() - commaPos);
-
-			//插入Key-Value对
-			errCodeList.insert(make_pair(errCode, msg));
-		}
-	}
-}
-
-/*
-	输入错误码，通过查表(std::map)的方式返回错误信息字符串
-*/
-string rtspErrHandler::getErrMsg(int code)
-{
-	string msg;
-
-	map<int, string>::iterator iter = errCodeList.find(code);
-
-	if (iter != errCodeList.end())
-	{
-		msg = iter->second;
-	}
-	else
-	{
-		msg = "Invalid Error Code";
-	}
-
-	return msg;
-}
+//一个Session与客户端参数的对应表 
+clientManager *clientList = clientManager::getInstance();
 
 /*----------------------NTP时间戳获取类---------------------*/
 /*
@@ -256,93 +179,6 @@ string sessionGenerator::getSessionID()
 	return newSession;
 }
 
-/*----------------------客户端信息管理器---------------------*/
-clientManager::clientManager()
-{
-
-}
-
-/*
-	函数：添加客户端信息，返回是否成功
-	首先查询是否已存在，若不存在则插入
-*/
-bool clientManager::addClient(unsigned long session, SOCKET socket, int port, bool enableUDP)
-{
-	PerClientData client;
-
-	client.socket = socket;
-	client.streamingPort = port;
-	client.enableUDP = enableUDP;
-
-	if (clientList.find(session) != clientList.end())
-	{
-		clientList.insert(make_pair(session, client));
-
-		return true;
-	}
-
-	return false;
-}
-
-/*
-	函数：查询客户端是否存在，若不存在则返回值为0，否则返回会话号
-
-	TODO：返回值加入错误码
-*/
-bool clientManager::searchClient(unsigned long session)
-{
-	map<unsigned long, PerClientData>::iterator iter;
-
-	iter = clientList.find(session);
-
-	if (iter != clientList.end())
-	{
-		return true;
-	}
-	
-	return false;
-}
-
-/*
-	函数：获取客户端信息，返回是否成功（换句话说是是否存在）
-*/
-bool clientManager::getClientInfo(unsigned long session, SOCKET &socket, int &port, bool &enableUDP)
-{
-	map<unsigned long, PerClientData>::iterator iter;
-
-	iter = clientList.find(session);
-
-	if (iter != clientList.end())
-	{
-		socket = iter->second.socket;
-
-		port = iter->second.streamingPort;
-
-		enableUDP = iter->second.enableUDP;
-
-		return true;
-	}
-
-	return false;
-}
-
-/*
-	函数：删除客户端信息，返回值为0
-
-	TODO：返回值设为错误码
-*/
-bool clientManager::removeClient(unsigned long session)
-{
-	if (clientList.find(session) != clientList.end())
-	{
-		clientList.erase(session);
-
-		return true;
-	}
-
-	return false;
-}
-
 /*----------------------RTSP消息处理器---------------------*/
 
 rtspHandler *rtspHandler::instance = new rtspHandler;
@@ -398,14 +234,6 @@ void rtspHandler::srvConfig(string URI, unsigned int srvPort)
 	srvURI = URI;
 
 	this->srvPort = srvPort;
-}
-
-/*
-	函数：返回错误信息，返回值为错误信息字符串
-*/
-string rtspHandler::getErrMsg(int code)
-{
-	return errHandler.getErrMsg(code);
 }
 
 /*
@@ -601,9 +429,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		/*
 			下面是SDP信息
 		*/
-		string sdp;
-
-		sdp = sdpHandler.encodeMsg();
+		string sdp = sdpHandler.encodeMsg();
 
 		response = response + "Content-Type: application/sdp\r\nContent-Length: " + to_string(sdp.length()) + "\r\n\r\n" + sdp;
 
@@ -642,9 +468,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		/*
 			生成会话号Session
 		*/
-		string sess;
-
-		sess = sessGenerator.getSessionID();
+		string sess = sessGenerator.getSessionID();
 
 		unsigned long session = stol(sess);
 
@@ -668,7 +492,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		}
 
 		//把客户端加入列表中
-		clientList.addClient(session, socket, streamingPort, enableUDP);
+		clientList->addClient(session, socket, streamingPort, enableUDP);
 
 		paddingMsg.pop_back();
 		paddingMsg.pop_back();
@@ -698,18 +522,12 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		*/
 		unsigned long session = stol(extractSession(paddingMsg));
 
-		PerClientData client;
-		client.session = session;
-
-		if (clientList.getClientInfo(client.session, client.socket, client.streamingPort, client.enableUDP))
+		if (clientList->searchClient(session))
 		{
 			/*
 				会话号正确，这里就应该调用播放器播放了
 				通知RTP模块处理
 			*/	
-
-			sendQueue.push(client);
-
 			ReleaseSemaphore(hsPlaySession, 1, NULL);
 		}
 		else
@@ -749,17 +567,11 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		*/
 		unsigned long session = stol(extractSession(paddingMsg));
 
-		PerClientData client;
-		client.session = session;
-
-		if (clientList.getClientInfo(client.session, client.socket, client.streamingPort, client.enableUDP))
+		if (clientList->searchClient(session))
 		{
 			/*
 				通知RTP模块停止播放
 			*/
-
-			stopQueue.push(client);
-
 			ReleaseSemaphore(hsStopSession, 1, NULL); 
 		}
 		else
@@ -775,7 +587,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		}
 
 		//移除客户端信息
-		clientList.removeClient(session);
+		clientList->removeClient(session);
 
 		break;
 	}
@@ -794,7 +606,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		*/
 		unsigned long session = stol(extractSession(paddingMsg));
 
-		if (clientList.searchClient(session))
+		if (clientList->searchClient(session))
 		{
 			//TODO：Nothing to do...
 		}
@@ -852,9 +664,11 @@ string rtspHandler::generateTimeLine()
 //生成命令行（第一行）：版本号+错误码+错误信息
 string rtspHandler::generateCMDLine(int errCode)
 {
+	rtspErrHandler *errHandler = rtspErrHandler::getInstance();
+
 	string msg;
 
-	msg = "RTSP/" + rtspVersion + " " + to_string(errCode) + " " + getErrMsg(errCode) + "\r\n";
+	msg = "RTSP/" + rtspVersion + " " + to_string(errCode) + " " + errHandler->getErrMsg(errCode) + "\r\n";
 
 	return msg;
 }

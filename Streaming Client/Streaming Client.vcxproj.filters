@@ -43,6 +43,9 @@
     <ClInclude Include="rtpHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="cnctHandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cvPlayer.cpp">
@@ -61,6 +64,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="rtpHandler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="cnctHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

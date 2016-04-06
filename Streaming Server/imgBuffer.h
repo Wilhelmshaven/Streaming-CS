@@ -32,7 +32,7 @@ public:
 
 	bool isBufEmpty();
 
-	int dropFrame(int cnt);
+	int dropFrame(unsigned int cnt);
 
 private:
 
@@ -67,4 +67,3 @@ private:
 	};
 	static CGarbo Garbo;
 };
-
