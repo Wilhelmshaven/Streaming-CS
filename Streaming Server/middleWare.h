@@ -4,7 +4,7 @@
 #include "CommonHeaders.h"
 
 /*
-	消息中间件
+	消息中间件（单例）
 	
 	使用：
 
@@ -29,11 +29,9 @@ private:
 
 	static DWORD WINAPI mw_RTP_Cnct_Thread(LPVOID lparam);
 
-	static DWORD WINAPI mw_RTSP_Cnct_Thread(LPVOID lparam);
+	static DWORD WINAPI mw_Cnct_RTSP_Cnct_Thread(LPVOID lparam);
 
 	static DWORD WINAPI mw_Cnct_Ctrl_Thread(LPVOID lparam);
-
-	static DWORD WINAPI mw_Cnct_RTSP_Thread(LPVOID lparam);
 
 	static DWORD WINAPI mw_Ctrl_Cam_Thread(LPVOID lparam);
 

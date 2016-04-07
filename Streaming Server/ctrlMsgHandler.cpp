@@ -3,10 +3,10 @@
 #include "ctrlMsgHandler.h"
 
 //控制信令处理模块：标记信令解码完毕，请中间件拿走转给渲染器
-HANDLE hsCtrlMsgDecoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgDecoded);
+HANDLE ctrlMsgDecoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgDecoded);
 
 //控制信令处理模块：标记信令编码完毕，请中间件拿走转给网络模块
-HANDLE hsCtrlMsgEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgEncoded);
+//HANDLE hsCtrlMsgEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgEncoded);
 
 ctrlMsgHandler* ctrlMsgHandler::instance = new ctrlMsgHandler;
 
@@ -23,7 +23,7 @@ ctrlMsgHandler * ctrlMsgHandler::getInstance()
 /*
 	解码
 */
-void ctrlMsgHandler::decodeMsg(string msg)
+void ctrlMsgHandler::decodeMsg(SOCKET index, string msg)
 {
 	/*
 		提取出会话号与信令类型
@@ -56,9 +56,11 @@ void ctrlMsgHandler::decodeMsg(string msg)
 		dMsg.ctrlKey = key;
 		dMsg.session = session;
 
+		dMsg.index = index;
+
 		decodedMsgQueue.push(dMsg);
 
-		ReleaseSemaphore(hsCtrlMsgDecoded, 1, NULL);		
+		ReleaseSemaphore(ctrlMsgDecoded, 1, NULL);
 
 		break;
 	}
@@ -103,17 +105,21 @@ void ctrlMsgHandler::decodeMsg(string msg)
 //	ReleaseSemaphore(hsCtrlMsgEncoded, 1, NULL);
 //}
 
-bool ctrlMsgHandler::getDecodedMsg(unsigned int &session, unsigned char &ctrlKey)
+bool ctrlMsgHandler::getDecodedMsg(SOCKET &index, unsigned int &session, unsigned char &ctrlKey)
 {
-	if (decodedMsgQueue.empty())return false;
+	if (decodedMsgQueue.empty())
+	{
+		return false;
+	}
 
 	decodedMsg dMsg = decodedMsgQueue.front();
 
 	decodedMsgQueue.pop();
 
 	session = dMsg.session;
-
 	ctrlKey = dMsg.ctrlKey;
+
+	index = dMsg.index;
 
 	return true;
 }

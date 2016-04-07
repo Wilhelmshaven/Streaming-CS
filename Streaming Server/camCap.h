@@ -16,6 +16,18 @@
 #include "opencv2\imgproc\imgproc.hpp"
 using namespace cv;
 
+typedef struct myMat
+{
+	SOCKET index;
+	Mat frame;
+};
+
+typedef struct myCommand
+{
+	SOCKET index;
+	unsigned char key;
+};
+
 /*
 	摄像头处理类
 
@@ -34,11 +46,9 @@ using namespace cv;
 
 	void camCap::showImg()：开启/关闭视频窗口，若开则关，若关则开。初始状态为开启。
 
-	（入口方法）static void render(unsigned char cmd = 0)：输入指令渲染图像
-	（入口信号）static HANDLE hsRenderImage = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(renderImage))
+	void render(SOCKET index, unsigned char cmd = 0)：输入指令渲染图像
 
-	（出口方法）Mat getImage()：获取图像
-	（出口信号）static HANDLE hsRenderDone = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(renderDone))
+	bool getImage(SOCKET &index, Mat &frame)：获取图像
 */
 class camCap
 {
@@ -59,20 +69,20 @@ public:
 	void showImg();
 
 	//输入指令渲染图像
-	static void render(unsigned char cmd = 0);
+	static void render(SOCKET index, unsigned char cmd = 0);
 
 	//获取图像
-	Mat getImage();
+	bool getImage(SOCKET &index, Mat &frame);
 
 	~camCap();
 
 private:
 
 	//图像队列
-	static queue<Mat> imgQueue;
+	static queue<myMat> imgQueue;
 
 	//控制指令队列，供中间件写入
-	static queue<unsigned char> cmdQueue;
+	static queue<myCommand> cmdQueue;
 
 	//开始抓取事件
 	static HANDLE hEventStartCap;

@@ -27,6 +27,8 @@ using namespace std;
 
 namespace syncManager
 {
+	const char srvDown[] = "heSrvDown";
+
 	/*
 		图像源出入口信号
 	*/	
@@ -38,13 +40,6 @@ namespace syncManager
 	*/
 	const char imgBufferInput[] = "hsImgBufferInput";
 	const char imgBufferOutput[] = "hsImgBufferOutput";
-
-	/*
-		流媒体信令出入口信号：准确点说是多个出口
-	*/
-	const char rtspPlay[] = "hsRTSPPlay";
-	const char rtspPause[] = "hsRTSPPause";
-	const char rtspTeardown[] = "hsRTSPTeardown";
 
 	/*
 		控制信令出入口信号：实际上是两个出口

@@ -3,4 +3,7 @@
 103,Can't get image from renderer
 104,Can't get packed packet from RTP module
 105,Can't get encoded image head message from encoder
+106,Can't get image from Image Buffer
 201,Can't get RTSP message from network module
+301,[OpenCV]Mat格式的图像不连续，无法转为vector<unsigned char>
+401,Session is down

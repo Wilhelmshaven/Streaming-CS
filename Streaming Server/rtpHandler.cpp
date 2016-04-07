@@ -9,7 +9,7 @@ HANDLE rtpEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtpEncoded);
 
 rtpHandler* rtpHandler::instance = new rtpHandler;
 
-clientManager* clientList = clientManager::getInstance();
+clientManager* myClientList = clientManager::getInstance();
 
 rtpHandler *rtpHandler::getInstance()
 {
@@ -27,7 +27,12 @@ rtpHandler *rtpHandler::getInstance()
 */
 bool rtpHandler::pack(SOCKET socket, imgHead head, vector<unsigned char> img)
 {
-	if (!clientList->searchClient(socket))
+	/*
+		!!
+		这里检查是否已被Teardown
+		这里不写的话，就必须得在其它地方实现，所以还是写在这里方便s
+	*/
+	if (!myClientList->searchClient(socket))
 	{
 		return false;
 	}
@@ -50,23 +55,30 @@ bool rtpHandler::pack(SOCKET socket, imgHead head, vector<unsigned char> img)
 
 	memcpy(&rtpPacket[headSize], &img[0], img.size());
 
-	packetQueue.push(rtpPacket);
+	myPacket packet;
+	packet.index = socket;
+	packet.packet = rtpPacket;
+
+	packetQueue.push(packet);
 
 	ReleaseSemaphore(rtpEncoded, 1, NULL);
 
 	return true;
 }
 
-bool rtpHandler::getPacket(string & msg)
+bool rtpHandler::getPacket(SOCKET &index, string & msg)
 {
 	if (packetQueue.empty())
 	{
 		return false;
 	}
 
-	msg = packetQueue.front();
+	myPacket packet = packetQueue.front();
 
 	packetQueue.pop();
+
+	index = packet.index;
+	msg = packet.packet;
 
 	return true;
 }

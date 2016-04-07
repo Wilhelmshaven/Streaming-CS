@@ -17,32 +17,36 @@ imgBuffer::imgBuffer()
 
 }
 
-void imgBuffer::pushBuffer(imgHead head, vector<unsigned char> img)
+void imgBuffer::pushBuffer(SOCKET index, imgHead head, vector<unsigned char> img)
 {
 	myImg image;
 
 	image.head = head;
 	image.img = img;
 
+	image.index = index;
+
 	imgQueue.push(image);
 
 	ReleaseSemaphore(hsImageReady, 1, NULL);
 }
 
-bool imgBuffer::popBuffer(imgHead & head, vector<unsigned char> & img)
+bool imgBuffer::popBuffer(SOCKET &index, imgHead & head, vector<unsigned char> & img)
 {
-	if (!isBufEmpty())
+	if (isBufEmpty())
 	{
-		head = imgQueue.front().head;
-
-		img = imgQueue.front().img;
-
-		imgQueue.pop();
-
-		return true;
+		return false;
 	}
 
-	return false;
+	myImg image = imgQueue.front();
+	imgQueue.pop();
+
+	head = image.head;
+	img = image.img;
+
+	index = image.index;
+
+	return true;
 }
 
 bool imgBuffer::isBufEmpty()

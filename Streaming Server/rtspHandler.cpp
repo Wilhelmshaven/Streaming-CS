@@ -8,12 +8,6 @@
 //加载错误处理模块
 #include "errHandler.h"
 
-//流媒体信令模块：标记有新的播放请求，请RTP模块拿走相关信息
-HANDLE hsPlaySession = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtspPlay);
-
-//流媒体信令模块：标记有新的停止播放请求，请RTP模块拿走相关信息
-HANDLE hsStopSession = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtspTeardown);
-
 //一个Session与客户端参数的对应表 
 clientManager *clientList = clientManager::getInstance();
 
@@ -491,7 +485,11 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 			enableUDP = true;
 		}
 
-		//把客户端加入列表中
+		/*
+			!!
+			把客户端加入列表中
+			这一块也很重要，必须要实现，反映的是play-teardown中的play功能
+		*/
 		clientList->addClient(session, socket, streamingPort, enableUDP);
 
 		paddingMsg.pop_back();
@@ -528,7 +526,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 				会话号正确，这里就应该调用播放器播放了
 				通知RTP模块处理
 			*/	
-			ReleaseSemaphore(hsPlaySession, 1, NULL);
+			/*ReleaseSemaphore(hsPlaySession, 1, NULL);*/
 		}
 		else
 		{
@@ -572,7 +570,10 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 			/*
 				通知RTP模块停止播放
 			*/
-			ReleaseSemaphore(hsStopSession, 1, NULL); 
+			//ReleaseSemaphore(hsStopSession, 1, NULL); 
+
+			//移除客户端信息
+			clientList->removeClient(session);
 		}
 		else
 		{
@@ -585,9 +586,6 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		{
 			break;
 		}
-
-		//移除客户端信息
-		clientList->removeClient(session);
 
 		break;
 	}

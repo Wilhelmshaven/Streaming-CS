@@ -26,11 +26,11 @@ public:
 
 	static ctrlMsgHandler* getInstance();
 
-	void decodeMsg(string msg);
+	void decodeMsg(SOCKET index, string msg);
 
 	//void encodeMsg(imgHead head, unsigned int imgSize, unsigned int session);
 
-	bool getDecodedMsg(unsigned int &session, unsigned char &ctrlKey);
+	bool getDecodedMsg(SOCKET &index, unsigned int &session, unsigned char &ctrlKey);
 
 	//bool getEncodedMsg(string &encodedMsg);
 
@@ -38,6 +38,8 @@ private:
 
 	typedef struct decodedMsg
 	{
+		SOCKET index;
+
 		int session;
 
 		char ctrlKey;
@@ -45,7 +47,7 @@ private:
 
 	queue<decodedMsg> decodedMsgQueue;
 
-	queue<string> encodedMsgQueue;
+	//queue<string> encodedMsgQueue;
 	
 	//±àÂë¹«¹²Í·
 	string encodePublicHead(unsigned int payloadType, unsigned int session, unsigned int size);

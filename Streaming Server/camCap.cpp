@@ -12,8 +12,10 @@ HANDLE hsRenderDone = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::rende
 HANDLE camCap::hEventStartCap;
 HANDLE camCap::hEventShutDown;
 HANDLE camCap::hEventShowImg;
-queue<unsigned char> camCap::cmdQueue;
-queue<Mat> camCap::imgQueue;
+
+queue<myMat> camCap::imgQueue;
+queue<myCommand> camCap::cmdQueue;
+
 
 camCap *camCap::instance = new camCap;
 
@@ -87,24 +89,34 @@ void camCap::showImg()
 	}
 }
 
-void camCap::render(unsigned char cmd)
+void camCap::render(SOCKET index, unsigned char cmd)
 {
-	cmdQueue.push(cmd);
+	myCommand myCmd;
+
+	myCmd.index = index;
+	myCmd.key = cmd;
+
+	cmdQueue.push(myCmd);
 
 	ReleaseSemaphore(hsRenderImage, 1, NULL);
 }
 
-Mat camCap::getImage()
+bool camCap::getImage(SOCKET &index, Mat &frame)
 {
-	Mat frame;
+	myMat tmp;
 
-	if (!imgQueue.empty())
+	if (imgQueue.empty())
 	{
-		frame = imgQueue.front();
-		imgQueue.pop();
+		return false;
 	}
 
-	return frame;
+	tmp = imgQueue.front();
+	imgQueue.pop();
+	
+	index = tmp.index;
+	frame = tmp.frame;
+
+	return true;
 }
 
 camCap::~camCap()
@@ -144,6 +156,11 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 
 	Mat cvFrame;
 
+	myMat matStruct;
+	myCommand cmdStruct;
+
+	SOCKET index;
+
 	while (1)
 	{
 		//等待开始信号
@@ -180,9 +197,11 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 				char key = 0;
 				if (!cmdQueue.empty())
 				{
-					key = cmdQueue.front();
-
+					cmdStruct = cmdQueue.front();
 					cmdQueue.pop();
+
+					key = cmdStruct.key;
+					index = cmdStruct.index;
 				}
 
 				/*
@@ -214,7 +233,11 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 					将变换好的图像塞入缓存，并释放信号量
 				*/
 
-				imgQueue.push(cvFrame);
+				matStruct.frame = cvFrame;
+				matStruct.index = index;
+
+				imgQueue.push(matStruct);
+
 				ReleaseSemaphore(hsRenderDone, 1, NULL);
 
 			}
