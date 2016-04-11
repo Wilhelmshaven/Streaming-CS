@@ -53,6 +53,7 @@ private:
 class rtspHandler
 {
 public:
+
 	static rtspHandler *getInstance();
 
 	//配置处理器：URI地址、RTSP版本（默认1.0）、端口号（默认8554）、传输方法（默认TCP）

@@ -38,16 +38,22 @@ public:
 
 	static cvPlayer* getInstance();
 
+	//指定帧率，单位为帧数每秒
 	static void setFrameRate(int frameRate = 20);
 
+	//启动播放器
 	void play();
 
+	//暂停播放器
 	void pause();
 
+	//摧毁播放器，顾名思义，调用以后你再也不能重启播放器了，只能重启客户端
 	void destroyPlayer();
 
+	//入口：推入图像文件
 	static void insertImage(imgHead head, vector<char> image);
 
+	//出口，弹出用户输入的按键
 	static bool getCtrlKey(char &key);
 
 private:

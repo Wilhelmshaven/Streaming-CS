@@ -17,36 +17,43 @@ rtpHandler::rtpHandler()
 
 }
 
+/*
+	解包RTP包，就是去掉头部，取出图像数据即可
+
+	基于TCP流式传输特点，一图一包
+*/
 void rtpHandler::unpackRTP(string mediaPacket)
 {
 	/*
-		媒体包长度：8+12+4+12+MEIDA
-		真特么多头部……
-		要不干脆不要RTP好了
-		交互还是坚持用RTSP
+		媒体包长度：4+12+8+MEDIA
 	*/
 
 	myImage image;
 
 	/*
-		首先提取出图像头
-		直接取出第9-20共12字节长度，就是了
-
-		然后，验证什么的，算了，就不做了
+		验证什么的，算了，就不做了
 		所以……RTP信息通通直接不要
+		
+		TODO：让他们发挥作用
 
-		//TODO：让他们发挥作用
+		首先提取出图像头
+		直接取出第17-24共8字节长度，就是了	
 	*/
-	auto head = (imgHead *)mediaPacket.substr(8, 12).c_str();
+	string tmp = mediaPacket.substr(16, sizeof(imgHead));
 
-	image.head = *head;
+	auto head = (imgHead *)tmp.c_str();
+
+	image.head.channels = ntohs(head->channels);
+	image.head.imgType = ntohs(head->imgType);
+	image.head.xAxis.cols = ntohs(head->xAxis.cols);
+	image.head.yAxis.rows = ntohs(head->yAxis.rows);
 
 	/*
 		最后提取RTP包
 	*/
-	image.img.resize(mediaPacket.size() - 36);
+	image.img.resize(mediaPacket.size() - 24);
 
-	memcpy(&image.img[0], &mediaPacket[36], mediaPacket.size() - 36);
+	memcpy(&image.img[0], &mediaPacket[24], mediaPacket.size() - 24);
 
 	imageQueue.push(image);
 

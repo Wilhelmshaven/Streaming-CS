@@ -158,20 +158,20 @@ typedef struct imgHead
 {
 	union
 	{
-		int height;
-		int rows;
+		WORD height;
+		WORD rows;
 	};
 
 	union
 	{
-		int width;
-		int cols;
+		WORD width;
+		WORD cols;
 	};
 
-	int channels;
+	WORD channels;
 
 	//图像类型，如RGB、BGR、YUV之类（但这些值目前未实现）
-	int imgType;
+	WORD imgType;
 
 	//int matrixType;
 };

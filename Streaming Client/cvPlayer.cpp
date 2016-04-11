@@ -6,8 +6,10 @@
 HANDLE cvPlayer::heStart;
 HANDLE cvPlayer::hePause;
 HANDLE cvPlayer::heShutdown;
+
 queue<char> cvPlayer::cmdQueue;
 queue<Mat> cvPlayer::imgQueue;
+
 int cvPlayer::frameRate;
 
 //播放器模块：图像是否被输入
@@ -185,7 +187,10 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 
 		}
 
-		if (WaitForSingleObject(heShutdown, 0) == WAIT_OBJECT_0)break;
+		if (WaitForSingleObject(heShutdown, 0) == WAIT_OBJECT_0)
+		{
+			break;
+		}
 	}
 	
 	return 0;

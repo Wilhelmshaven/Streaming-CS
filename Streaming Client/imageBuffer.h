@@ -20,8 +20,10 @@ public:
 
 	static imgBuffer* getInstance();
 
+	//推入缓存
 	void pushBuffer(imgHead head, vector<char> img);
 
+	//读取缓存，返回是否成功
 	bool popBuffer(imgHead &head, vector<char> &img);
 
 private:

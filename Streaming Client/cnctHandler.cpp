@@ -13,9 +13,7 @@ HANDLE hsNewRTSPMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctRTSPOu
 
 cnctHandler *cnctHandler::instance = new cnctHandler(srvSettingFile);
 
-queue<string> cnctHandler::sendMsgQueue;
-queue<string> cnctHandler::recvRTPQueue;
-queue<string> cnctHandler::recvRTSPQueue;
+queue<string> cnctHandler::sendMsgQueue, cnctHandler::recvRTPQueue, cnctHandler::recvRTSPQueue;
 
 /*
 	构造函数（传入文件名为参数，否则读取公共头中指定的文件路径）
@@ -171,6 +169,34 @@ void cnctHandler::sendMessage(string msg)
 	ReleaseSemaphore(hsNewSendMsg, 1, NULL);
 }
 
+bool cnctHandler::getRTPMessage(string & msg)
+{
+	if (recvRTPQueue.empty())
+	{
+		return false;
+	}
+
+	msg = recvRTPQueue.front();
+
+	recvRTPQueue.pop();
+
+	return true;
+}
+
+bool cnctHandler::getRTSPMessage(string & msg)
+{
+	if (recvRTSPQueue.empty())
+	{
+		return false;
+	}
+
+	msg = recvRTSPQueue.front();
+
+	recvRTSPQueue.pop();
+
+	return true;
+}
+
 cnctHandler::~cnctHandler()
 {
 	closesocket(srvSocket);
@@ -222,6 +248,9 @@ DWORD cnctHandler::sendThread(LPVOID lparam)
 	return 0;
 }
 
+/*
+	接收线程，有很多需要修改的地方，主要是收图片
+*/
 DWORD cnctHandler::recvThread(LPVOID lparam)
 {
 	threadParam *param = (threadParam *)lparam;
@@ -229,23 +258,20 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 	SOCKET socket = param->socket;
 
 	string msg;
-	msg.resize(BUF_SIZE);
+	
+	string img;
+
+	int bytesRecv;
 
 	while (1)
 	{
+		msg.resize(BUF_SIZE);
+
 		//TODO：这里可能有问题，待测试
-		recv(socket, (char *)msg.data(), BUF_SIZE, NULL);
+		bytesRecv = recv(socket, (char *)msg.data(), BUF_SIZE, NULL);
+		msg = msg.substr(0, bytesRecv);
 
 		//这里分析接收到的信息类型，塞入相应的队列并激活信号量
-
-		if (msg[0] == '$')
-		{
-			//RTP数据
-
-			recvRTPQueue.push(msg);
-
-			ReleaseSemaphore(hsNewRTPMsg, 1, NULL);
-		}
 		
 		if (msg.find("RTSP"))
 		{
@@ -255,6 +281,23 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 			recvRTSPQueue.push(msg);
 
 			ReleaseSemaphore(hsNewRTSPMsg, 1, NULL);
+		}
+
+		//RTP数据
+		if (msg[0] == '$')
+		{
+			recvRTPQueue.push(img);
+
+			ReleaseSemaphore(hsNewRTPMsg, 1, NULL);
+
+			//New Img
+			img.clear();
+			img += msg;
+				
+		}
+		else
+		{
+			img += msg;
 		}
 	}
 

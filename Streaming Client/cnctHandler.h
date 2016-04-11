@@ -43,34 +43,41 @@ typedef struct threadParam
 
 	int connectServer()：连接服务器，成功返回0，否则为-1（代表无可用服务器）或其它值（能连接上但出错，此时代表connect函数返回的错误码，参见MSDN）
 
-	string getDisplayAddr()：获取完整播放地址（用来设置流媒体信令处理器的）
+	string getDisplayAddr()：获取完整播放地址（用来设置流媒体信令处理器）
 
-	static void sendMessage(string msg)：发送给定的数据
+	void sendMessage(string msg)：发送给定的数据
 
-	static void getRecvMessage(string &msg)：取出收到的数据
+	bool getRTPMessage(string &msg)：取出收到的图像数据
+
+	bool getRTSPMessage(string &msg)：取出收到的信令数据
 */
 class cnctHandler
 {
 public:
 
-	WSADATA wsaData;
-
 	static cnctHandler *getInstance();
+	
+	//连接服务器，成功返回0，否则为-1（代表无可用服务器）或其它值（能连接上但出错，此时代表connect函数返回的错误码，参见MSDN）
+	int connectServer();    
 
-	int connectServer();                      
-
+	//获取完整播放地址（用来设置流媒体信令处理器）
 	string getDisplayAddr();
 
+	//发送给定的数据
 	static void sendMessage(string msg);
 
-	static void getRTPMessage(string &msg);
+	//取出收到的图像数据
+	static bool getRTPMessage(string &msg);
 
-	static void getRTSPMessage(string &msg);
+	//取出收到的信令数据
+	static bool getRTSPMessage(string &msg);
 
 	~cnctHandler();
 
 private:
-	
+
+	WSADATA wsaData;
+
 	//连接成功后调用，开启接收与发送的线程
 	void startThread();
 

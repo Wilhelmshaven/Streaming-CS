@@ -5,12 +5,10 @@
 
 /*
 	播放器到控制信令处理器的中间件
-	由于要保证两个模块都在使用同一个数据交换区，所以也是单例
 
 	使用：
 
 	startMiddleWare()：启动中间件
-
 */
 class mwPlayCtrl
 {
@@ -24,14 +22,25 @@ private:
 
 	/*
 		线程，控制流与数据流什么的
+		注意，某些信号量可以设置一下上限，太多有可能堵着
 	*/
 
-	static DWORD WINAPI mwCtrlMsgThread(LPVOID lparam);
+	static DWORD WINAPI mw_Player_Ctrl_Thread(LPVOID lparam);
 
-	static DWORD WINAPI mwMediaThread(LPVOID lparam);
+	static DWORD WINAPI mw_Ctrl_Net_Thread(LPVOID lparam);
+
+	static DWORD WINAPI mw_RTSP_Net_Thread(LPVOID lparam);
+
+	static DWORD WINAPI mw_Net_RTSP_Thread(LPVOID lparam);
+
+	static DWORD WINAPI mw_Net_RTP_Thread(LPVOID lparam);
+
+	static DWORD WINAPI mw_RTP_Buf_Thread(LPVOID lparam);
+
+	static DWORD WINAPI mw_Buf_Player_Thread(LPVOID lparam);
 
 	//专门发送心跳的
-	static DWORD WINAPI mwHeartBeat(LPVOID lparam);
+	//static DWORD WINAPI mw_HeartBeat(LPVOID lparam);
 
 	/*
 		单例模式相关
@@ -52,11 +61,4 @@ private:
 		}
 	};
 	static CGarbo Garbo;
-
 };
-
-//中间件：标记收到的RTSP信令是否OK
-static HANDLE hsIsRTSPOK = CreateSemaphore(NULL, 0, BUF_SIZE, NULL);
-
-//中间件：标记是否开始心跳
-static HANDLE heStartHeartBeat = CreateEvent(NULL, TRUE, FALSE, NULL);

@@ -16,7 +16,6 @@ HANDLE camCap::hEventShowImg;
 queue<myMat> camCap::imgQueue;
 queue<myCommand> camCap::cmdQueue;
 
-
 camCap *camCap::instance = new camCap;
 
 /*

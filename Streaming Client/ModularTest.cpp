@@ -45,9 +45,15 @@ int main()
 
 	//vector<unsigned char> a = { 201,202,203,204,205,206,207,208 };
 
-	//msg.resize(36 + a.size());
+	//msg.resize(24 + a.size());
 
-	//memcpy(&msg[36], &a[0], a.size());
+	//auto b = (imgHead *)(msg.c_str() + 16);
+	//b->channels = htons(3);
+	//b->imgType = htons(15);
+	//b->xAxis.cols = htons(720);
+	//b->yAxis.rows = htons(576);
+
+	//memcpy(&msg[24], &a[0], a.size());
 
 	//rtp->unpackRTP(msg);
 
