@@ -72,7 +72,7 @@ void cvPlayer::destroyPlayer()
 }
 
 //还原vector为Mat，并推入队列
-void cvPlayer::insertImage(imgHead head, vector<char> image)
+void cvPlayer::insertImage(imgHead head, vector<unsigned char> image)
 {
 	Mat frame = Mat(image).reshape(head.channels, head.xAxis.cols);
 

@@ -51,7 +51,7 @@ public:
 	void destroyPlayer();
 
 	//入口：推入图像文件
-	static void insertImage(imgHead head, vector<char> image);
+	static void insertImage(imgHead head, vector<unsigned char> image);
 
 	//出口，弹出用户输入的按键
 	static bool getCtrlKey(char &key);

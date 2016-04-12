@@ -10,15 +10,17 @@
 
 	startMiddleWare()：启动中间件
 */
-class mwPlayCtrl
+class middleWare
 {
 public:
 	
-	static mwPlayCtrl* getInstance();
+	static middleWare* getInstance();
 
 	void startMiddleWare();
 
 private:
+
+	void initHandles();
 
 	/*
 		线程，控制流与数据流什么的
@@ -29,9 +31,7 @@ private:
 
 	static DWORD WINAPI mw_Ctrl_Net_Thread(LPVOID lparam);
 
-	static DWORD WINAPI mw_RTSP_Net_Thread(LPVOID lparam);
-
-	static DWORD WINAPI mw_Net_RTSP_Thread(LPVOID lparam);
+	static DWORD WINAPI mw_RTSP_Net_RTSP_Thread(LPVOID lparam);
 
 	static DWORD WINAPI mw_Net_RTP_Thread(LPVOID lparam);
 
@@ -42,16 +42,20 @@ private:
 	//专门发送心跳的
 	//static DWORD WINAPI mw_HeartBeat(LPVOID lparam);
 
+	static void sendRTSPMsg(int method);
+
+	static void recvRTSPMsg(int &errCode);
+
 	/*
 		单例模式相关
 	*/
 
-	mwPlayCtrl();
+	middleWare();
 
-	static mwPlayCtrl *instance;
+	static middleWare *instance;
 
-	mwPlayCtrl(const mwPlayCtrl &);
-	mwPlayCtrl &operator=(const mwPlayCtrl &);
+	middleWare(const middleWare &);
+	middleWare &operator=(const middleWare &);
 	class CGarbo
 	{
 	public:

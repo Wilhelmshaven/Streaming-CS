@@ -3,36 +3,6 @@
 #include "CommonHeaders.h"
 
 /*
-	rtspErrHandler类：RTSP错误信息翻译器
-
-	描述：
-	就是把rtsp的错误码转为字符串形式的错误信息；
-	错误码和错误信息从文件读入，使用map形式存储；
-	错误映射表用CSV格式存储，逗号分隔，非常方便，极其好扩展，直接EXCEL编辑即可；
-
-	使用：
-	string getErrMsg(int code)：输入错误码，返回字符串形式的错误信息
-*/
-class rtspErrHandler
-{
-public:
-
-	rtspErrHandler(string file = "config/static/rtspErrCodeList.csv");
-
-	//输出错误信息
-	string getErrMsg(int code);              
-
-private:
-
-	string settingFile;
-
-	void buildErrList();   
-
-	//错误链接表结构：<错误代码，错误信息>
-	map<int, string> errCodeList;
-};
-
-/*
 	rtspHandler类：RTSP消息的处理
 	
 	描述：
@@ -68,9 +38,6 @@ public:
 	*/
 	int decodeMsg(string msg);     
 
-	//输入RTSP错误码，返回其表示的错误信息
-	string getErrMsg(int code);
-
 	/*
 		获取rtsp处理器的相关信息
 		返回值示例："RTSP版本：1.0\r\n会话号（session）：FFFFFFFF\r\n端口号：8554\r\n传输方式：UDP\r\n"
@@ -100,9 +67,6 @@ private:
 	//轨道信息（目前不用）
 	string trackNum;                           
 	                           
-	//rtsp错误信息处理器
-	rtspErrHandler errHandler;                 
-
 	/*
 		单例模式相关
 	*/

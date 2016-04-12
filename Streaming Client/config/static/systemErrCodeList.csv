@@ -1,0 +1,7 @@
+100,Can't connect to server.
+101,Can't get control key from player.
+102,Can't get encoded control message from encoder.
+103,Can't get RTSP message from network handler.
+104,Can't get RTP message from network handler.
+105,Can't get media from RTP module.
+106,Can't get media from buffer.

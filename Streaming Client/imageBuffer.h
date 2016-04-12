@@ -10,9 +10,9 @@
 
 	static imgBuffer* getInstance()：获取单例
 
-	void pushBuffer(imgHead head, vector<char> img)：推入缓存
+	void pushBuffer(imgHead head, vector<unsigned char> img)：推入缓存
 
-	bool popBuffer(imgHead &head, vector<char> &img)：读取缓存，返回是否成功
+	bool popBuffer(imgHead &head, vector<unsigned char> &img)：读取缓存，返回是否成功
 */
 class imgBuffer
 {
@@ -21,17 +21,17 @@ public:
 	static imgBuffer* getInstance();
 
 	//推入缓存
-	void pushBuffer(imgHead head, vector<char> img);
+	void pushBuffer(imgHead head, vector<unsigned char> img);
 
 	//读取缓存，返回是否成功
-	bool popBuffer(imgHead &head, vector<char> &img);
+	bool popBuffer(imgHead &head, vector<unsigned char> &img);
 
 private:
 
 	typedef struct myImage
 	{
 		imgHead head;
-		vector<char> img;
+		vector<unsigned char> img;
 	};
 
 	queue<myImage> imageQueue;	

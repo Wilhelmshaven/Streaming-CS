@@ -70,6 +70,7 @@
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
     <None Include="config\static\rtspErrCodeList.csv" />
+    <None Include="config\static\systemErrCodeList.csv" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="config\ServerInfo.xml" />
@@ -78,6 +79,7 @@
     <ClInclude Include="cnctHandler.h" />
     <ClInclude Include="CommonHeaders.h" />
     <ClInclude Include="cvPlayer.h" />
+    <ClInclude Include="errHandler.h" />
     <ClInclude Include="imageBuffer.h" />
     <ClInclude Include="ctrlMsgHandler.h" />
     <ClInclude Include="middleWare.h" />
@@ -88,6 +90,7 @@
   <ItemGroup>
     <ClCompile Include="cnctHandler.cpp" />
     <ClCompile Include="cvPlayer.cpp" />
+    <ClCompile Include="errHandler.cpp" />
     <ClCompile Include="imageBuffer.cpp" />
     <ClCompile Include="middleWare.cpp" />
     <ClCompile Include="ModularTest.cpp" />

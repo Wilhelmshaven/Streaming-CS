@@ -4,6 +4,8 @@
 
 #include "rtpHandler.h"
 
+#include "middleWare.h"
+
 namespace myHandle
 {
 	HANDLE heCloseClient;
@@ -38,6 +40,12 @@ void initServer()
 int main()
 {
 	initServer();
+
+	middleWare *mWare = middleWare::getInstance();
+
+	mWare->startMiddleWare();
+
+	system("pause");
 
 	//rtpHandler *rtp = rtpHandler::getInstance();
 

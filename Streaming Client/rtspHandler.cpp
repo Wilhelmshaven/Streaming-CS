@@ -2,67 +2,7 @@
 
 #include "rtspHandler.h"
 
-rtspErrHandler::rtspErrHandler(string file)
-{
-	settingFile = file;
-
-	buildErrList();
-}
-
-void rtspErrHandler::buildErrList()
-{
-	//以只读模式打开文件
-	fstream fileStream;
-	fileStream.open(settingFile.c_str(), ios_base::in);
-
-	if (!fileStream.is_open())
-	{
-		cout << "建立RTSP错误信息表失败：表文件不存在" << endl;
-	}
-	else
-	{
-		//文件打开成功
-
-		string buf, code, msg;
-		int errCode;
-		int commaPos;
-
-		//一直读取到文件结尾
-		while (!fileStream.eof())
-		{
-			getline(fileStream, buf);
-
-			//防止表尾有空行，否则会报错
-			if (buf.empty())break;
-
-			commaPos = buf.find(',');
-
-			errCode = stoi(buf, nullptr, 10);
-
-			msg = buf.substr(commaPos + 1, buf.length() - code.length());
-
-			errCodeList.insert(make_pair(errCode, msg));
-		}
-	}
-}
-
-string rtspErrHandler::getErrMsg(int code)
-{
-	string msg;
-
-	auto iter = errCodeList.find(code);
-
-	if (iter != errCodeList.end())
-	{
-		msg = iter->second;
-	}
-	else
-	{
-		msg = "Invalid Error Code.";
-	}
-
-	return msg;
-}
+#include "errHandler.h"
 
 /*----------------------RTSP连接处理器---------------------*/
 rtspHandler *rtspHandler::instance = new rtspHandler();
@@ -108,11 +48,6 @@ bool rtspHandler::setHandler(string URI, string rtspVer, int port, bool enableUD
 	this->enableUDP = enableUDP;
 
 	return true;
-}
-
-string rtspHandler::getErrMsg(int code)
-{
-	return errHandler.getErrMsg(code);
 }
 
 string rtspHandler::getHandlerInfo()
@@ -285,6 +220,8 @@ string rtspHandler::encodeMsg(int method)
 */
 int rtspHandler::decodeMsg(string msg)
 {
+	rtspErrHandler *errHandler = rtspErrHandler::getInstance();
+
 	//错误代码
 	int errCode; 
 
@@ -310,7 +247,7 @@ int rtspHandler::decodeMsg(string msg)
 
 	if (errCode != 200)
 	{
-		cout << "RTSP Error: " << errCode << " " << getErrMsg(errCode) << endl;
+		cout << "RTSP Error: " << errCode << " " << errHandler->getErrMsg(errCode) << endl;
 	}
 
 

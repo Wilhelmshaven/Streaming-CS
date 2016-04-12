@@ -16,10 +16,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ClassDiagram.cd" />
-    <None Include="config\static\rtspErrCodeList.csv" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="config\ServerInfo.xml" />
+    <None Include="config\static\systemErrCodeList.csv">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="config\static\rtspErrCodeList.csv">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cvPlayer.h">
@@ -49,6 +51,9 @@
     <ClInclude Include="middleWare.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="errHandler.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cvPlayer.cpp">
@@ -75,5 +80,13 @@
     <ClCompile Include="middleWare.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="errHandler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="config\ServerInfo.xml">
+      <Filter>资源文件</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

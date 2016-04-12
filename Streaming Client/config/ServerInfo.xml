@@ -2,13 +2,6 @@
 <root>
 	<serverList>
 		<server>
-			<type>local</type>
-			<protocol>http</protocol>
-			<hostname>127.0.0.1</hostname>
-			<port>80</port>
-			<display></display>
-		</server>
-		<server>
 			<type>VM_XP</type>
 			<protocol>rtsp</protocol>
 			<hostname>192.168.131.128</hostname>
@@ -19,6 +12,20 @@
 			<type>RTSP</type>
 			<protocol>http</protocol>
 			<hostname>192.168.1.107</hostname>
+			<port>8554</port>
+			<display></display>
+		</server>
+		<server>
+			<type>Test</type>
+			<protocol>rtsp</protocol>
+			<hostname>10.128.6.214</hostname>
+			<port>8554</port>
+			<display></display>
+		</server>
+		<server>
+			<type>local</type>
+			<protocol>http</protocol>
+			<hostname>127.0.0.1</hostname>
 			<port>8554</port>
 			<display></display>
 		</server>
