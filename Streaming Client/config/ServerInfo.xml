@@ -2,32 +2,25 @@
 <root>
 	<serverList>
 		<server>
-			<type>VM_XP</type>
-			<protocol>rtsp</protocol>
-			<hostname>192.168.131.128</hostname>
-			<port>554</port>
-			<display>test.mp3</display>
-		</server>
-		<server>
-			<type>RTSP</type>
-			<protocol>http</protocol>
-			<hostname>192.168.1.107</hostname>
-			<port>8554</port>
-			<display></display>
-		</server>
-		<server>
-			<type>Test</type>
+			<srvName>LocalTest - EDU</srvName>
+			<address>rtsp://10.128.6.214:8554</address>
 			<protocol>rtsp</protocol>
 			<hostname>10.128.6.214</hostname>
 			<port>8554</port>
-			<display></display>
 		</server>
 		<server>
-			<type>local</type>
+			<srvName>LocalTest - LT</srvName>
+			<address>rtsp://192.168.1.107:8554</address>
+			<protocol>rtsp</protocol>
+			<hostname>192.168.1.107</hostname>
+			<port>8554</port>
+		</server>
+		<server>
+			<srvName>Local - HTTP</srvName>
+			<address>http://127.0.0.1:8554</address>
 			<protocol>http</protocol>
 			<hostname>127.0.0.1</hostname>
 			<port>8554</port>
-			<display></display>
 		</server>
 	</serverList>
 </root>

@@ -10,6 +10,7 @@
 #include <string>
 #include <map>
 #include <queue>
+#include <list>
 
 //Winsock Headers
 #include <WinSock2.h>
@@ -47,20 +48,7 @@ namespace syncManager
 const string srvSettingFile = "config/ServerInfo.xml";             //服务器信息配置文件
 const string rtspErrFile = "config/static/rtspErrCodeList.csv";    //rtsp错误消息
 
-/*---------------------自定义常量区，少的话这里写，多的话，不如用map，例如rtsp错误信息--------------------*/
-//服务器自定义结构体中涉及的服务器信息，但全局可用
-//类：cnctHandler
-enum ServerInfoDefine
-{
-	srvRsv = 0,        //默认值，保留！
-	srvType = 1,       //服务器类型
-	protocol = 2,      //地址头
-	hostName = 3,      //域名
-	port = 4,          //端口
-	displayRoute = 5,  //播放地址
-	hostAddr = 6,      //额，IP地址
-	ServerArgc = 7,    //这个放在最后，表示参数的数量
-};
+/*---------------------自定义常量区--------------------*/
 
 //RTSP方法
 enum rtspMethod

@@ -7,7 +7,7 @@
 */
 
 /*
-	服务器列表结构：serverList
+	服务器信息结构：srvInfo
 
 	描述：
 	功能为从文件中读取服务器列表，服务于大的网络连接模块。
@@ -17,14 +17,21 @@
 
 	Todo：配置文件标准搁到网上
 */
-typedef struct serverList
+typedef struct srvInfo
 {
-	//每一行存储一个参数
-	//ServerArgs代表参数数量，详细的参数见公共头中的常量表：ServerInfoDefine
-	string srvArgs[ServerArgc];      
+	//服务器名称
+	string srvName;
 
-	serverList *prev;
-	serverList *next;		
+	//完整的地址
+	string address;
+
+	//协议
+	string protocol;
+
+	//域名
+	string hostName;
+
+	sockaddr_in srv;
 };
 
 typedef struct threadParam
@@ -55,8 +62,10 @@ class cnctHandler
 {
 public:
 
+	WSADATA wsaData;
+
 	static cnctHandler *getInstance();
-	
+
 	//连接服务器，成功返回0，否则为-1（代表无可用服务器）或其它值（能连接上但出错，此时代表connect函数返回的错误码，参见MSDN）
 	int connectServer();    
 
@@ -76,11 +85,6 @@ public:
 
 private:
 
-	WSADATA wsaData;
-
-	//连接成功后调用，开启接收与发送的线程
-	void startThread();
-
 	//消息队列
 	static queue<string> sendMsgQueue;
 
@@ -96,19 +100,15 @@ private:
 		服务器配置表处理部分
 	*/
 
-	serverList *mySrvList;  
+	//存储服务器信息的双向链表
+	list<srvInfo> myServerList;
 
-	//配置文件的文件名
-	string fileName;    
-
-	//获取对应参数，输入下标（常量，见公共头），返回结构体字符串数组中对应下标的字符串值
-	string getCfgByIndex(int index);   
-
-	//填写内容
-	void getLabelMsg(string name, string buf);    
+	srvInfo myServer;
 
 	//读取配置文件
-	bool readFile();  
+	bool readFile(string fileName);
+
+	void fillInfo(string label, string buf, srvInfo &serverInfo);
 
 	/*
 		当前正在使用的服务器信息
@@ -122,7 +122,12 @@ private:
 	//完整的播放地址，eg. http://www.rayion.com/desktop
 	string displayAddr;    
 
-	void showSrvInfo();
+	/*
+		其它
+	*/
+
+	//连接成功后调用，开启接收与发送的线程
+	void startThread();
 
 	/*
 		以下为单例模式相关
@@ -130,9 +135,6 @@ private:
 
 	//构造函数，输入为存储有服务器信息的XML格式配置文件
 	cnctHandler(string file = srvSettingFile);
-
-	//仅在构造函数调用，完成构造工作
-	void defaultSettings();
 
 	static cnctHandler *instance; 
 
