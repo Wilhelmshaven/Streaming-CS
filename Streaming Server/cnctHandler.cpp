@@ -28,7 +28,7 @@ cnctHandler::cnctHandler()
 	WSAStartup(MAKEWORD(2, 2), &wsaData);
 
 	//默认端口
-	srvPort = "554";       
+	srvPort = "8554";       
 
 	//获取系统信息（最主要是CPU核数，以便创建Worker线程）
 	GetSystemInfo(&sysInfo);
@@ -218,6 +218,8 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 	//单句柄数据
 	LPPER_HANDLE_DATA PerHandleData;     
 
+	char incomingClient[17];
+
 	while (true)
 	{
 		//临时SOCKET
@@ -236,6 +238,9 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		//PerHandleData->clientAddr = clientAddr;
 		PerHandleData->clientSocket = acptSocket;
 		memcpy(&(PerHandleData->clientAddr), &clientAddr, addrSize);
+
+		inet_ntop(AF_INET, &(clientAddr.sin_addr), incomingClient, 17);
+		cout << "New Client: " << incomingClient << endl;
 		
 		//将接受套接字和完成端口关联
 		CreateIoCompletionPort((HANDLE)acptSocket, hCompletionPort, (DWORD)PerHandleData, 0);

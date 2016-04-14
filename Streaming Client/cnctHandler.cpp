@@ -92,7 +92,7 @@ bool cnctHandler::readFile(string fileName)
 					//读取单个服务器的信息
 					srvInfo serverInfo;
 
-					serverInfo.srv.sin_family = AF_INET;
+					ZeroMemory(&serverInfo, sizeof(srvInfo));
 
 					while (buf.find("</server>") == string::npos)
 					{
@@ -156,16 +156,30 @@ void cnctHandler::fillInfo(string label, string buf, srvInfo & serverInfo)
 		{
 			serverInfo.hostName = value;
 
-			//同时解析并填入Winsock地址结构
-			inet_ntop(AF_INET, &(serverInfo.srv.sin_addr), (char *)value.data(), value.length());
+			/*
+				解析域名/IP地址并记录
+				Todo：这个不合法怎么解决呢？
+			*/
+			int errCode = getaddrinfo(value.c_str(), NULL, NULL, &(serverInfo.srv));
+
+			if (errCode != 0)
+			{
+				serverInfo.isValid = false;
+				//cout << "配置文件中包含非法域名，错误代码：" << WSAGetLastError() << endl;
+				//errHandler(201)
+			}
+			else
+			{
+				serverInfo.isValid = true;
+			}
 
 			break;
 		}
 
 		if (label == "port")
 		{
-			//直接填入Winsock地址结构
-			serverInfo.srv.sin_port = htons(stoul(value));
+			//直接填入Winsock地址结构	
+			serverInfo.port = htons(stoul(value));
 
 			break;
 		}
@@ -188,38 +202,30 @@ int cnctHandler::connectServer()
 	//从服务器链表中读出相关信息，并挨个尝试连接
 	while (iter != end)
 	{
-		//Tips. 必须先使用临时变量存数据去连接，Connect函数估计比较复杂，会因为权限问题无法连接的
+		//信息不合法
+		if (!iter->isValid)
+		{
+			++iter;
+			continue;
+		}
 
 		cout << "尝试连接服务器（75秒超时）：" << iter->address << endl;
 
 		/*
-			解析域名
-			Todo：这个不合法怎么解决呢？
-		*/
-
-		addrinfo *res;
-		int errorCode = getaddrinfo(iter->hostName.c_str(), NULL, NULL, &res);
-
-		if (errorCode != 0)
-		{
-			cout << "域名解析失败，非法域名。错误代码：" << WSAGetLastError() << endl;
-
-			continue;
-		}
-
-		/*
-			填写结构信息，端口自己写（见全局公共头）
+			填写结构信息与端口
 			Tips. sockaddr和sockaddr_in是一回事，只不过前者更通用（直接把几个属性凑成字符串了）
 		*/
 
-		sockaddr_in srvAddrTmp = *(sockaddr_in *)res->ai_addr;
-		srvAddrTmp.sin_port = iter->srv.sin_port;
+		sockaddr_in srvAddrTmp = *(sockaddr_in *)iter->srv->ai_addr;
+
+		srvAddrTmp.sin_port = iter->port;
 
 		/*
 			连接服务器。这里是可能超时的，默认超时时间是75秒
 			Todo：万一真的阻塞了，这可不行啊，不能让人等很久很久啊
 		*/
 
+		//Tips. 必须先使用临时变量存数据去连接，Connect函数估计比较复杂，会因为权限问题无法连接的
 		SOCKET socketTmp = socket(AF_INET, SOCK_STREAM, 0);
 
 		isConnected = connect(socketTmp, (sockaddr *)&srvAddrTmp, sizeof(srvAddrTmp));
@@ -230,6 +236,8 @@ int cnctHandler::connectServer()
 			cout << "--连接成功" << endl;
 
 			myServer = (*iter);
+
+			srvSocket = socketTmp;
 
 			//显示服务器信息
 			//showSrvInfo();
@@ -359,6 +367,7 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 	SOCKET socket = param->socket;
 
 	string msg;
+	msg.resize(BUF_SIZE);
 	
 	string img;
 
@@ -370,10 +379,20 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 
 		//TODO：这里可能有问题，待测试
 		bytesRecv = recv(socket, (char *)msg.data(), BUF_SIZE, NULL);
-		msg = msg.substr(0, bytesRecv);
+		
+		if (bytesRecv > 0)
+		{
+			msg = msg.substr(0, bytesRecv);
+		}
+		else
+		{
+			cout << WSAGetLastError() << endl;
+			continue;
+		}
 
 		//这里分析接收到的信息类型，塞入相应的队列并激活信号量
 		
+		//!!这里有错！
 		if (msg.find("RTSP"))
 		{
 			//RTSP数据

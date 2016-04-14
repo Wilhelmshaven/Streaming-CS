@@ -31,7 +31,13 @@ typedef struct srvInfo
 	//域名
 	string hostName;
 
-	sockaddr_in srv;
+	//端口
+	unsigned short port;
+
+	addrinfo *srv;
+
+	//信息是否合法
+	bool isValid;
 };
 
 typedef struct threadParam

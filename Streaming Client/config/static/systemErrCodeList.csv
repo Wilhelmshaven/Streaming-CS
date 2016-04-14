@@ -5,3 +5,4 @@
 104,Can't get RTP message from network handler.
 105,Can't get media from RTP module.
 106,Can't get media from buffer.
+201,Unvalid Server Information.

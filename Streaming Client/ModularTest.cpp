@@ -2,9 +2,9 @@
 
 #include "myClient.h"
 
-#include "rtpHandler.h"
-
+#include "cnctHandler.h"
 #include "middleWare.h"
+#include "rtspHandler.h"
 
 namespace myHandle
 {
@@ -41,11 +41,23 @@ int main()
 {
 	initServer();
 
-	middleWare *mWare = middleWare::getInstance();
+	rtspHandler *rtsp = rtspHandler::getInstance();
 
-	mWare->startMiddleWare();
+	cnctHandler *network = cnctHandler::getInstance();
 
+	network->connectServer();
+
+	string msg = rtsp->encodeMsg(OPTIONS);
+
+	network->sendMessage(msg);
+	
 	system("pause");
+
+	//middleWare *mWare = middleWare::getInstance();
+
+	//mWare->startMiddleWare();
+
+	//system("pause");
 
 	//rtpHandler *rtp = rtpHandler::getInstance();
 
