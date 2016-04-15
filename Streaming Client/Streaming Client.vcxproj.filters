@@ -83,6 +83,9 @@
     <ClCompile Include="errHandler.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="myClient.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="config\ServerInfo.xml">

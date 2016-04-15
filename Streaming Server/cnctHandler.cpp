@@ -295,6 +295,8 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 
 	while (true)
 	{
+		buf.resize(BUF_SIZE);
+
 		/*
 			得到完成端口的状态
 			相关数据已经在2-4的参数里面了：第二个指示收到的字节数，第三个是客户端信息，第四个是相关接收数据
@@ -335,7 +337,8 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 				注意把SOCKET一起丢进去……要不然回发，回给谁啊？？？！
 			*/
 
-			buf = ioInfo->buffer;
+			memcpy((char *)buf.data(), ioInfo->buffer, bytesTransferred);
+			//buf = ioInfo->buffer;
 			buf = buf.substr(0, bytesTransferred);
 
 			stringSocketMsg myMsg;

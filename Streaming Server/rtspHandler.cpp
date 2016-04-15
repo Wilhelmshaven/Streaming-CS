@@ -464,7 +464,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		*/
 		string sess = sessGenerator.getSessionID();
 
-		unsigned long session = stol(sess);
+		unsigned long session = stoul(sess, nullptr, 16);
 
 		response = response + "Session: " + sess + "\r\n";
 
@@ -518,7 +518,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 			首先解析Session，判断是否合法
 			不合法返回相应错误：454,Session Not Found
 		*/
-		unsigned long session = stol(extractSession(paddingMsg));
+		unsigned long session = stoul(extractSession(paddingMsg), nullptr, 16);
 
 		if (clientList->searchClient(session))
 		{
@@ -563,7 +563,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 			终于想到一种错误情况……你不能TEARDOWN一个不存在的会话啊
 			454,Session Not Found
 		*/
-		unsigned long session = stol(extractSession(paddingMsg));
+		unsigned long session = stoul(extractSession(paddingMsg), nullptr, 16);
 
 		if (clientList->searchClient(session))
 		{
@@ -602,7 +602,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 			RTSP/1.0 200 OK
 			CSeq: 892
 		*/
-		unsigned long session = stol(extractSession(paddingMsg));
+		unsigned long session = stoul(extractSession(paddingMsg), nullptr, 16);
 
 		if (clientList->searchClient(session))
 		{
@@ -703,7 +703,7 @@ string rtspHandler::extractSession(string msg)
 {
 	string tmp = msg.substr(msg.find("Session") + 8);
 
-	tmp = tmp.substr(tmp.find(":") + 1, tmp.find("\r") - tmp.find(":") - 1);
+	tmp = tmp.substr(0, tmp.find("\r"));
 
 	return tmp;
 }

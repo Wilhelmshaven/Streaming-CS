@@ -41,6 +41,19 @@ void ctrlMsgHandler::decodeMsg(SOCKET index, string msg)
 		根据信令类型处理
 	*/
 
+	////测试代码--
+	//decodedMsg dMsg;
+
+	//dMsg.ctrlKey = 'x';
+	//dMsg.session = session;
+
+	//dMsg.index = index;
+
+	//decodedMsgQueue.push(dMsg);
+
+	//ReleaseSemaphore(ctrlMsgDecoded, 1, NULL);
+	////Test==
+
 	switch (payloadType)
 	{
 	case KB_MSG:

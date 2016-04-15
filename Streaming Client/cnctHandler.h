@@ -109,11 +109,10 @@ private:
 	//存储服务器信息的双向链表
 	list<srvInfo> myServerList;
 
-	srvInfo myServer;
-
 	//读取配置文件
 	bool readFile(string fileName);
 
+	//填充信息
 	void fillInfo(string label, string buf, srvInfo &serverInfo);
 
 	/*
@@ -121,6 +120,9 @@ private:
 	*/
 
 	SOCKET srvSocket;
+
+	//最终连接上的服务器
+	srvInfo myServer;
 
 	//地址结构（ipv4/6，IP，端口）
 	sockaddr_in srvAddr;   

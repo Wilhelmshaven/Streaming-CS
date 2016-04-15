@@ -24,7 +24,7 @@ bool clientManager::addClient(unsigned long session, SOCKET socket, unsigned int
 	client.streamingPort = port;
 	client.enableUDP = enableUDP;
 
-	if (clientList.find(session) != clientList.end())
+	if (clientList.find(session) == clientList.end())
 	{
 		clientList.insert(make_pair(session, client));
 

@@ -48,6 +48,8 @@ void middleWare::startMiddleWare()
 
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
+	cvPlayer *player = cvPlayer::getInstance();
+
 	/*
 		创建好各子线程
 	*/
@@ -68,6 +70,10 @@ void middleWare::startMiddleWare()
 	if (network->connectServer() == 0)
 	{
 		CreateThread(NULL, NULL, mw_RTSP_Net_RTSP_Thread, NULL, NULL, NULL);
+
+		player->setFrameRate(20);
+
+		player->play();
 	}
 	else
 	{

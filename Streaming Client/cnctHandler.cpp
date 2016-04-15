@@ -367,7 +367,6 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 	SOCKET socket = param->socket;
 
 	string msg;
-	msg.resize(BUF_SIZE);
 	
 	string img;
 
@@ -380,7 +379,7 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 		//TODO：这里可能有问题，待测试
 		bytesRecv = recv(socket, (char *)msg.data(), BUF_SIZE, NULL);
 		
-		if (bytesRecv > 0)
+		if (bytesRecv >= 0)
 		{
 			msg = msg.substr(0, bytesRecv);
 		}
@@ -392,8 +391,7 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 
 		//这里分析接收到的信息类型，塞入相应的队列并激活信号量
 		
-		//!!这里有错！
-		if (msg.find("RTSP"))
+		if (msg.find("RTSP") != string::npos)
 		{
 			//RTSP数据
 			cout << "Recv:" << endl << msg << endl;

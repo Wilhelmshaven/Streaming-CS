@@ -325,7 +325,7 @@ DWORD middleWare::mw_Cnct_Ctrl_Thread(LPVOID lparam)
 			continue;
 		}
 
-		//3.把信息传入控制信令处理模块
+		//3.解码信令
 		ctrl->decodeMsg(index, msg);
 	}
 
