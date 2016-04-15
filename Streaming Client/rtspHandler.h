@@ -38,6 +38,9 @@ public:
 	*/
 	int decodeMsg(string msg);     
 
+	//获取会话号
+	string getSession();
+
 	/*
 		获取rtsp处理器的相关信息
 		返回值示例："RTSP版本：1.0\r\n会话号（session）：FFFFFFFF\r\n端口号：8554\r\n传输方式：UDP\r\n"
@@ -47,10 +50,10 @@ public:
 private:
 
 	//信令序列号
-	int seqNum;   
+	unsigned int seqNum;   
 
 	//客户端端口号，必须是偶数
-	int streamingPort;
+	unsigned short streamingPort;
 
 	//是否使用UDP：真则UDP，否则TCP
 	bool enableUDP;

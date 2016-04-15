@@ -144,13 +144,13 @@ typedef struct imgMsgHead
 
 	变量：
 
-	int height/rows：图像高度/行数
+	WORD height/rows：图像高度/行数
 
-	int width/cols：图像宽度/列数
+	WORD width/cols：图像宽度/列数
 
-	int channels：图像通道数
+	WORD channels：图像通道数
 
-	int imgType：图像类型，如RGB、BGR、YUV之类（但这些值目前未实现）
+	WORD imgType：图像类型，如RGB、BGR、YUV之类（但这些值目前未实现）
 
 	//int matrixType：矩阵类型，用于区分是否是稀疏矩阵。目前都传完整数据，暂时注释未实现。
 */

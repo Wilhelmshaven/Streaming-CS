@@ -41,19 +41,6 @@ void ctrlMsgHandler::decodeMsg(SOCKET index, string msg)
 		根据信令类型处理
 	*/
 
-	////测试代码--
-	//decodedMsg dMsg;
-
-	//dMsg.ctrlKey = 'x';
-	//dMsg.session = session;
-
-	//dMsg.index = index;
-
-	//decodedMsgQueue.push(dMsg);
-
-	//ReleaseSemaphore(ctrlMsgDecoded, 1, NULL);
-	////Test==
-
 	switch (payloadType)
 	{
 	case KB_MSG:
@@ -62,11 +49,12 @@ void ctrlMsgHandler::decodeMsg(SOCKET index, string msg)
 		auto kbMsg = (keyboardMsg *)(msg.c_str() + 8);
 
 		//转换虚拟码为字符
-		unsigned char key = MapVirtualKey(ntohl(kbMsg->unicode), MAPVK_VK_TO_CHAR);
+		unsigned char virtualkey = ntohs(kbMsg->virtualCode);
+		unsigned char key = MapVirtualKey(virtualkey, MAPVK_VK_TO_CHAR);
 
 		decodedMsg dMsg;
 
-		dMsg.ctrlKey = key;
+		dMsg.ctrlKey = tolower(key);
 		dMsg.session = session;
 
 		dMsg.index = index;

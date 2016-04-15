@@ -12,9 +12,9 @@
 
 	使用：
 
-	void keyboardMsgEncode(char key)：编码键盘信令
+	void keyboardMsgEncode(char key, unsigned long session)：编码键盘信令
 
-	void mouseMsgEncode(char key)：编码鼠标信令
+	void mouseMsgEncode(char key, unsigned long session)：编码鼠标信令
 
 	bool getEncodedMsg(string &msg)：获取编码好的指令
 */
@@ -25,9 +25,9 @@ public:
 
 	static ctrlMsgHandler* getInstance();
 
-	void keyboardMsgEncode(char key);
+	void keyboardMsgEncode(char key, unsigned long session);
 
-	void mouseMsgEncode(char key);
+	void mouseMsgEncode(char key, unsigned long session);
 
 	bool getEncodedMsg(string &msg);
 

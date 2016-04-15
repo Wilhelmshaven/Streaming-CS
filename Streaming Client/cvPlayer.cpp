@@ -7,7 +7,7 @@ HANDLE cvPlayer::heStart;
 HANDLE cvPlayer::hePause;
 HANDLE cvPlayer::heShutdown;
 
-queue<char> cvPlayer::cmdQueue;
+queue<unsigned char> cvPlayer::cmdQueue;
 queue<Mat> cvPlayer::imgQueue;
 
 int cvPlayer::frameRate;
@@ -42,7 +42,7 @@ cvPlayer::cvPlayer()
 	CreateThread(NULL, NULL, playThreadFunc, NULL, NULL, NULL);
 }
 
-void cvPlayer::setFrameRate(int rate)
+void cvPlayer::setFrameRate(unsigned short rate)
 {
 	frameRate = 1000 / rate;
 }

@@ -16,12 +16,22 @@ ctrlMsgHandler::ctrlMsgHandler()
 
 }
 
-void ctrlMsgHandler::keyboardMsgEncode(char key)
+void ctrlMsgHandler::keyboardMsgEncode(char key, unsigned long session)
 {
 	string msg;
-	msg.resize(sizeof(keyboardMsg));
 
-	auto head = (keyboardMsg *)msg.c_str();
+	size_t size = sizeof(allMsgHead) + sizeof(keyboardMsg);
+
+	msg.resize(size);
+
+	auto publicHead = (allMsgHead *)msg.c_str();
+
+	publicHead->cks = 0;
+	publicHead->session = htonl(session);
+	publicHead->msgSize = htons(size);
+	publicHead->payloadType = KB_MSG;
+
+	auto head = (keyboardMsg *)(msg.c_str() + 8);
 
 	head->msgType = KB_ENG;
 
@@ -40,7 +50,7 @@ void ctrlMsgHandler::keyboardMsgEncode(char key)
 	ReleaseSemaphore(hsCtrlMsgEncoded, 1, NULL);
 }
 
-void ctrlMsgHandler::mouseMsgEncode(char key)
+void ctrlMsgHandler::mouseMsgEncode(char key, unsigned long session)
 {
 	//string msg;
 

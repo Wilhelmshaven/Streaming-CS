@@ -39,7 +39,7 @@ public:
 	static cvPlayer* getInstance();
 
 	//指定帧率，单位为帧数每秒
-	static void setFrameRate(int frameRate = 20);
+	static void setFrameRate(unsigned short frameRate = 20);
 
 	//启动播放器
 	void play();
@@ -59,7 +59,7 @@ public:
 private:
 
 	//控制指令队列
-	static queue<char> cmdQueue;
+	static queue<unsigned char> cmdQueue;
 
 	//帧队列
 	static queue<Mat> imgQueue;

@@ -107,7 +107,11 @@ DWORD middleWare::mw_Player_Ctrl_Thread(LPVOID lparam)
 
 	ctrlMsgHandler *ctrl = ctrlMsgHandler::getInstance();
 
+	rtspHandler *rtsp = rtspHandler::getInstance();
+
 	char key;
+
+	unsigned long session;
 
 	while (1)
 	{
@@ -126,7 +130,9 @@ DWORD middleWare::mw_Player_Ctrl_Thread(LPVOID lparam)
 			continue;
 		}
 
-		ctrl->keyboardMsgEncode(key);
+		session = stoul(rtsp->getSession(), nullptr, 16);
+
+		ctrl->keyboardMsgEncode(key, session);
 	}
 
 	return 0;

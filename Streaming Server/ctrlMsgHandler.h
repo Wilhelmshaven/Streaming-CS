@@ -40,9 +40,9 @@ private:
 	{
 		SOCKET index;
 
-		int session;
+		unsigned int session;
 
-		char ctrlKey;
+		unsigned char ctrlKey;
 	};
 
 	queue<decodedMsg> decodedMsgQueue;

@@ -274,3 +274,8 @@ int rtspHandler::decodeMsg(string msg)
 
 	return errCode;
 }
+
+string rtspHandler::getSession()
+{
+	return session;
+}
