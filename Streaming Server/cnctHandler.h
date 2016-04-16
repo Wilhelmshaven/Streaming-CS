@@ -15,7 +15,8 @@ typedef struct
 	WSABUF wsaBuf;   
 
 	// 对应WSABUF里的缓冲区
-	char buffer[BUF_SIZE];     
+	//char buffer[BUF_SIZE];     
+	string buffer;
 
 	// 标志这个重叠I/O操作是做什么的，例如Accept/Recv等
 	int operationType;

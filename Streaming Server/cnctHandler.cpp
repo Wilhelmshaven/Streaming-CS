@@ -181,16 +181,19 @@ void cnctHandler::sendMessage(string msg, SOCKET socket)
 {
 	//bytesSent = send(socket, msg.c_str(), msg.length(), NULL);
 
-	LPPER_IO_DATA ioInfo = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
+	//LPPER_IO_DATA ioInfo = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
+	LPPER_IO_DATA ioInfo = new PER_IO_DATA;
 
 	ZeroMemory(&(ioInfo->overlapped), sizeof(WSAOVERLAPPED));
 
 	//缓存为最大
 	ioInfo->wsaBuf.len = msg.length();
 
-	ioInfo->wsaBuf.buf = ioInfo->buffer;
+	//memcpy(ioInfo->buffer, msg.c_str(), msg.length());
+	ioInfo->buffer = msg;
 
-	memcpy(ioInfo->buffer, msg.c_str(), msg.length());
+	//ioInfo->wsaBuf.buf = ioInfo->buffer;
+	ioInfo->wsaBuf.buf = &(ioInfo->buffer[0]);
 
 	//设置模式为发送
 	ioInfo->operationType = compSend;
@@ -199,7 +202,7 @@ void cnctHandler::sendMessage(string msg, SOCKET socket)
 
 	WSASend(socket, &(ioInfo->wsaBuf), 1, NULL, ioInfo->flags, &(ioInfo->overlapped), NULL);
 
-	free(ioInfo);
+	delete(ioInfo);
 }
 
 /*
@@ -234,7 +237,9 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		acptSocket = accept(srvSocket, (SOCKADDR*)&clientAddr, &addrSize);
 
 		//保存客户端信息
-		PerHandleData = (LPPER_HANDLE_DATA)malloc(sizeof(PER_HANDLE_DATA));
+		//PerHandleData = (LPPER_HANDLE_DATA)malloc(sizeof(PER_HANDLE_DATA));
+		PerHandleData = new PER_HANDLE_DATA;
+
 		//PerHandleData->clientAddr = clientAddr;
 		PerHandleData->clientSocket = acptSocket;
 		memcpy(&(PerHandleData->clientAddr), &clientAddr, addrSize);
@@ -248,7 +253,8 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		/*
 			准备一个重叠I/O
 		*/
-		PerIoData = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
+		//PerIoData = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
+		PerIoData = new PER_IO_DATA;
 
 		//这个清零很重要！！否则会导致GetQueuedCompletionStatus不返回
 		ZeroMemory(&(PerIoData->overlapped), sizeof(WSAOVERLAPPED));   
@@ -256,7 +262,9 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		//缓存为最大
 		PerIoData->wsaBuf.len = BUF_SIZE;         
 
-		PerIoData->wsaBuf.buf = PerIoData->buffer; 
+		//PerIoData->wsaBuf.buf = PerIoData->buffer; 
+		PerIoData->buffer.resize(BUF_SIZE);
+		PerIoData->wsaBuf.buf = &(PerIoData->buffer[0]);
 
 		//设置模式为接收
 		PerIoData->operationType = compRecv;	       
@@ -268,9 +276,9 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 			&(PerIoData->overlapped), NULL);
 	}
 
-	free(param);
-	free(PerHandleData);
-	free(PerIoData);
+	delete(param);
+	delete(PerHandleData);
+	delete(PerIoData);
 
 	return 0;
 }
@@ -321,10 +329,6 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 
 				closesocket(clientSocket);
 
-				//free(handleInfo);
-
-				//free(ioInfo);
-
 				continue;
 			}
 
@@ -337,9 +341,10 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 				注意把SOCKET一起丢进去……要不然回发，回给谁啊？？？！
 			*/
 
-			memcpy((char *)buf.data(), ioInfo->buffer, bytesTransferred);
-			//buf = ioInfo->buffer;
-			buf = buf.substr(0, bytesTransferred);
+			//memcpy((char *)buf.data(), ioInfo->buffer, bytesTransferred);			
+			//buf = buf.substr(0, bytesTransferred);
+
+			buf = ioInfo->buffer.substr(0, bytesTransferred);
 
 			stringSocketMsg myMsg;
 			myMsg.msg = buf;
@@ -368,14 +373,17 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		*/
 
 		//准备一个重叠I/O
-		ioInfo = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(PER_IO_DATA));
+		//ioInfo = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(PER_IO_DATA));
+		ioInfo = new PER_IO_DATA;
 
 		ZeroMemory(&(ioInfo->overlapped), sizeof(WSAOVERLAPPED));
 
 		//缓存为最大
 		ioInfo->wsaBuf.len = BUF_SIZE;
 
-		ioInfo->wsaBuf.buf = ioInfo->buffer;
+		//ioInfo->wsaBuf.buf = ioInfo->buffer;
+		ioInfo->buffer.resize(BUF_SIZE);
+		ioInfo->wsaBuf.buf = &(ioInfo->buffer[0]);
 
 		//设置模式为接收
 		ioInfo->operationType = compRecv;
@@ -384,6 +392,9 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 
 		WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, &(ioInfo->bytesRecv), &(ioInfo->flags), &(ioInfo->overlapped), NULL);		
 	}
+
+	free(handleInfo);
+	free(ioInfo);
 
 	return 0;
 }

@@ -26,6 +26,8 @@ void rtpHandler::unpackRTP(string mediaPacket)
 {
 	/*
 		媒体包长度：4+12+8+MEDIA
+
+		RTPTCP+RTP+IMGHEAD
 	*/
 
 	myImage image;
@@ -39,9 +41,7 @@ void rtpHandler::unpackRTP(string mediaPacket)
 		首先提取出图像头
 		直接取出第17-24共8字节长度，就是了	
 	*/
-	string tmp = mediaPacket.substr(16, sizeof(imgHead));
-
-	auto head = (imgHead *)tmp.c_str();
+	auto head = (imgHead *)(mediaPacket.c_str() + 16);
 
 	image.head.channels = ntohs(head->channels);
 	image.head.imgType = ntohs(head->imgType);
@@ -51,9 +51,11 @@ void rtpHandler::unpackRTP(string mediaPacket)
 	/*
 		最后提取RTP包
 	*/
-	image.img.resize(mediaPacket.size() - 24);
+	
+	image.head = (*head);
 
-	memcpy(&image.img[0], &mediaPacket[24], mediaPacket.size() - 24);
+	image.img.resize(mediaPacket.size() - 24);
+	memcpy(&image.img[0], mediaPacket.c_str() + 24, mediaPacket.size() - 24);
 
 	imageQueue.push(image);
 
@@ -72,6 +74,8 @@ bool rtpHandler::getMedia(imgHead &head, vector<unsigned char>& img)
 	head = image.head;
 
 	img = image.img;
+
+	imageQueue.pop();
 
 	return true;
 }

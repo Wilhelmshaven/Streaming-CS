@@ -24,6 +24,8 @@
 //用于将输入转换为Windows虚拟码
 #include <WinUser.h>
 
+#include <memory>
+
 using namespace std;
 
 namespace syncManager
@@ -168,6 +170,22 @@ typedef struct imgHead
 	WORD imgType;
 
 	//int matrixType;
+};
+
+typedef struct rtpHead
+{
+	BYTE vpxcc;
+	BYTE mpt;
+	WORD seqNum;
+	DWORD timestamp;
+	DWORD ssrc;
+};
+
+typedef struct rtpOverTcpHead
+{
+	BYTE magicNumber;
+	BYTE channelNumber;
+	WORD enbeddedLength;
 };
 
 enum keyboardLayout

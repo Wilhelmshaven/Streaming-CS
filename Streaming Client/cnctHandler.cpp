@@ -366,22 +366,22 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 
 	SOCKET socket = param->socket;
 
+	string recvBuf;
+
 	string msg;
-	
-	string img;
 
 	int bytesRecv;
 
+	recvBuf.resize(6210000);
+
 	while (1)
 	{
-		msg.resize(BUF_SIZE);
-
 		//TODO：这里可能有问题，待测试
-		bytesRecv = recv(socket, (char *)msg.data(), BUF_SIZE, NULL);
+		bytesRecv = recv(socket, (char *)recvBuf.data(), 6210000, NULL);
 		
 		if (bytesRecv >= 0)
 		{
-			msg = msg.substr(0, bytesRecv);
+			msg = recvBuf.substr(0, bytesRecv);
 		}
 		else
 		{
@@ -391,6 +391,18 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 
 		//这里分析接收到的信息类型，塞入相应的队列并激活信号量
 		
+		//RTP数据
+		if (msg[0] == '$')
+		{
+			cout << "Receive image." << endl;
+
+			recvRTPQueue.push(msg);
+
+			ReleaseSemaphore(hsNewRTPMsg, 1, NULL);
+
+			continue;
+		}
+
 		if (msg.find("RTSP") != string::npos)
 		{
 			//RTSP数据
@@ -399,23 +411,8 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 			recvRTSPQueue.push(msg);
 
 			ReleaseSemaphore(hsNewRTSPMsg, 1, NULL);
-		}
 
-		//RTP数据
-		if (msg[0] == '$')
-		{
-			recvRTPQueue.push(img);
-
-			ReleaseSemaphore(hsNewRTPMsg, 1, NULL);
-
-			//New Img
-			img.clear();
-			img += msg;
-				
-		}
-		else
-		{
-			img += msg;
+			continue;
 		}
 	}
 

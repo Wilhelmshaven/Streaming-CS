@@ -74,7 +74,7 @@ void cvPlayer::destroyPlayer()
 //还原vector为Mat，并推入队列
 void cvPlayer::insertImage(imgHead head, vector<unsigned char> image)
 {
-	Mat frame = Mat(image).reshape(head.channels, head.xAxis.cols);
+	Mat frame = Mat(image).reshape(head.channels, head.yAxis.rows).clone();
 
 	frame.convertTo(frame, head.imgType);
 
@@ -122,21 +122,18 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 
 		建立出来的图像，每个像素都是（205,205,205）的灰色
 	*/
-	Mat blankImg;
+
+	Mat frame, preFrame;
 
 	int nScreenWidth, nScreenHeight;
 
 	nScreenWidth = GetSystemMetrics(SM_CXSCREEN) / 2;
 	nScreenHeight = GetSystemMetrics(SM_CYSCREEN) / 2;
 
-	blankImg.create(nScreenHeight, nScreenWidth, CV_8UC3);
+	preFrame.create(nScreenHeight, nScreenWidth, CV_8UC3);
 
 	string windowName = "Streaming Client Media Player";
-	namedWindow(windowName, CV_WINDOW_AUTOSIZE);
-
-	imshow(windowName, blankImg);
-
-	Mat frame, preFrame;
+	//namedWindow(windowName, CV_WINDOW_AUTOSIZE);
 
 	int key;
 
@@ -147,8 +144,6 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 		/*
 			读取缓存->播放，循环
 		*/
-
-		preFrame = blankImg;
 
 		while (1)
 		{
