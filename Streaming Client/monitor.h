@@ -5,6 +5,12 @@
 
 #define MAX_CLOCK 1000
 
+typedef struct clock
+{
+	SYSTEMTIME beginTime;
+	SYSTEMTIME endTime;
+};
+
 /*
 	监控器模块，检测帧率，实时反馈给服务器（服务器管不管……就不知道了）
 	毫无疑问，单例模式
@@ -20,23 +26,18 @@
 	void endTiming()：结束计时
 
 */
-
-typedef struct clock
-{
-	SYSTEMTIME beginTime;
-	SYSTEMTIME endTime;
-};
-
-
 class monitor
 {
 public:
 	static monitor* getInstance();
 
+	//设置超时阈值，单位毫秒。注意，这个值的设置大于等于2000时失效
 	void initMonitor(int timingThreshold = 200);
 
+	//开始计时
 	void beginTiming();
 
+	//结束计时
 	void endTiming();
 
 	~monitor();

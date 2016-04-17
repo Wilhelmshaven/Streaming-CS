@@ -137,6 +137,7 @@
     <ClInclude Include="imageBuffer.h" />
     <ClInclude Include="ctrlMsgHandler.h" />
     <ClInclude Include="middleWare.h" />
+    <ClInclude Include="monitor.h" />
     <ClInclude Include="myClient.h" />
     <ClInclude Include="rtpHandler.h" />
     <ClInclude Include="rtspHandler.h" />
@@ -149,6 +150,7 @@
     <ClCompile Include="middleWare.cpp" />
     <ClCompile Include="ModularTest.cpp" />
     <ClCompile Include="ctrlMsgHandler.cpp" />
+    <ClCompile Include="monitor.cpp" />
     <ClCompile Include="myClient.cpp" />
     <ClCompile Include="rtpHandler.cpp" />
     <ClCompile Include="rtspHandler.cpp" />

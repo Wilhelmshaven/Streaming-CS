@@ -10,9 +10,15 @@
 
 #include "cnctHandler.h"
 
+//错误处理
 #include "errHandler.h"
 
+//计时器模块：用于获取延迟数据而已
+#include "monitor.h"
+
 errHandler *errorHandler = errHandler::getInstance();
+
+monitor *clock = monitor::getInstance();
 
 //关闭服务器事件
 HANDLE heCloseClient;
@@ -74,6 +80,9 @@ void middleWare::startMiddleWare()
 		player->setFrameRate(20);
 
 		player->play();
+
+		//初始化计时器
+		clock->initMonitor(200);
 	}
 	else
 	{
@@ -129,6 +138,9 @@ DWORD middleWare::mw_Player_Ctrl_Thread(LPVOID lparam)
 
 			continue;
 		}
+
+		//启动计时器
+		clock->beginTiming();
 
 		session = stoul(rtsp->getSession(), nullptr, 16);
 
@@ -305,6 +317,9 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 		}
 
 		player->insertImage(head, imgData);
+
+		//结束计时器
+		clock->endTiming();
 	}
 
 	return 0;

@@ -117,7 +117,10 @@ DWORD monitor::endTimingThreadFunc(LPVOID lparam)
 	{
 		WaitForSingleObject(hSemaphoreEnd, INFINITE);
 
-		if (WaitForSingleObject(hEventShutdown, 0) == WAIT_OBJECT_0)break;
+		if (WaitForSingleObject(hEventShutdown, 0) == WAIT_OBJECT_0)
+		{
+			break;
+		}
 
 		GetSystemTime(&(myClock[endClockID].endTime));
 
