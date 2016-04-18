@@ -39,15 +39,15 @@ void monitor::endTiming()
 	ReleaseSemaphore(hSemaphoreEnd, 1, NULL);
 }
 
-monitor::~monitor()
+void monitor::shutdown()
 {
 	SetEvent(hEventShutdown);
-
 	ReleaseSemaphore(hSemaphoreBegin, 1, NULL);
 	ReleaseSemaphore(hSemaphoreEnd, 1, NULL);
+}
 
-	Sleep(50);
-
+monitor::~monitor()
+{
 	CloseHandle(hSemaphoreBegin);
 	CloseHandle(hSemaphoreEnd);
 	CloseHandle(hEventShutdown);
@@ -90,7 +90,10 @@ DWORD monitor::beginTimingThreadFunc(LPVOID lparam)
 	{
 		WaitForSingleObject(hSemaphoreBegin, INFINITE);
 
-		if (WaitForSingleObject(hEventShutdown, 0) == WAIT_OBJECT_0)break;
+		if (WaitForSingleObject(hEventShutdown, 0) == WAIT_OBJECT_0)
+		{
+			break;
+		}
 
 		QueryPerformanceCounter(&(myClock[startClockID].startTime));
 

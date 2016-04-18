@@ -30,7 +30,9 @@ using namespace std;
 
 namespace syncManager
 {
-	const char clientClose[] = "heClientClost";
+	const char ESCPressed[] = "heESCPressed";
+
+	const char clientClose[] = "heClientClose";
 
 	const char playerInput[] = "hsPlayerInput";
 	const char playerOutput[] = "hsPlayerOutput";

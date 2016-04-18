@@ -18,6 +18,8 @@ public:
 
 	void startMiddleWare();
 
+	void shutdownAll();
+
 private:
 
 	void initHandles();

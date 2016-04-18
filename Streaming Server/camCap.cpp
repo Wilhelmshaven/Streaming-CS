@@ -224,6 +224,13 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 
 					break;
 				}
+				case 'p':
+				{
+					Size s;
+					resize(cvFrame, cvFrame, s, 0.2, 0.2);
+
+					break;
+				}
 				default:
 					break;
 				}

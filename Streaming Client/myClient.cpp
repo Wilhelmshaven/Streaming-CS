@@ -9,13 +9,7 @@ namespace myHandle
 {
 	HANDLE heCloseClient;
 
-	HANDLE hsPlayerOutput;
-
-	HANDLE hsBufferOutput;
-
-	HANDLE hsRTPOutput;
-
-	HANDLE hsCtrlMsgOutput;
+	HANDLE heESCPressed;
 };
 
 using namespace myHandle;
@@ -27,13 +21,7 @@ void initServer()
 
 	heCloseClient = CreateEvent(NULL, TRUE, FALSE, syncManager::clientClose);
 
-	hsPlayerOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::playerOutput);
-
-	hsBufferOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::bufferOutput);
-
-	hsRTPOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtpOutput);
-
-	hsCtrlMsgOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgOutput);
+	heESCPressed = CreateEvent(NULL, TRUE, FALSE, syncManager::ESCPressed);
 }
 
 // 专门输出前置提示信息
@@ -59,7 +47,13 @@ int main(int argc, char *argv[])
 
 	mWare->startMiddleWare();
 
-	WaitForSingleObject(heCloseClient, INFINITE);
+	WaitForSingleObject(heESCPressed, INFINITE);
+
+	/*
+		开始清理工作
+	*/
+
+	mWare->shutdownAll();
 
 	return 0;
 }

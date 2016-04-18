@@ -18,6 +18,8 @@ HANDLE hsPlayerInput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::playerInp
 //播放器模块：获取到了操作，通知中间件取走
 HANDLE hsPlayerOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::playerOutput);
 
+HANDLE heCloseClient = CreateEvent(NULL, TRUE, FALSE, syncManager::ESCPressed);
+
 cvPlayer* cvPlayer::instance = new cvPlayer;
 
 cvPlayer * cvPlayer::getInstance()
@@ -65,10 +67,10 @@ void cvPlayer::pause()
 void cvPlayer::destroyPlayer()
 {
 	SetEvent(heShutdown);
-
 	SetEvent(hePause);
-
 	SetEvent(heStart);
+
+	SetEvent(heCloseClient);
 }
 
 //还原vector为Mat，并推入队列
@@ -164,10 +166,6 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 				{
 					preFrame = *frame;
 				}
-				else
-				{
-					//若没有新的一帧，则使用上一帧来播放画面
-				}
 			}
 
 			imshow(windowName, preFrame);
@@ -181,6 +179,17 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 			key = waitKey(frameRate);
 			if (key != -1)
 			{
+				if (key == 27)
+				{
+					//ESC键被按下，退出客户端
+					SetEvent(heCloseClient);
+					
+					break;
+				}
+
+				//控制按键频率
+				Sleep(frameRate);
+
 				//有输入，则通知中间件来取走
 				cmdQueue.push(key);
 
@@ -189,7 +198,7 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 
 		}
 
-		if (WaitForSingleObject(heShutdown, 0) == WAIT_OBJECT_0)
+		if (WaitForSingleObject(heCloseClient, 0) == WAIT_OBJECT_0)
 		{
 			break;
 		}

@@ -21,7 +21,7 @@ errHandler *errorHandler = errHandler::getInstance();
 monitor *clock = monitor::getInstance();
 
 //关闭服务器事件
-HANDLE heCloseClient;
+HANDLE heCloseClientAll;
 
 //播放器出口
 HANDLE hsCvPlayerOutput;
@@ -89,13 +89,31 @@ void middleWare::startMiddleWare()
 		//100,Can't connect to server.
 		errorHandler->handleError(100);
 
-		SetEvent(heCloseClient);
+		SetEvent(heCloseClientAll);
 	}
+}
+
+/*
+	开始清理工作
+	首先把结束事件打开，再依次打开各信号量使其能够检查结束事件
+*/
+void middleWare::shutdownAll()
+{
+	SetEvent(heCloseClientAll);
+
+	ReleaseSemaphore(hsCvPlayerOutput, 1, NULL);
+	ReleaseSemaphore(hsCtrlOutput, 1, NULL);
+	ReleaseSemaphore(hsRecvRTSPMsg, 1, NULL);
+	ReleaseSemaphore(hsRecvRTPMsg, 1, NULL);
+	ReleaseSemaphore(hsRTPUnpacked, 1, NULL);
+	ReleaseSemaphore(hsBufOutput, 1, NULL);
+
+	clock->shutdown();
 }
 
 void middleWare::initHandles()
 {
-	heCloseClient = CreateEvent(NULL, TRUE, FALSE, syncManager::clientClose);
+	heCloseClientAll = CreateEvent(NULL, TRUE, FALSE, syncManager::clientClose);
 
 	hsCvPlayerOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::playerOutput);
 
@@ -126,7 +144,7 @@ DWORD middleWare::mw_Player_Ctrl_Thread(LPVOID lparam)
 	{
 		WaitForSingleObject(hsCvPlayerOutput, INFINITE);
 
-		if (WaitForSingleObject(heCloseClient, 0) == WAIT_OBJECT_0)
+		if (WaitForSingleObject(heCloseClientAll, 0) == WAIT_OBJECT_0)
 		{
 			break;
 		}
@@ -162,7 +180,7 @@ DWORD middleWare::mw_Ctrl_Net_Thread(LPVOID lparam)
 	{
 		WaitForSingleObject(hsCtrlOutput, INFINITE);
 
-		if (WaitForSingleObject(heCloseClient, 0) == WAIT_OBJECT_0)
+		if (WaitForSingleObject(heCloseClientAll, 0) == WAIT_OBJECT_0)
 		{
 			break;
 		}
@@ -241,7 +259,7 @@ DWORD middleWare::mw_Net_RTP_Thread(LPVOID lparam)
 	{
 		WaitForSingleObject(hsRecvRTPMsg, INFINITE);
 
-		if (WaitForSingleObject(heCloseClient, 0) == WAIT_OBJECT_0)
+		if (WaitForSingleObject(heCloseClientAll, 0) == WAIT_OBJECT_0)
 		{
 			break;
 		}
@@ -275,7 +293,7 @@ DWORD middleWare::mw_RTP_Buf_Thread(LPVOID lparam)
 	{
 		WaitForSingleObject(hsRTPUnpacked, INFINITE);
 
-		if (WaitForSingleObject(heCloseClient, 0) == WAIT_OBJECT_0)
+		if (WaitForSingleObject(heCloseClientAll, 0) == WAIT_OBJECT_0)
 		{
 			break;
 		}
@@ -309,7 +327,7 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 	{
 		WaitForSingleObject(hsBufOutput, INFINITE);
 
-		if (WaitForSingleObject(heCloseClient, 0) == WAIT_OBJECT_0)
+		if (WaitForSingleObject(heCloseClientAll, 0) == WAIT_OBJECT_0)
 		{
 			break;
 		}

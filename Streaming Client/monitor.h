@@ -40,12 +40,14 @@ public:
 	//结束计时
 	void endTiming();
 
+	//关闭计时器
+	void shutdown();
+
 	~monitor();
 
 private:
 
 	static double frequency;
-
 
 	static timingClock myClock[MAX_CLOCK];
 
