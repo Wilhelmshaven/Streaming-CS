@@ -8,7 +8,7 @@ HANDLE cvPlayer::hePause;
 HANDLE cvPlayer::heShutdown;
 
 queue<unsigned char> cvPlayer::cmdQueue;
-queue<Mat> cvPlayer::imgQueue;
+queue<shared_ptr<Mat>> cvPlayer::imgQueue;
 
 int cvPlayer::frameRate;
 
@@ -72,13 +72,18 @@ void cvPlayer::destroyPlayer()
 }
 
 //还原vector为Mat，并推入队列
-void cvPlayer::insertImage(imgHead head, vector<unsigned char> image)
+void cvPlayer::insertImage(imgHead head, shared_ptr<vector<BYTE>> image)
 {
-	Mat frame = Mat(image).reshape(head.channels, head.yAxis.rows).clone();
+	Mat frame = Mat(*image).reshape(head.channels, head.yAxis.rows);
+
+	image.reset();
 
 	frame.convertTo(frame, head.imgType);
 
-	imgQueue.push(frame);
+	shared_ptr<Mat> ptr(new Mat);
+	*ptr = frame;
+
+	imgQueue.push(ptr);
 
 	ReleaseSemaphore(hsPlayerInput, 1, NULL);
 }
@@ -97,7 +102,7 @@ bool cvPlayer::getCtrlKey(char &key)
 	return true;
 }
 
-bool cvPlayer::getImage(Mat& img)
+bool cvPlayer::getImage(shared_ptr<Mat>& img)
 {
 	if (imgQueue.empty())
 	{
@@ -123,7 +128,7 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 		建立出来的图像，每个像素都是（205,205,205）的灰色
 	*/
 
-	Mat frame, preFrame;
+	Mat preFrame;
 
 	int nScreenWidth, nScreenHeight;
 
@@ -136,6 +141,8 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 	//namedWindow(windowName, CV_WINDOW_AUTOSIZE);
 
 	int key;
+
+	shared_ptr<Mat> frame;
 
 	while (1)
 	{
@@ -155,7 +162,7 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 			{
 				if (getImage(frame))
 				{
-					preFrame = frame;
+					preFrame = *frame;
 				}
 				else
 				{

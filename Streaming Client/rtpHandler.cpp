@@ -22,7 +22,7 @@ rtpHandler::rtpHandler()
 
 	基于TCP流式传输特点，一图一包
 */
-void rtpHandler::unpackRTP(string mediaPacket)
+void rtpHandler::unpackRTP(shared_ptr<vector<BYTE>> mediaPacket)
 {
 	/*
 		媒体包长度：4+12+8+MEDIA
@@ -35,13 +35,13 @@ void rtpHandler::unpackRTP(string mediaPacket)
 	/*
 		验证什么的，算了，就不做了
 		所以……RTP信息通通直接不要
-		
+
 		TODO：让他们发挥作用
 
 		首先提取出图像头
-		直接取出第17-24共8字节长度，就是了	
+		直接取出第17-24共8字节长度，就是了
 	*/
-	auto head = (imgHead *)(mediaPacket.c_str() + 16);
+	auto head = (imgHead *)(&(*mediaPacket)[16]);
 
 	image.head.channels = ntohs(head->channels);
 	image.head.imgType = ntohs(head->imgType);
@@ -51,18 +51,21 @@ void rtpHandler::unpackRTP(string mediaPacket)
 	/*
 		最后提取RTP包
 	*/
-	
+
 	image.head = (*head);
 
-	image.img.resize(mediaPacket.size() - 24);
-	memcpy(&image.img[0], mediaPacket.c_str() + 24, mediaPacket.size() - 24);
+	auto iter = (*mediaPacket).begin();
+
+	(*mediaPacket).erase(iter, iter + 24);
+
+	image.img = mediaPacket;
 
 	imageQueue.push(image);
 
 	ReleaseSemaphore(hsRTPOutput, 1, NULL);
 }
 
-bool rtpHandler::getMedia(imgHead &head, vector<unsigned char>& img)
+bool rtpHandler::getMedia(imgHead & head, shared_ptr<vector<BYTE>>& img)
 {
 	if (imageQueue.empty())
 	{

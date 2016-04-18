@@ -13,8 +13,9 @@ HANDLE hsNewRTSPMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctRTSPOu
 
 cnctHandler *cnctHandler::instance = new cnctHandler(srvSettingFile);
 
-queue<string> cnctHandler::sendMsgQueue, cnctHandler::recvRTPQueue, cnctHandler::recvRTSPQueue;
+queue<string> cnctHandler::sendMsgQueue, cnctHandler::recvRTSPQueue;
 
+queue<shared_ptr<vector<BYTE>>> cnctHandler::recvRTPQueue;
 /*
 	构造函数（传入文件名为参数，否则读取公共头中指定的文件路径）
 
@@ -271,7 +272,7 @@ void cnctHandler::sendMessage(string msg)
 	ReleaseSemaphore(hsNewSendMsg, 1, NULL);
 }
 
-bool cnctHandler::getRTPMessage(string & msg)
+bool cnctHandler::getRTPMessage(shared_ptr<vector<BYTE>>& msg)
 {
 	if (recvRTPQueue.empty())
 	{
@@ -368,15 +369,13 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 	//MAX：1920*1080*3
 	recvBuf.resize(MAX_RECV_BUF_SIZE);
 
+	shared_ptr<vector<BYTE>> ptr(new vector<BYTE>);
+
 	while (1)
 	{
 		bytesRecv = recv(socket, (char *)recvBuf.data(), MAX_RECV_BUF_SIZE, NULL);
 		
-		if (bytesRecv >= 0)
-		{
-			msg = recvBuf.substr(0, bytesRecv);
-		}
-		else
+		if (bytesRecv < 0)
 		{
 			//连接被服务器断开
 			cout << "Connection closed by server." << endl;
@@ -387,16 +386,23 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 		//这里分析接收到的信息类型，塞入相应的队列并激活信号量
 		
 		//RTP数据
-		if (msg[0] == '$')
+		if (recvBuf[0] == '$')
 		{
 			cout << "Receive image." << endl;
 
-			recvRTPQueue.push(msg);
+			(*ptr).resize(bytesRecv);
+			memcpy(&((*ptr)[0]), recvBuf.substr(0, bytesRecv).c_str(), bytesRecv);
+
+			recvRTPQueue.push(ptr);
 
 			ReleaseSemaphore(hsNewRTPMsg, 1, NULL);
 
 			continue;
 		}
+
+		//信令数据
+
+		msg = recvBuf.substr(0, bytesRecv);
 
 		if (msg.find("RTSP") != string::npos)
 		{

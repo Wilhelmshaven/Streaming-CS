@@ -20,7 +20,7 @@ using namespace cv;
 
 	使用：
 
-	static void setFrameRate(int frameRate = 20)：指定帧率，单位为帧数每秒
+	void setFrameRate(int frameRate = 20)：指定帧率，单位为帧数每秒
 
 	void play()：启动播放器
 
@@ -28,9 +28,9 @@ using namespace cv;
 
 	void destroyPlayer()：摧毁播放器，顾名思义，调用以后你再也不能重启播放器了，只能重启客户端
 
-	static void insertImage(imgHead head, vector<char> image)：入口：推入图像文件
+	void insertImage(imgHead head, shared_ptr<vector<BYTE>> image)：入口：推入图像文件
 
-	static bool getCtrlKey(char &key)：出口，弹出用户输入的按键
+	bool getCtrlKey(char &key)：出口，弹出用户输入的按键
 */
 class cvPlayer
 {
@@ -51,7 +51,7 @@ public:
 	void destroyPlayer();
 
 	//入口：推入图像文件
-	static void insertImage(imgHead head, vector<unsigned char> image);
+	static void insertImage(imgHead head, shared_ptr<vector<BYTE>> image);
 
 	//出口，弹出用户输入的按键
 	static bool getCtrlKey(char &key);
@@ -62,13 +62,13 @@ private:
 	static queue<unsigned char> cmdQueue;
 
 	//帧队列
-	static queue<Mat> imgQueue;
+	static queue<shared_ptr<Mat>> imgQueue;
 
 	//帧率（这里的意义是两帧之间间隔的毫秒数，即帧率的倒数）
 	static int frameRate;
 
-	static bool getImage(Mat &img);
-
+	//从队列里获取帧
+	static bool getImage(shared_ptr<Mat> &img);
 	/*
 		线程相关：播放器肯定是要线程的嘛……
 	*/

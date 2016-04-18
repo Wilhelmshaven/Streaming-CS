@@ -7,7 +7,7 @@ monitor* monitor::instance = new monitor;
 double monitor::frequency;
 
 //定义一下
-clock monitor::myClock[MAX_CLOCK];
+timingClock monitor::myClock[MAX_CLOCK];
 
 int monitor::startClockID;
 int monitor::endClockID;

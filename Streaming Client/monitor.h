@@ -5,7 +5,7 @@
 
 #define MAX_CLOCK 1000
 
-typedef struct clock
+typedef struct timingClock
 {
 	LARGE_INTEGER startTime;
 	LARGE_INTEGER endTime;
@@ -47,7 +47,7 @@ private:
 	static double frequency;
 
 
-	static clock myClock[MAX_CLOCK];
+	static timingClock myClock[MAX_CLOCK];
 
 	static int startClockID;
 	static int endClockID;

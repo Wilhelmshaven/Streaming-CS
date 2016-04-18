@@ -235,6 +235,8 @@ DWORD middleWare::mw_Net_RTP_Thread(LPVOID lparam)
 
 	string msg;
 
+	shared_ptr<vector<BYTE>> ptr;
+
 	while (1)
 	{
 		WaitForSingleObject(hsRecvRTPMsg, INFINITE);
@@ -244,7 +246,7 @@ DWORD middleWare::mw_Net_RTP_Thread(LPVOID lparam)
 			break;
 		}
 
-		if (!network->getRTPMessage(msg))
+		if (!network->getRTPMessage(ptr))
 		{
 			//104,Can't get RTP message from network handler.
 			errorHandler->handleError(104);
@@ -252,7 +254,7 @@ DWORD middleWare::mw_Net_RTP_Thread(LPVOID lparam)
 			continue;
 		}
 
-		rtp->unpackRTP(msg);
+		rtp->unpackRTP(ptr);
 	}
 
 	return 0;
@@ -267,6 +269,8 @@ DWORD middleWare::mw_RTP_Buf_Thread(LPVOID lparam)
 	imgHead head;
 	vector<unsigned char> imgData;
 
+	shared_ptr<vector<BYTE>> ptr;
+
 	while (1)
 	{
 		WaitForSingleObject(hsRTPUnpacked, INFINITE);
@@ -276,7 +280,7 @@ DWORD middleWare::mw_RTP_Buf_Thread(LPVOID lparam)
 			break;
 		}
 
-		if (!rtp->getMedia(head, imgData))
+		if (!rtp->getMedia(head, ptr))
 		{
 			//105,Can't get media from RTP module.
 			errorHandler->handleError(105);
@@ -284,7 +288,7 @@ DWORD middleWare::mw_RTP_Buf_Thread(LPVOID lparam)
 			continue;
 		}
 
-		buffer->pushBuffer(head, imgData);
+		buffer->pushBuffer(head, ptr);
 	}
 
 	return 0;
@@ -299,6 +303,8 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 	imgHead head;
 	vector<unsigned char> imgData;
 
+	shared_ptr<vector<BYTE>> ptr;
+
 	while (1)
 	{
 		WaitForSingleObject(hsBufOutput, INFINITE);
@@ -308,7 +314,7 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 			break;
 		}
 
-		if (!buffer->popBuffer(head, imgData))
+		if (!buffer->popBuffer(head, ptr))
 		{
 			//106,Can't get media from buffer.
 			errorHandler->handleError(106);
@@ -316,7 +322,7 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 			continue;
 		}
 
-		player->insertImage(head, imgData);
+		player->insertImage(head, ptr);
 
 		//结束计时器
 		clock->endTiming();
@@ -360,6 +366,7 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 //	return 0;
 //}
 
+//小封装
 void middleWare::sendRTSPMsg(int method)
 {
 	cnctHandler *network = cnctHandler::getInstance();
@@ -373,6 +380,7 @@ void middleWare::sendRTSPMsg(int method)
 	network->sendMessage(msg);
 }
 
+//小封装
 void middleWare::recvRTSPMsg(int & errCode)
 {
 	cnctHandler *network = cnctHandler::getInstance();

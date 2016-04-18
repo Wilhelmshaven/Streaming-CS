@@ -60,7 +60,7 @@ typedef struct threadParam
 
 	void sendMessage(string msg)：发送给定的数据
 
-	bool getRTPMessage(string &msg)：取出收到的图像数据
+	bool getRTPMessage(shared_ptr<vector<BYTE>> &msg)：取出收到的图像数据
 
 	bool getRTSPMessage(string &msg)：取出收到的信令数据
 */
@@ -82,7 +82,7 @@ public:
 	static void sendMessage(string msg);
 
 	//取出收到的图像数据
-	static bool getRTPMessage(string &msg);
+	static bool getRTPMessage(shared_ptr<vector<BYTE>> &msg);
 
 	//取出收到的信令数据
 	static bool getRTSPMessage(string &msg);
@@ -94,7 +94,7 @@ private:
 	//消息队列
 	static queue<string> sendMsgQueue;
 
-	static queue<string> recvRTPQueue;
+	static queue<shared_ptr<vector<BYTE>>> recvRTPQueue;
 
 	static queue<string> recvRTSPQueue;
 

@@ -17,7 +17,7 @@ imgBuffer::imgBuffer()
 
 }
 
-void imgBuffer::pushBuffer(imgHead head, vector<unsigned char> img)
+void imgBuffer::pushBuffer(imgHead head, shared_ptr<vector<BYTE>> img)
 {
 	myImage image;
 
@@ -29,13 +29,13 @@ void imgBuffer::pushBuffer(imgHead head, vector<unsigned char> img)
 	ReleaseSemaphore(hsBufferOutput, 1, NULL);
 }
 
-bool imgBuffer::popBuffer(imgHead &head, vector<unsigned char> &img)
+bool imgBuffer::popBuffer(imgHead & head, shared_ptr<vector<BYTE>>& img)
 {
 	if (imageQueue.empty())
 	{
 		return false;
 	}
-	
+
 	myImage image = imageQueue.front();
 
 	imageQueue.pop();

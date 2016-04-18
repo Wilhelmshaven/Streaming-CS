@@ -32,9 +32,9 @@
 
 	使用：
 
-	void unpackRTP(string mediaPacket)：送入待解码的媒体数据包
+	void unpackRTP(shared_ptr<vector<BYTE>> mediaPacket)：送入待解码的媒体数据包
 
-	bool getMedia(imgHead &head, vector<unsigned char> &img)：传出媒体数据
+	bool getMedia(imgHead &head, shared_ptr<vector<BYTE>> &img)：传出媒体数据
 
 */
 class rtpHandler
@@ -43,16 +43,16 @@ public:
 
 	static rtpHandler* getInstance();
 
-	void unpackRTP(string mediaPacket);
+	void unpackRTP(shared_ptr<vector<BYTE>> mediaPacket);
 
-	bool getMedia(imgHead &head, vector<unsigned char> &img);
+	bool getMedia(imgHead &head, shared_ptr<vector<BYTE>> &img);
 
 private:
 
 	typedef struct myImage
 	{
 		imgHead head;
-		vector<unsigned char> img;
+		shared_ptr<vector<BYTE>> img;
 	};
 
 	queue<myImage> imageQueue;
