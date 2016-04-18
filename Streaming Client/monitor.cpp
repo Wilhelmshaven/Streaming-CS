@@ -4,6 +4,8 @@
 
 monitor* monitor::instance = new monitor;
 
+double monitor::frequency;
+
 //定义一下
 clock monitor::myClock[MAX_CLOCK];
 
@@ -52,40 +54,31 @@ monitor::~monitor()
 }
 
 /*
-	这里只判断了毫秒差
+	计算时间差，判断是否超时
+	这里使用了比较高精度的计时方法，单位毫秒
 
 	TODO：
 	以及，还有一个严重问题，如果有去无回呢？那停表的时候就肯定会停乱了
 */
 bool monitor::isTimeout(int clockID)
 {
-	int diff = 0;
-	int flag = false;
+	double start, end, diff;
 
-	clock tmp = myClock[clockID];
+	start = (double)myClock[clockID].startTime.QuadPart;
+	end = (double)myClock[clockID].endTime.QuadPart;
 
-	//秒差绝对值大于1的话，那不用玩了，大大的超了
-	int s = tmp.endTime.wSecond - tmp.beginTime.wSecond;
-	if (s > 1 || s < -1)
-	{
-		cout << " Timeout!" << endl;
-		return flag;
-	}
-
-	diff += tmp.endTime.wMilliseconds - tmp.beginTime.wMilliseconds;
-	if (diff < 0)diff += 1000;
+	diff = (end - start) * 1000 / frequency;
 
 	if (diff > timingThreshold)
 	{
-		flag = true;
 		cout << " Timeout!" << endl;
-	}
-	else
-	{
-		cout << "Delay: " << diff << "ms" << endl;
+
+		return false;
 	}
 
-	return flag;
+	cout << "Delay: " << diff << "ms" << endl;
+
+	return true;
 }
 
 /*
@@ -99,7 +92,7 @@ DWORD monitor::beginTimingThreadFunc(LPVOID lparam)
 
 		if (WaitForSingleObject(hEventShutdown, 0) == WAIT_OBJECT_0)break;
 
-		GetSystemTime(&(myClock[startClockID].beginTime));
+		QueryPerformanceCounter(&(myClock[startClockID].startTime));
 
 		++startClockID;
 		if (startClockID == MAX_CLOCK)startClockID = 0;;
@@ -122,7 +115,7 @@ DWORD monitor::endTimingThreadFunc(LPVOID lparam)
 			break;
 		}
 
-		GetSystemTime(&(myClock[endClockID].endTime));
+		QueryPerformanceCounter(&(myClock[endClockID].endTime));
 
 		if (isTimeout(endClockID))
 		{
@@ -150,4 +143,8 @@ monitor::monitor()
 	endClockID = 0;
 
 	timingThreshold = 200;
+
+	LARGE_INTEGER freq;
+	QueryPerformanceFrequency(&freq);
+	frequency = (double)freq.QuadPart;
 }

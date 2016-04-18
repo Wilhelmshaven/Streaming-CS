@@ -7,8 +7,8 @@
 
 typedef struct clock
 {
-	SYSTEMTIME beginTime;
-	SYSTEMTIME endTime;
+	LARGE_INTEGER startTime;
+	LARGE_INTEGER endTime;
 };
 
 /*
@@ -43,6 +43,9 @@ public:
 	~monitor();
 
 private:
+
+	static double frequency;
+
 
 	static clock myClock[MAX_CLOCK];
 

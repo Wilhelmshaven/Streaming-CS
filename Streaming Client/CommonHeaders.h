@@ -73,6 +73,9 @@ enum rtspMethod
 enum CustomDefine
 {
 	BUF_SIZE = 8192,
+
+	//MAX£º1920*1080*3
+	MAX_RECV_BUF_SIZE = 6210000,
 };
 
 /*

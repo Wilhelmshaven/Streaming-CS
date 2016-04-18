@@ -33,11 +33,7 @@ cnctHandler::cnctHandler(string fileName)
 	srvAddr.sin_port = htons(80);
 
 	//读入配置文件
-	if (readFile(fileName))
-	{
-		cout << "读取配置文件成功！" << endl;
-	}
-	else
+	if (!readFile(fileName))
 	{
 		cout << "读取配置文件失败！" << endl;
 	}
@@ -239,9 +235,6 @@ int cnctHandler::connectServer()
 
 			srvSocket = socketTmp;
 
-			//显示服务器信息
-			//showSrvInfo();
-
 			//启动收发线程
 			startThread();
 
@@ -372,12 +365,12 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 
 	int bytesRecv;
 
-	recvBuf.resize(6210000);
+	//MAX：1920*1080*3
+	recvBuf.resize(MAX_RECV_BUF_SIZE);
 
 	while (1)
 	{
-		//TODO：这里可能有问题，待测试
-		bytesRecv = recv(socket, (char *)recvBuf.data(), 6210000, NULL);
+		bytesRecv = recv(socket, (char *)recvBuf.data(), MAX_RECV_BUF_SIZE, NULL);
 		
 		if (bytesRecv >= 0)
 		{
@@ -385,8 +378,10 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 		}
 		else
 		{
-			cout << WSAGetLastError() << endl;
-			continue;
+			//连接被服务器断开
+			cout << "Connection closed by server." << endl;
+
+			break;
 		}
 
 		//这里分析接收到的信息类型，塞入相应的队列并激活信号量
