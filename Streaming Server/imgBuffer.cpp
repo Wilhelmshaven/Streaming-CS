@@ -17,7 +17,7 @@ imgBuffer::imgBuffer()
 
 }
 
-void imgBuffer::pushBuffer(SOCKET index, imgHead head, vector<unsigned char> img)
+void imgBuffer::pushBuffer(SOCKET index, imgHead head, shared_ptr<vector<BYTE>> img)
 {
 	myImg image;
 
@@ -31,7 +31,7 @@ void imgBuffer::pushBuffer(SOCKET index, imgHead head, vector<unsigned char> img
 	ReleaseSemaphore(hsImageReady, 1, NULL);
 }
 
-bool imgBuffer::popBuffer(SOCKET &index, imgHead & head, vector<unsigned char> & img)
+bool imgBuffer::popBuffer(SOCKET &index, imgHead & head, shared_ptr<vector<BYTE>> & img)
 {
 	if (isBufEmpty())
 	{

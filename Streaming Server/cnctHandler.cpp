@@ -179,9 +179,6 @@ bool cnctHandler::getCtrlMsg(string &msg, SOCKET &socket)
 
 void cnctHandler::sendMessage(string msg, SOCKET socket)
 {
-	//bytesSent = send(socket, msg.c_str(), msg.length(), NULL);
-
-	//LPPER_IO_DATA ioInfo = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
 	LPPER_IO_DATA ioInfo = new PER_IO_DATA;
 
 	ZeroMemory(&(ioInfo->overlapped), sizeof(WSAOVERLAPPED));
@@ -189,10 +186,8 @@ void cnctHandler::sendMessage(string msg, SOCKET socket)
 	//缓存为最大
 	ioInfo->wsaBuf.len = msg.length();
 
-	//memcpy(ioInfo->buffer, msg.c_str(), msg.length());
 	ioInfo->buffer = msg;
 
-	//ioInfo->wsaBuf.buf = ioInfo->buffer;
 	ioInfo->wsaBuf.buf = &(ioInfo->buffer[0]);
 
 	//设置模式为发送

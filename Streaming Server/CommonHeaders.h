@@ -23,6 +23,8 @@
 
 #include <WinUser.h>
 
+#include <memory>
+
 using namespace std;
 
 namespace syncManager

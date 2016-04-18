@@ -109,7 +109,7 @@ DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 	SOCKET index;
 
 	imgHead head;
-	vector<unsigned char> imgData;
+	shared_ptr<vector<BYTE>> imgData(new vector<BYTE>);
 
 	while (1)
 	{
@@ -142,7 +142,7 @@ DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 			continue;
 		}
 
-		imgData = frame.reshape(1, 1);
+		*imgData = frame.reshape(1, 1);
 
 		head.channels = frame.channels();
 		head.cols = frame.cols;
@@ -169,7 +169,7 @@ DWORD middleWare::mw_Buf_RTP_Thread(LPVOID lparam)
 	SOCKET index;
 
 	imgHead head;
-	vector<unsigned char> imgData;
+	shared_ptr<vector<BYTE>> imgData;
 
 	while (1)
 	{
@@ -219,7 +219,7 @@ DWORD middleWare::mw_RTP_Cnct_Thread(LPVOID lparam)
 
 	SOCKET index;
 
-	string packet;
+	shared_ptr<string> packet(new string);
 
 	while (1)
 	{
@@ -241,7 +241,7 @@ DWORD middleWare::mw_RTP_Cnct_Thread(LPVOID lparam)
 		}
 
 		//3.将数据包送入网络模块发送
-		network->sendMessage(packet, index);
+		network->sendMessage((*packet), index);
 	}
 
 	return 0;

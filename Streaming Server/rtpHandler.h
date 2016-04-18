@@ -9,9 +9,9 @@
 
 	Usage：
 
-	bool pack(SOCKET socket, imgHead head, vector<unsigned char> img)：传入套接字与图像数据编码RTP包，如果连接没有建立或者已经被Teardown，那么直接返回否
+	bool pack(SOCKET socket, imgHead head, shared_ptr<vector<BYTE>> img)：传入套接字与图像数据编码RTP包，如果连接没有建立或者已经被Teardown，那么直接返回否
 
-	bool getPacket(SOCKET &index, string &msg)：取出RTP包
+	bool getPacket(SOCKET &index, shared_ptr<string> &msg)：取出RTP包
 
 */
 class rtpHandler
@@ -21,17 +21,17 @@ public:
 	static rtpHandler* getInstance();
 
 	//传入套接字与图像数据编码RTP包，如果连接没有建立或者已经被Teardown，那么直接返回否
-	bool pack(SOCKET socket, imgHead head, vector<unsigned char> img);
+	bool pack(SOCKET socket, imgHead head, shared_ptr<vector<BYTE>> img);
 
 	//取出RTP包
-	bool getPacket(SOCKET &index, string &msg);
+	bool getPacket(SOCKET &index, shared_ptr<string> &msg);
 
 private:
 
 	typedef struct myPacket
 	{
 		SOCKET index;
-		string packet;
+		shared_ptr<string> packet;
 	};
 
 	//为了非阻塞

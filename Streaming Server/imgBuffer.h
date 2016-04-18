@@ -12,9 +12,9 @@
 
 	使用：
 
-	void pushBuffer(SOCKET index, imgHead head, vector<unsigned char> img)：推入vector<unsigned char>类型到缓存中
+	void pushBuffer(SOCKET index, imgHead head, shared_ptr<vector<BYTE>> img)：推入缓存
 
-	bool popBuffer(SOCKET &index, imgHead &head, vector<unsigned char> &img)：读取缓存头，传入imgHead指针与vector<unsigned char>指针供写入，返回是否成功
+	bool popBuffer(SOCKET &index, imgHead &head, shared_ptr<vector<BYTE>> &img)：读取缓存头，返回是否成功
 
 	bool isBufEmpty()：返回缓存是否为空
 
@@ -26,9 +26,9 @@ public:
 
 	static imgBuffer* getInstance();
 
-	void pushBuffer(SOCKET index, imgHead head, vector<unsigned char> img);
+	void pushBuffer(SOCKET index, imgHead head, shared_ptr<vector<BYTE>> img);
 
-	bool popBuffer(SOCKET &index, imgHead &head, vector<unsigned char> &img);
+	bool popBuffer(SOCKET &index, imgHead &head, shared_ptr<vector<BYTE>> &img);
 
 	bool isBufEmpty();
 
@@ -40,7 +40,7 @@ private:
 	{
 		SOCKET index;
 		imgHead head;
-		vector<unsigned char> img;
+		shared_ptr<vector<BYTE>> img;
 	};
 
 	queue<myImg> imgQueue;

@@ -25,7 +25,7 @@ rtpHandler *rtpHandler::getInstance()
 
 	如果连接没有建立，或者已经被Teardown，那么直接返回否
 */
-bool rtpHandler::pack(SOCKET socket, imgHead head, vector<unsigned char> img)
+bool rtpHandler::pack(SOCKET socket, imgHead head, shared_ptr<vector<BYTE>> img)
 {
 	/*
 		!!
@@ -38,22 +38,23 @@ bool rtpHandler::pack(SOCKET socket, imgHead head, vector<unsigned char> img)
 	}
 
 	size_t headSize = sizeof(rtpOverTcpHead) + sizeof(rtpHead) + sizeof(imgHead);
+	size_t imageSize = (*img).size();
 
-	string rtpPacket;
+	shared_ptr<string> rtpPacket(new string);
 
-	rtpPacket.resize(headSize + img.size());
+	(*rtpPacket).resize(headSize + imageSize);
 
 	/*
 		编码：首先把vector<unsigned char>转为string，然后再在前面加上各种头部
 	*/
 
-	encodeRTPTCPHead(rtpPacket, headSize + img.size());
+	encodeRTPTCPHead((*rtpPacket), headSize + imageSize);
 
-	encodeRTPHead(rtpPacket, socket);
+	encodeRTPHead((*rtpPacket), socket);
 
-	encodeImgHead(rtpPacket, head);
+	encodeImgHead((*rtpPacket), head);
 
-	memcpy(&rtpPacket[headSize], &img[0], img.size());
+	memcpy(&(((*rtpPacket))[headSize]), &((*img)[0]), imageSize);
 
 	myPacket packet;
 	packet.index = socket;
@@ -66,7 +67,7 @@ bool rtpHandler::pack(SOCKET socket, imgHead head, vector<unsigned char> img)
 	return true;
 }
 
-bool rtpHandler::getPacket(SOCKET &index, string & msg)
+bool rtpHandler::getPacket(SOCKET &index, shared_ptr<string> & msg)
 {
 	if (packetQueue.empty())
 	{
