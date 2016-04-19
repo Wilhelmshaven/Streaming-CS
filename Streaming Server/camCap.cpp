@@ -194,6 +194,7 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 			if (WaitForSingleObject(hsRenderImage, 0) == WAIT_OBJECT_0)
 			{	
 				char key = 0;
+
 				if (!cmdQueue.empty())
 				{
 					cmdStruct = cmdQueue.front();

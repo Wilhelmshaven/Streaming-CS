@@ -73,10 +73,12 @@ void cvPlayer::destroyPlayer()
 	SetEvent(heCloseClient);
 }
 
+
 //还原vector为Mat，并推入队列
 void cvPlayer::insertImage(imgHead head, shared_ptr<vector<BYTE>> image)
 {
-	Mat frame = Mat(*image).reshape(head.channels, head.yAxis.rows);
+	//如果vector的大小不对，会爆出CV内存错误
+	Mat frame = Mat(*image).reshape(head.channels, head.yAxis.rows).clone();
 
 	image.reset();
 
@@ -90,7 +92,7 @@ void cvPlayer::insertImage(imgHead head, shared_ptr<vector<BYTE>> image)
 	ReleaseSemaphore(hsPlayerInput, 1, NULL);
 }
 
-bool cvPlayer::getCtrlKey(char &key)
+bool cvPlayer::getCtrlKey(unsigned char &key)
 {
 	if (cmdQueue.empty())
 	{
@@ -177,6 +179,7 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 
 			//控制帧率，并等待可能的输入
 			key = waitKey(frameRate);
+
 			if (key != -1)
 			{
 				if (key == 27)

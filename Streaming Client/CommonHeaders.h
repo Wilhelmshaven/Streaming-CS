@@ -46,6 +46,8 @@ namespace syncManager
 	const char cnctInput[] = "hsCnctInput";
 	const char cnctRTSPOutput[] = "hsCnctRTSPOutput";
 	const char cnctRTPOutput[] = "hsCnctRTPOutput";
+
+	const char timeOut[] = "hsTimeOut";
 };
 
 //配置文件
@@ -157,18 +159,21 @@ typedef struct imgMsgCombine
 */
 typedef struct imgHead
 {
+	//Y轴，高度/行数
 	union Y_Axis
 	{
 		WORD height;
 		WORD rows;
 	}yAxis;
 
+	//X轴，宽度/列数
 	union X_Axis
 	{
 		WORD width;
 		WORD cols;
 	}xAxis;
 
+	//通道数
 	WORD channels;
 
 	//图像类型，如RGB、BGR、YUV之类（但这些值目前未实现）

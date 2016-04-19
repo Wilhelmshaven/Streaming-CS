@@ -4,6 +4,9 @@
 
 monitor* monitor::instance = new monitor;
 
+//监控模块：标记是否有超时的情况
+HANDLE hsTimeOut = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::timeOut);
+
 double monitor::frequency;
 
 //定义一下
@@ -147,7 +150,11 @@ monitor::monitor()
 
 	timingThreshold = 200;
 
+	//获取系统时钟频率
+
 	LARGE_INTEGER freq;
+
 	QueryPerformanceFrequency(&freq);
+
 	frequency = (double)freq.QuadPart;
 }

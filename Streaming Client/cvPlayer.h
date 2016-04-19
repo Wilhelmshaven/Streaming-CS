@@ -30,7 +30,7 @@ using namespace cv;
 
 	void insertImage(imgHead head, shared_ptr<vector<BYTE>> image)：入口：推入图像文件
 
-	bool getCtrlKey(char &key)：出口，弹出用户输入的按键
+	bool getCtrlKey(unsigned char &key)：出口，弹出用户输入的按键
 */
 class cvPlayer
 {
@@ -54,7 +54,7 @@ public:
 	static void insertImage(imgHead head, shared_ptr<vector<BYTE>> image);
 
 	//出口，弹出用户输入的按键
-	static bool getCtrlKey(char &key);
+	static bool getCtrlKey(unsigned char &key);
 
 private:
 

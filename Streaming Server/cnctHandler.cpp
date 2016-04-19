@@ -232,11 +232,10 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		acptSocket = accept(srvSocket, (SOCKADDR*)&clientAddr, &addrSize);
 
 		//保存客户端信息
-		//PerHandleData = (LPPER_HANDLE_DATA)malloc(sizeof(PER_HANDLE_DATA));
 		PerHandleData = new PER_HANDLE_DATA;
 
-		//PerHandleData->clientAddr = clientAddr;
 		PerHandleData->clientSocket = acptSocket;
+
 		memcpy(&(PerHandleData->clientAddr), &clientAddr, addrSize);
 
 		inet_ntop(AF_INET, &(clientAddr.sin_addr), incomingClient, 17);
@@ -248,7 +247,6 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		/*
 			准备一个重叠I/O
 		*/
-		//PerIoData = (LPPER_IO_DATA)malloc(sizeof(PER_IO_DATA));
 		PerIoData = new PER_IO_DATA;
 
 		//这个清零很重要！！否则会导致GetQueuedCompletionStatus不返回
@@ -257,7 +255,6 @@ DWORD WINAPI cnctHandler::acptThread(LPVOID lparam)
 		//缓存为最大
 		PerIoData->wsaBuf.len = BUF_SIZE;         
 
-		//PerIoData->wsaBuf.buf = PerIoData->buffer; 
 		PerIoData->buffer.resize(BUF_SIZE);
 		PerIoData->wsaBuf.buf = &(PerIoData->buffer[0]);
 
@@ -328,16 +325,13 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 			}
 
 			//显示消息来源
-			cout << "Recv message from " << incomingIP << endl;		
+			cout << "Recv message from " << incomingIP << endl;
 
 			/*
 				处理信令
 				首先解析是流媒体还是控制，然后塞到对应队列中，最后激活信号量
 				注意把SOCKET一起丢进去……要不然回发，回给谁啊？？？！
 			*/
-
-			//memcpy((char *)buf.data(), ioInfo->buffer, bytesTransferred);			
-			//buf = buf.substr(0, bytesTransferred);
 
 			buf = ioInfo->buffer.substr(0, bytesTransferred);
 
@@ -355,6 +349,7 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 			}
 			else
 			{
+
 				cout << "Recv CTRL Msg" << endl;
 
 				ctrlQueue.push(myMsg);
@@ -367,8 +362,7 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 			准备下一个连接，投递一个WSARecv
 		*/
 
-		//准备一个重叠I/O
-		//ioInfo = (LPPER_IO_DATA)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(PER_IO_DATA));
+		//准备一个重叠I/O;
 		ioInfo = new PER_IO_DATA;
 
 		ZeroMemory(&(ioInfo->overlapped), sizeof(WSAOVERLAPPED));
@@ -376,7 +370,6 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		//缓存为最大
 		ioInfo->wsaBuf.len = BUF_SIZE;
 
-		//ioInfo->wsaBuf.buf = ioInfo->buffer;
 		ioInfo->buffer.resize(BUF_SIZE);
 		ioInfo->wsaBuf.buf = &(ioInfo->buffer[0]);
 

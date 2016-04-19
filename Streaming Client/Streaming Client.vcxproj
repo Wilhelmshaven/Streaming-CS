@@ -139,6 +139,7 @@
     <ClInclude Include="errHandler.h" />
     <ClInclude Include="imageBuffer.h" />
     <ClInclude Include="ctrlMsgHandler.h" />
+    <ClInclude Include="logger.h" />
     <ClInclude Include="middleWare.h" />
     <ClInclude Include="monitor.h" />
     <ClInclude Include="myClient.h" />
@@ -150,6 +151,7 @@
     <ClCompile Include="cvPlayer.cpp" />
     <ClCompile Include="errHandler.cpp" />
     <ClCompile Include="imageBuffer.cpp" />
+    <ClCompile Include="logger.cpp" />
     <ClCompile Include="middleWare.cpp" />
     <ClCompile Include="ModularTest.cpp" />
     <ClCompile Include="ctrlMsgHandler.cpp" />

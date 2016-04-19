@@ -388,7 +388,9 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 		//RTPÊý¾Ý
 		if (recvBuf[0] == '$')
 		{
+#ifdef DEBUG
 			cout << "Receive image." << endl;
+#endif // DEBUG
 
 			(*ptr).resize(bytesRecv);
 			memcpy(&((*ptr)[0]), recvBuf.substr(0, bytesRecv).c_str(), bytesRecv);
@@ -396,7 +398,7 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 			recvRTPQueue.push(ptr);
 
 			ReleaseSemaphore(hsNewRTPMsg, 1, NULL);
-
+			 
 			continue;
 		}
 

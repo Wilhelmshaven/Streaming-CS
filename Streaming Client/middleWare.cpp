@@ -136,7 +136,7 @@ DWORD middleWare::mw_Player_Ctrl_Thread(LPVOID lparam)
 
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
-	char key;
+	unsigned char key;
 
 	unsigned long session;
 
@@ -160,6 +160,7 @@ DWORD middleWare::mw_Player_Ctrl_Thread(LPVOID lparam)
 		//启动计时器
 		clock->beginTiming();
 
+		//这里会出错：如果没有会话号 
 		session = stoul(rtsp->getSession(), nullptr, 16);
 
 		ctrl->keyboardMsgEncode(key, session);
@@ -330,7 +331,7 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 		if (WaitForSingleObject(heCloseClientAll, 0) == WAIT_OBJECT_0)
 		{
 			break;
-		}
+ 		}
 
 		if (!buffer->popBuffer(head, ptr))
 		{
@@ -344,6 +345,7 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 
 		//结束计时器
 		clock->endTiming();
+		clock->beginTiming();
 	}
 
 	return 0;

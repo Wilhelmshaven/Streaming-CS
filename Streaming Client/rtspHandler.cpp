@@ -257,8 +257,7 @@ int rtspHandler::decodeMsg(string msg)
 	*/
 	buf = msg.substr(msg.find("CSeq: "));
 	buf = buf.substr(6, buf.find("\r") - 6);
-	//sequence = atoi(buf.c_str());
-	sequence = stoi(buf, nullptr, 10);
+	sequence = stoul(buf, nullptr, 16);
 
 	//提取会话号（如果处理器的会话号为空则写入，否则校验）
 	if (session.empty())
