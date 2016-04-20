@@ -35,7 +35,7 @@ private:
 	};
 
 	//为了非阻塞
-	queue<myPacket> packetQueue;
+	queue<shared_ptr<myPacket>> packetQueue;
 
 	/*
 		rtp包中的包序列号管理器

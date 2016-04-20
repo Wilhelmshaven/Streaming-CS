@@ -45,7 +45,7 @@ bool rtpHandler::pack(SOCKET socket, imgHead head, shared_ptr<vector<BYTE>> img)
 	(*rtpPacket).resize(headSize + imageSize);
 
 	/*
-		编码：首先把vector<unsigned char>转为string，然后再在前面加上各种头部
+		编码：首先把vector<BYTE>转为string，然后再在前面加上各种头部
 	*/
 
 	encodeRTPTCPHead((*rtpPacket), headSize + imageSize);
@@ -56,9 +56,9 @@ bool rtpHandler::pack(SOCKET socket, imgHead head, shared_ptr<vector<BYTE>> img)
 
 	memcpy(&(((*rtpPacket))[headSize]), &((*img)[0]), imageSize);
 
-	myPacket packet;
-	packet.index = socket;
-	packet.packet = rtpPacket;
+	shared_ptr<myPacket> packet(new myPacket);
+	(*packet).index = socket;
+	(*packet).packet = rtpPacket;
 
 	packetQueue.push(packet);
 
@@ -74,12 +74,12 @@ bool rtpHandler::getPacket(SOCKET &index, shared_ptr<string> & msg)
 		return false;
 	}
 
-	myPacket packet = packetQueue.front();
+	shared_ptr<myPacket> packet = packetQueue.front();
 
 	packetQueue.pop();
 
-	index = packet.index;
-	msg = packet.packet;
+	index = (*packet).index;
+	msg = (*packet).packet;
 
 	return true;
 }
@@ -131,7 +131,9 @@ void rtpHandler::encodeRTPTCPHead(string & msg, size_t size)
 
 	aHead->magicNumber = '$';
 
-	aHead->enbeddedLength = size;
+	aHead->enbeddedLength = htonl(size);
+
+	aHead->cks = 0;
 
 	//信道，目前默认为1
 	aHead->channelNumber = 1;
@@ -161,13 +163,13 @@ void rtpHandler::encodeImgHead(string & msg, imgHead head)
 {
 	auto iHead = (imgHead *)(msg.c_str() + sizeof(rtpOverTcpHead) + sizeof(rtpHead));
 
-	iHead->channels = head.channels;
+	iHead->channels = htons(head.channels);
 
-	iHead->cols = head.cols;
+	iHead->cols = htons(head.cols);
 
-	iHead->rows = head.rows;
+	iHead->rows = htons(head.rows);
 
-	iHead->imgType = head.imgType;
+	iHead->imgType = htons(head.imgType);
 }
 
 rtpHandler::rtpHandler()

@@ -31,6 +31,8 @@ using namespace cv;
 	void insertImage(imgHead head, shared_ptr<vector<BYTE>> image)：入口：推入图像文件
 
 	bool getCtrlKey(unsigned char &key)：出口，弹出用户输入的按键
+
+	int getFrameRate()：获取当前帧率
 */
 class cvPlayer
 {
@@ -56,6 +58,8 @@ public:
 	//出口，弹出用户输入的按键
 	static bool getCtrlKey(unsigned char &key);
 
+	static int getFrameRate();
+
 private:
 
 	//控制指令队列
@@ -65,7 +69,9 @@ private:
 	static queue<shared_ptr<Mat>> imgQueue;
 
 	//帧率（这里的意义是两帧之间间隔的毫秒数，即帧率的倒数）
+
 	static int frameRate;
+	static int playRate;
 
 	//从队列里获取帧
 	static bool getImage(shared_ptr<Mat> &img);

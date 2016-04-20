@@ -11,6 +11,7 @@ queue<unsigned char> cvPlayer::cmdQueue;
 queue<shared_ptr<Mat>> cvPlayer::imgQueue;
 
 int cvPlayer::frameRate;
+int cvPlayer::playRate;
 
 //播放器模块：图像是否被输入
 HANDLE hsPlayerInput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::playerInput);
@@ -33,6 +34,7 @@ cvPlayer * cvPlayer::getInstance()
 */
 cvPlayer::cvPlayer()
 {
+	playRate = 20;
 	frameRate = 50;
 
 	heStart = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -46,6 +48,8 @@ cvPlayer::cvPlayer()
 
 void cvPlayer::setFrameRate(unsigned short rate)
 {
+	playRate = rate;
+
 	frameRate = 1000 / rate;
 }
 
@@ -104,6 +108,11 @@ bool cvPlayer::getCtrlKey(unsigned char &key)
 	cmdQueue.pop();
 
 	return true;
+}
+
+int cvPlayer::getFrameRate()
+{
+	return playRate;
 }
 
 bool cvPlayer::getImage(shared_ptr<Mat>& img)
@@ -197,6 +206,25 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 				cmdQueue.push(key);
 
 				ReleaseSemaphore(hsPlayerOutput, 1, NULL);
+
+				if (key == ',')
+				{
+					if (playRate > 0)
+					{
+						--playRate;
+					}
+#ifdef DEBUG
+					cout << "Frame Rate = " << playRate << endl;
+#endif
+				}
+
+				if (key == '.')
+				{
+					++playRate;
+#ifdef DEBUG
+					cout << "Frame Rate = " << playRate << endl;
+#endif
+				}
 			}
 
 		}

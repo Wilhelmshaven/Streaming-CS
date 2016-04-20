@@ -11,7 +11,7 @@ logger * logger::getInstance()
 
 void logger::initLogModule()
 {
-	//生成文件名
+	//生成文件
 	generatePath();
 }
 

@@ -2,14 +2,21 @@
 
 #include "cnctHandler.h"
 
-//网络模块：标记有消息需要发送
-HANDLE hsNewSendMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctInput);
+namespace cnctNS
+{
+	//网络模块：标记有消息需要发送
+	HANDLE hsNewSendMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctInput);
 
-//网络模块：标记接收到了新的RTP消息
-HANDLE hsNewRTPMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctRTPOutput);
+	//网络模块：标记接收到了新的RTP消息
+	HANDLE hsNewRTPMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctRTPOutput);
 
-//网络模块：标记接收到了新的RTSP消息
-HANDLE hsNewRTSPMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctRTSPOutput);
+	//网络模块：标记接收到了新的RTSP消息
+	HANDLE hsNewRTSPMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctRTSPOutput);
+
+	HANDLE heCloseClient = CreateEvent(NULL, TRUE, FALSE, syncManager::ESCPressed);
+};
+
+using namespace cnctNS;
 
 cnctHandler *cnctHandler::instance = new cnctHandler(srvSettingFile);
 
@@ -315,8 +322,8 @@ void cnctHandler::startThread()
 
 	CreateThread(NULL, NULL, sendThread, param, NULL, NULL);
 
-	//设置Socket接收超时为5秒，避免阻塞太久（嗯当然我们现在还是用阻塞模式，客户端么）
-	int recvTimeMax = 5000;
+	//设置Socket接收超时为10秒，避免阻塞太久（嗯当然我们现在还是用阻塞模式，客户端么）
+	int recvTimeMax = 10000;
 	setsockopt(srvSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)recvTimeMax, sizeof(int));
 }
 
@@ -380,6 +387,9 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 			//连接被服务器断开
 			cout << "Connection closed by server." << endl;
 
+			//退出客户端
+			SetEvent(heCloseClient);
+
 			break;
 		}
 
@@ -388,9 +398,29 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 		//RTP数据
 		if (recvBuf[0] == '$')
 		{
+
 #ifdef DEBUG
 			cout << "Receive image." << endl;
-#endif // DEBUG
+#endif // 
+
+			/*
+				根据数据头中的大小，循环调用recv接收
+			*/
+
+			int imageSize;
+
+			auto *head = (rtpOverTcpHead *)recvBuf.c_str();
+			imageSize = ntohl(head->enbeddedLength);
+
+			int size = bytesRecv;
+			int incomingSize;
+
+			while (size < imageSize)
+			{
+				incomingSize = recv(socket, (char *)recvBuf.data() + size, MAX_RECV_BUF_SIZE, NULL);
+
+				size += incomingSize;
+			}
 
 			(*ptr).resize(bytesRecv);
 			memcpy(&((*ptr)[0]), recvBuf.substr(0, bytesRecv).c_str(), bytesRecv);

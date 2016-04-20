@@ -59,6 +59,13 @@ namespace syncManager
 	*/
 	const char msgArrivedRTSP[] = "hsMsgArrivedRTSP";
 	const char msgArrivedCtrl[] = "hsMsgArrivedCtrl";
+
+	/*
+		RTSP控制播放
+	*/
+	const char play[] = "hePlay";
+	const char pause[] = "hePause";
+	const char stop[] = "heStop";
 }
 
 //RTSP方法
@@ -191,7 +198,8 @@ typedef struct rtpOverTcpHead
 {
 	BYTE magicNumber;
 	BYTE channelNumber;
-	WORD enbeddedLength;
+	WORD cks;
+	DWORD enbeddedLength;
 };
 
 enum keyboardLayout

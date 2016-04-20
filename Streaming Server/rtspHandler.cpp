@@ -11,6 +11,15 @@
 //一个Session与客户端参数的对应表 
 clientManager *clientList = clientManager::getInstance();
 
+namespace rtspNS
+{
+	HANDLE heStartPlay = CreateEvent(NULL, TRUE, FALSE, syncManager::play);
+	HANDLE heStopPlay = CreateEvent(NULL, TRUE, FALSE, syncManager::stop);
+	HANDLE hePausePlay = CreateEvent(NULL, TRUE, FALSE, syncManager::pause);
+};
+
+using namespace rtspNS;
+
 /*----------------------NTP时间戳获取类---------------------*/
 /*
 	函数：获取NTP时间（距1900.1.1 00:00:00）
@@ -524,9 +533,11 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		{
 			/*
 				会话号正确，这里就应该调用播放器播放了
-				通知RTP模块处理
 			*/	
-			/*ReleaseSemaphore(hsPlaySession, 1, NULL);*/
+
+			ResetEvent(hePausePlay);
+
+			SetEvent(heStartPlay);
 		}
 		else
 		{
@@ -544,6 +555,55 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		response += generateTimeLine();
 
 		break;
+	}
+	case PAUSE:
+	{
+		/*Example Message*/
+		/*
+			C->S:
+			PAUSE rtsp://example.com/fizzle/foo RTSP/1.0
+            CSeq: 834
+            Session: 12345678
+
+			S->C: 
+			RTSP/1.0 200 OK
+            CSeq: 834
+            Date: 23 Jan 1997 15:35:06 GMT
+		*/
+
+		/*
+			首先解析Session，判断是否合法
+			不合法返回相应错误：454,Session Not Found
+		*/
+		unsigned long session = stoul(extractSession(paddingMsg), nullptr, 16);
+
+		if (clientList->searchClient(session))
+		{
+			/*
+				会话号正确，这里就应该调用播放器暂停了
+			*/
+
+			ResetEvent(heStartPlay);
+
+			SetEvent(hePausePlay);
+		}
+		else
+		{
+			errCode = 454;
+		}
+
+		response = generateCMDLine(errCode) + seqNum;
+
+		if (errCode != 200)
+		{
+			break;
+		}
+
+		//填写日期
+		response += generateTimeLine();
+
+		break;
+
 	}
 	case TEARDOWN:
 	{
@@ -568,9 +628,10 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 		if (clientList->searchClient(session))
 		{
 			/*
-				通知RTP模块停止播放
+				通知播放器模块停止播放
 			*/
-			//ReleaseSemaphore(hsStopSession, 1, NULL); 
+			
+			SetEvent(heStopPlay);
 
 			//移除客户端信息
 			clientList->removeClient(session);

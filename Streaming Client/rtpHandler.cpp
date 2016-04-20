@@ -25,7 +25,7 @@ rtpHandler::rtpHandler()
 void rtpHandler::unpackRTP(shared_ptr<vector<BYTE>> mediaPacket)
 {
 	/*
-		媒体包长度：4+12+8+MEDIA
+		媒体包长度：8+12+8+MEDIA
 
 		RTPTCP+RTP+IMGHEAD
 	*/
@@ -39,9 +39,9 @@ void rtpHandler::unpackRTP(shared_ptr<vector<BYTE>> mediaPacket)
 		TODO：让他们发挥作用
 
 		首先提取出图像头
-		直接取出第17-24共8字节长度，就是了
+		直接取出第21-28共8字节长度，就是了
 	*/
-	auto head = (imgHead *)(&(*mediaPacket)[16]);
+	auto head = (imgHead *)(&(*mediaPacket)[20]);
 
 	image.head.channels = ntohs(head->channels);
 	image.head.imgType = ntohs(head->imgType);
@@ -52,11 +52,9 @@ void rtpHandler::unpackRTP(shared_ptr<vector<BYTE>> mediaPacket)
 		最后提取RTP包
 	*/
 
-	image.head = (*head);
-
 	auto iter = (*mediaPacket).begin();
 
-	(*mediaPacket).erase(iter, iter + 24);
+	(*mediaPacket).erase(iter, iter + 28);
 
 	image.img = mediaPacket;
 

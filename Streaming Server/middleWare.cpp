@@ -16,9 +16,14 @@
 //错误处理模块
 #include "errHandler.h"
 
+#include "logger.h"
+#include "monitor.h"
+
 middleWare* middleWare::instance = new middleWare;
 
 errHandler *errorHandler = errHandler::getInstance();
+logger *myLogger = logger::getInstance();
+monitor *myClock = monitor::getInstance();
 
 /*
 	信号量/互斥量/事件
@@ -91,6 +96,10 @@ void middleWare::startMiddleWare()
 
 	camCap *camera = camCap::getInstance();
 	camera->startCapture();
+
+	myClock->initMonitor(200);
+
+	myLogger->initLogModule();
 }
 
 /*
@@ -104,12 +113,12 @@ DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 
 	imgBuffer *buffer = imgBuffer::getInstance();
 
-	Mat frame;
-
 	SOCKET index;
 
 	imgHead head;
 	shared_ptr<vector<BYTE>> imgData(new vector<BYTE>);
+
+	Mat frame;
 
 	while (1)
 	{
@@ -120,6 +129,8 @@ DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 		{
 			break;
 		}
+
+		myClock->beginTiming();
 
 		//2.取出图像
 		if (!camera->getImage(index, frame))
@@ -142,7 +153,7 @@ DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 			continue;
 		}
 
-		*imgData = frame.reshape(1, 1);
+		(*imgData) = frame.reshape(1, 1);
 
 		head.channels = frame.channels();
 		head.cols = frame.cols;
@@ -242,6 +253,8 @@ DWORD middleWare::mw_RTP_Cnct_Thread(LPVOID lparam)
 
 		//3.将数据包送入网络模块发送
 		network->sendMessage((*packet), index);
+
+		myClock->endTiming();
 	}
 
 	return 0;

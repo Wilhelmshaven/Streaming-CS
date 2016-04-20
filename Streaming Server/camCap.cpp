@@ -2,11 +2,23 @@
 
 #include "camCap.h"
 
-//摄像头：标记中间件已拿到并转发解码好的指令，请渲染器（摄像头）处理
-HANDLE hsRenderImage = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::renderInput));
+namespace camNS
+{
+	//摄像头：标记中间件已拿到并转发解码好的指令，请渲染器（摄像头）处理
+	HANDLE hsRenderImage = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::renderInput));
 
-//摄像头：标记图像已经渲染好，请中间件拿走
-HANDLE hsRenderDone = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::renderOutput));
+	//摄像头：标记图像已经渲染好，请中间件拿走
+	HANDLE hsRenderDone = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::renderOutput));
+
+	HANDLE heStartPlay = CreateEvent(NULL, TRUE, FALSE, syncManager::play);
+	HANDLE heStopPlay = CreateEvent(NULL, TRUE, FALSE, syncManager::stop);
+	HANDLE hePausePlay = CreateEvent(NULL, TRUE, FALSE, syncManager::pause);
+
+	//单客户端测试用
+	HANDLE hePlay = CreateEvent(NULL, TRUE, FALSE, NULL);
+};
+
+using namespace camNS;
 
 //类内静态成员变量定义
 HANDLE camCap::hEventStartCap;
@@ -16,6 +28,9 @@ HANDLE camCap::hEventShowImg;
 queue<myMat> camCap::imgQueue;
 queue<myCommand> camCap::cmdQueue;
 
+unsigned int camCap::capRate;
+unsigned int camCap::frameRate;
+
 camCap *camCap::instance = new camCap;
 
 /*
@@ -23,8 +38,9 @@ camCap *camCap::instance = new camCap;
 */
 camCap::camCap()
 {
-	capParam = new captureThreadParam;
-	capParam->capRate = 50;
+	frameRate = 20;
+
+	capRate = 1000/frameRate;
 
 	/*
 		初始化事件：手工重置模式
@@ -36,7 +52,7 @@ camCap::camCap()
 	/*
 		创建线程
 	*/
-	CreateThread(NULL, NULL, captureThread, capParam, NULL, NULL);
+	CreateThread(NULL, NULL, captureThread, NULL, NULL, NULL);
 }
 
 /*
@@ -67,9 +83,11 @@ void camCap::stopCapture()
 	函数：改变帧率
 	帧率取倒数，作为抓取的时间间隔。
 */
-void camCap::changeFrameRate(double frameRate)
+void camCap::changeFrameRate(unsigned int rate)
 {
-	capParam->capRate = 1000 / frameRate;
+	frameRate = rate;
+
+	capRate = 1000 / frameRate;
 }
 
 /*
@@ -118,13 +136,16 @@ bool camCap::getImage(SOCKET &index, Mat &frame)
 	return true;
 }
 
+int camCap::getFrameRate()
+{
+	return frameRate;
+}
+
 camCap::~camCap()
 {
 	SetEvent(hEventShutDown);
 
 	Sleep(50);
-
-	delete(capParam);
 
 	CloseHandle(hEventStartCap);
 	CloseHandle(hEventShowImg);
@@ -143,22 +164,26 @@ camCap * camCap::getInstance()
 		首先等待开始信号
 		然后创建视频抓取类（就当是摄像头对象了）
 		然后进入一个永久循环。
-		其流程为：
-			检查结束事件，若激活则退出；
-			从摄像头对象中获取当前帧；
-			检查是否需要显示图像；
-			等待一定时间间隔；（体现帧率）
+
+	其流程为：
+		检查结束事件，若激活则退出；
+		从摄像头对象中获取当前帧；
+		检查是否需要显示图像；
+		等待一定时间间隔；（体现帧率）
 */
 DWORD WINAPI camCap::captureThread(LPVOID lparam)
 {
-	captureThreadParam *param = (captureThreadParam *)lparam;
-
 	Mat cvFrame;
 
 	myMat matStruct;
 	myCommand cmdStruct;
 
 	SOCKET index;
+
+	char key = 0;
+
+	Size s;
+	double scale = 1;
 
 	while (1)
 	{
@@ -188,13 +213,11 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 			}
 
 			/*
-				接收到客户端指令后，做相关变换，推出图像
-				通过信号量控制
+				取出接收到的客户端指令并根据指令对图像做一些小变换/改变帧率
 			*/
+
 			if (WaitForSingleObject(hsRenderImage, 0) == WAIT_OBJECT_0)
 			{	
-				char key = 0;
-
 				if (!cmdQueue.empty())
 				{
 					cmdStruct = cmdQueue.front();
@@ -204,60 +227,107 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 					index = cmdStruct.index;
 				}
 
-				/*
-					根据指令对图像做一些小变换
-
-					TODO：独立抽出作为一个/多个方法
-				*/
 				switch (key)
 				{
-				case 'a':
+				/*
+					控制图像缩放倍率
+				*/
+				case '1':
 				{
-					Size s;
-					resize(cvFrame, cvFrame, s, 0.5, 0.5);
+					scale = 0.5;
 
 					break;
 				}
-				case 'd':
+				case '2':
 				{
-					Size s;
-					resize(cvFrame, cvFrame, s, 1.5, 1.5);
+					scale = 1;
 
 					break;
 				}
+				case '3':
+				{
+					scale = 1.5;
+
+					break;
+				}
+				case '4':
+				{
+					scale = 0.2;
+
+					break;
+				}
+
+				/*
+					控制帧率变化
+				*/
+				case ',':
+				{
+					if (frameRate > 0)
+					{
+						--frameRate;
+					}
+
+					changeFrameRate(frameRate);
+
+					break;
+				}
+				case '.':
+				{
+					++frameRate;
+					changeFrameRate(frameRate);
+
+					break;
+				}
+
+				/*
+					控制播放模式
+				*/
 				case 'p':
 				{
-					Size s;
-					resize(cvFrame, cvFrame, s, 0.2, 0.2);
+					if (WaitForSingleObject(hePlay, 0) == WAIT_OBJECT_0)
+					{
+						ResetEvent(hePlay);
+					}
+					else
+					{
+						SetEvent(hePlay);
+					}
 
 					break;
 				}
+
 				default:
 					break;
 				}
+			}	
 
-				/*
-					将变换好的图像塞入缓存，并释放信号量
-				*/
+			resize(cvFrame, cvFrame, s, scale, scale);
 
+			/*
+				如果处于play状态，则将变换好的图像塞入缓存，并释放信号量
+
+				!!这里没有处理多客户端情况啊（原来按键才发送的做法是有的
+
+				TODO：处理多客户端
+			*/
+
+			if ((WaitForSingleObject(hePlay, 0) == WAIT_OBJECT_0))
+			{
 				matStruct.frame = cvFrame;
 				matStruct.index = index;
 
 				imgQueue.push(matStruct);
 
 				ReleaseSemaphore(hsRenderDone, 1, NULL);
-
 			}
 
 			//等待时间间隔
-			waitKey(param->capRate);
+			waitKey(capRate);
 		}
 
 		//若结束事件被设置，则结束线程
 		if (WaitForSingleObject(hEventShutDown, 0) == WAIT_OBJECT_0)break;
 	}
-
-	delete(param);
 
 	return 0;
 }

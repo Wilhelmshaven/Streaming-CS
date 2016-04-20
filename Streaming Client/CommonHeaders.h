@@ -195,7 +195,8 @@ typedef struct rtpOverTcpHead
 {
 	BYTE magicNumber;
 	BYTE channelNumber;
-	WORD enbeddedLength;
+	WORD cks;
+	DWORD enbeddedLength;
 };
 
 enum keyboardLayout

@@ -16,9 +16,13 @@
 //计时器模块：用于获取延迟数据而已
 #include "monitor.h"
 
+//日志
+#include "logger.h"
+
 errHandler *errorHandler = errHandler::getInstance();
 
 monitor *clock = monitor::getInstance();
+logger *myLogger = logger::getInstance();
 
 //关闭服务器事件
 HANDLE heCloseClientAll;
@@ -72,6 +76,8 @@ void middleWare::startMiddleWare()
 
 	rtsp->setHandler(network->getDisplayAddr());
 
+	myLogger->initLogModule();
+
 	//连接服务器
 	if (network->connectServer() == 0)
 	{
@@ -109,6 +115,8 @@ void middleWare::shutdownAll()
 	ReleaseSemaphore(hsBufOutput, 1, NULL);
 
 	clock->shutdown();
+
+	myLogger->shutdownModule();
 }
 
 void middleWare::initHandles()
@@ -156,9 +164,6 @@ DWORD middleWare::mw_Player_Ctrl_Thread(LPVOID lparam)
 
 			continue;
 		}
-
-		//启动计时器
-		clock->beginTiming();
 
 		//这里会出错：如果没有会话号 
 		session = stoul(rtsp->getSession(), nullptr, 16);
@@ -265,6 +270,9 @@ DWORD middleWare::mw_Net_RTP_Thread(LPVOID lparam)
 			break;
 		}
 
+		//启动计时器
+		clock->beginTiming();
+
 		if (!network->getRTPMessage(ptr))
 		{
 			//104,Can't get RTP message from network handler.
@@ -345,7 +353,6 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 
 		//结束计时器
 		clock->endTiming();
-		clock->beginTiming();
 	}
 
 	return 0;

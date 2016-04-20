@@ -42,13 +42,15 @@ typedef struct myCommand
 	void camCap::startCapture()：开启摄像头；
 	void camCap::stopCapture()：关闭摄像头；
 
-	void camCap::changeFrameRate(double frameRate)：改变帧率，单位为每秒帧数
+	void camCap::changeFrameRate(unsigned int frameRate)：改变帧率，单位为每秒帧数
 
 	void camCap::showImg()：开启/关闭视频窗口，若开则关，若关则开。初始状态为开启。
 
 	void render(SOCKET index, unsigned char cmd = 0)：输入指令渲染图像
 
-	bool getImage(SOCKET &index, Mat &frame)：获取图像
+	bool getImage(SOCKET &index, Mat frame)：获取图像
+
+	int getFrameRate()：获取帧率
 */
 class camCap
 {
@@ -63,7 +65,7 @@ public:
 	void stopCapture();
 
 	//改变帧率
-	void changeFrameRate(double frameRate);
+	static void changeFrameRate(unsigned int frameRate);
 
 	//是否需要观看摄像头图像？如果未显示，调用则显示，否则取消显示
 	void showImg();
@@ -73,6 +75,9 @@ public:
 
 	//获取图像
 	bool getImage(SOCKET &index, Mat &frame);
+
+	//获取帧率
+	static int getFrameRate();
 
 	~camCap();
 
@@ -93,19 +98,14 @@ private:
 	//展示帧事件
 	static HANDLE hEventShowImg;
 
-	//线程参数结构体
-	typedef struct captureThreadParam
-	{
-		//等待时间（帧率的倒数，单位毫秒）
-		int capRate;
-	};
-	captureThreadParam *capParam;
-
-	/*
-		抓取摄像头的处理线程
-		参数：通过captureThreadParam结构体传入
-	*/
+	//抓取摄像头的处理线程
 	static DWORD WINAPI captureThread(LPVOID lparam);
+
+	//帧率，单位毫秒
+	static unsigned int capRate;
+
+	//帧率
+	static unsigned int frameRate;
 	
 	/*
 		单例模式相关

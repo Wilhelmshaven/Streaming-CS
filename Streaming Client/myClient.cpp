@@ -5,8 +5,6 @@
 //加载中间件
 #include "middleWare.h"
 
-#include "logger.h"
-
 namespace myHandle
 {
 	HANDLE heCloseClient;
@@ -45,22 +43,9 @@ int main(int argc, char *argv[])
 {
 	initServer();
 
-	//middleWare *mWare = middleWare::getInstance();
+	middleWare *mWare = middleWare::getInstance();
 
-	//mWare->startMiddleWare();
-
-	logger *myLogger = logger::getInstance();
-
-	myLogger->initLogModule();
-
-	int i = 0;
-	while (i < 10)
-	{
-		myLogger->logDelayData(i);
-		++i;
-	}
-
-	myLogger->logError(123, "ADASDASDAS");
+	mWare->startMiddleWare();
 
 	WaitForSingleObject(heESCPressed, INFINITE);
 
@@ -68,7 +53,7 @@ int main(int argc, char *argv[])
 		开始清理工作
 	*/
 
-	//mWare->shutdownAll();
+	mWare->shutdownAll();
 
 	return 0;
 }

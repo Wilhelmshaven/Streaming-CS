@@ -11,6 +11,34 @@ void testCode()
 	//initServer();
 
 	/*
+		模块：日志记录模块
+		文件：logger.h/.cpp
+
+		测试思路：检查文件是否能正确处理，以及数据是否能够正确写入
+
+		样例输入：10个运行数据，一个运行错误信息
+		样例输出：正确的记录文件
+
+		预期结果：不出错
+
+		测试结果：成功
+	*/
+	{
+		//logger *myLogger = logger::getInstance();
+
+		//myLogger->initLogModule();
+
+		//int i = 0;
+		//while (i < 10)
+		//{
+		//	myLogger->logDelayData(i);
+		//	++i;
+		//}
+
+		//myLogger->logError(123, "ADASDASDAS");
+	}
+
+	/*
 		模块：中间件测试
 		文件：middleWare.h/.cpp
 

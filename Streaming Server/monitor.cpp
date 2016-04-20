@@ -6,15 +6,12 @@
 #include "logger.h"
 
 //调播放器获取帧率，用于记录
-#include "cvPlayer.h"
+#include "camCap.h"
 
 monitor* monitor::instance = new monitor;
 
 logger *myLog = logger::getInstance();
-cvPlayer *myPlayer = cvPlayer::getInstance();
-
-//监控模块：标记是否有超时的情况
-HANDLE hsTimeOut = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::timeOut);
+camCap *camera = camCap::getInstance();
 
 double monitor::frequency;
 
@@ -145,11 +142,11 @@ DWORD monitor::endTimingThreadFunc(LPVOID lparam)
 
 		QueryPerformanceCounter(&(myClock[endClockID].endTime));
 
-		frameRate = myPlayer->getFrameRate();
+		frameRate = camera->getFrameRate();
 
 		if (isTimeout(frameRate, endClockID))
 		{
-			ReleaseSemaphore(hsTimeOut, 1, NULL);
+			//ReleaseSemaphore(hsTimeOut, 1, NULL);
 		}
 
 		++endClockID;
