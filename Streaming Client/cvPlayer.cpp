@@ -8,7 +8,7 @@ HANDLE cvPlayer::hePause;
 HANDLE cvPlayer::heShutdown;
 
 queue<unsigned char> cvPlayer::cmdQueue;
-queue<shared_ptr<Mat>> cvPlayer::imgQueue;
+queue<myImage> cvPlayer::imgQueue;
 
 int cvPlayer::frameRate;
 int cvPlayer::playRate;
@@ -81,17 +81,11 @@ void cvPlayer::destroyPlayer()
 //还原vector为Mat，并推入队列
 void cvPlayer::insertImage(imgHead head, shared_ptr<vector<BYTE>> image)
 {
-	//如果vector的大小不对，会爆出CV内存错误
-	Mat frame = Mat(*image).reshape(head.channels, head.yAxis.rows).clone();
+	myImage img;
+	img.head = head;
+	img.imgData = image;
 
-	image.reset();
-
-	frame.convertTo(frame, head.imgType);
-
-	shared_ptr<Mat> ptr(new Mat);
-	*ptr = frame;
-
-	imgQueue.push(ptr);
+	imgQueue.push(img);
 
 	ReleaseSemaphore(hsPlayerInput, 1, NULL);
 }
@@ -115,7 +109,7 @@ int cvPlayer::getFrameRate()
 	return playRate;
 }
 
-bool cvPlayer::getImage(shared_ptr<Mat>& img)
+bool cvPlayer::getImage(myImage &img)
 {
 	if (imgQueue.empty())
 	{
@@ -155,7 +149,7 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 
 	int key;
 
-	shared_ptr<Mat> frame;
+	myImage img;
 
 	while (1)
 	{
@@ -173,9 +167,22 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 			*/
 			if (WaitForSingleObject(hsPlayerInput, 0) == WAIT_OBJECT_0)
 			{
-				if (getImage(frame))
+				if (getImage(img))
 				{
-					preFrame = *frame;
+					/*
+
+					//不压缩的处理代码（还原Mat）
+
+					////如果vector的大小不对，会爆出CV内存错误
+					//Mat frame = Mat(*image).reshape(head.channels, head.yAxis.rows).clone();
+					//frame.convertTo(frame, head.imgType);
+
+					*/
+
+					//解压缩图片
+					Mat frame = imdecode(Mat(*(img.imgData)), CV_LOAD_IMAGE_COLOR);
+
+					preFrame = frame;
 				}
 			}
 

@@ -25,7 +25,7 @@ HANDLE camCap::hEventStartCap;
 HANDLE camCap::hEventShutDown;
 HANDLE camCap::hEventShowImg;
 
-queue<myMat> camCap::imgQueue;
+queue<myImage> camCap::imgQueue;
 queue<myCommand> camCap::cmdQueue;
 
 unsigned int camCap::capRate;
@@ -118,9 +118,9 @@ void camCap::render(SOCKET index, unsigned char cmd)
 	ReleaseSemaphore(hsRenderImage, 1, NULL);
 }
 
-bool camCap::getImage(SOCKET &index, Mat &frame)
+bool camCap::getImage(SOCKET &index, imgHead &head, vector<BYTE> &frame)
 {
-	myMat tmp;
+	myImage tmp;
 
 	if (imgQueue.empty())
 	{
@@ -131,6 +131,7 @@ bool camCap::getImage(SOCKET &index, Mat &frame)
 	imgQueue.pop();
 	
 	index = tmp.index;
+	head = tmp.head;
 	frame = tmp.frame;
 
 	return true;
@@ -175,15 +176,21 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 {
 	Mat cvFrame;
 
-	myMat matStruct;
+	myImage matStruct;
 	myCommand cmdStruct;
 
 	SOCKET index;
+	imgHead head;
 
 	char key = 0;
 
 	Size s;
 	double scale = 1;
+
+	//压缩参数表
+	vector<int> compressParam(2);
+	compressParam[0] = IMWRITE_JPEG_QUALITY;
+	compressParam[1] = 100;
 
 	while (1)
 	{
@@ -214,6 +221,8 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 
 			/*
 				取出接收到的客户端指令并根据指令对图像做一些小变换/改变帧率
+
+				TODO：封装一下
 			*/
 
 			if (WaitForSingleObject(hsRenderImage, 0) == WAIT_OBJECT_0)
@@ -301,10 +310,8 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 				}
 			}	
 
-			resize(cvFrame, cvFrame, s, scale, scale);
-
 			/*
-				如果处于play状态，则将变换好的图像塞入缓存，并释放信号量
+				如果处于play状态，则将变换好的图像（压缩并）塞入缓存，并释放信号量
 
 				!!这里没有处理多客户端情况啊（原来按键才发送的做法是有的
 
@@ -313,8 +320,35 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 
 			if ((WaitForSingleObject(hePlay, 0) == WAIT_OBJECT_0))
 			{
-				matStruct.frame = cvFrame;
+				if (scale != 1)
+				{
+					resize(cvFrame, cvFrame, s, scale, scale);
+				}
+
+				////不压缩的做法
+				//imgData = frame.reshape(1, 1);
+
+				/*
+					压缩为PNG
+				*/
+	
+				imencode(".jpg", cvFrame, matStruct.frame, compressParam);
+
+				/*
+					填充图片头部
+				*/
+
+				head.channels = cvFrame.channels();
+				head.cols = cvFrame.cols;
+				head.rows = cvFrame.rows;
+				head.imgType = cvFrame.type();
+
+				/*
+					填充结构体
+				*/
+
 				matStruct.index = index;
+				matStruct.head = head;
 
 				imgQueue.push(matStruct);
 

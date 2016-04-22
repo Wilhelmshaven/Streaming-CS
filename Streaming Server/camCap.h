@@ -16,10 +16,13 @@
 #include "opencv2\imgproc\imgproc.hpp"
 using namespace cv;
 
-typedef struct myMat
+typedef struct myImage
 {
 	SOCKET index;
-	Mat frame;
+
+	imgHead head;
+
+	vector<BYTE> frame;
 };
 
 typedef struct myCommand
@@ -74,7 +77,7 @@ public:
 	static void render(SOCKET index, unsigned char cmd = 0);
 
 	//获取图像
-	bool getImage(SOCKET &index, Mat &frame);
+	bool getImage(SOCKET &index, imgHead &head, vector<BYTE> &frame);
 
 	//获取帧率
 	static int getFrameRate();
@@ -84,7 +87,7 @@ public:
 private:
 
 	//图像队列
-	static queue<myMat> imgQueue;
+	static queue<myImage> imgQueue;
 
 	//控制指令队列，供中间件写入
 	static queue<myCommand> cmdQueue;

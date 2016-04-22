@@ -116,9 +116,8 @@ DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 	SOCKET index;
 
 	imgHead head;
-	shared_ptr<vector<BYTE>> imgData(new vector<BYTE>);
 
-	Mat frame;
+	vector<BYTE> frame;
 
 	while (1)
 	{
@@ -133,7 +132,7 @@ DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 		myClock->beginTiming();
 
 		//2.取出图像
-		if (!camera->getImage(index, frame))
+		if (!camera->getImage(index, head, frame))
 		{
 			//103: Can't get image from renderer
 			errorHandler->handleError(103);
@@ -142,23 +141,19 @@ DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 		}
 
 		/*
-			3.进行格式转换并塞入缓存
+			3.塞入缓存
 		*/
 
-		if (!frame.isContinuous())
-		{
-			//301: [OpenCV]Mat格式的图像不连续，无法转为vector<unsigned char>
-			errorHandler->handleError(301);
+		//if (!frame.isContinuous())
+		//{
+		//	//301: [OpenCV]Mat格式的图像不连续，无法转为vector<unsigned char>
+		//	errorHandler->handleError(301);
 
-			continue;
-		}
+		//	continue;
+		//}
 
-		(*imgData) = frame.reshape(1, 1);
-
-		head.channels = frame.channels();
-		head.cols = frame.cols;
-		head.rows = frame.rows;
-		head.imgType = frame.type();
+		shared_ptr<vector<BYTE>> imgData(new vector<BYTE>);
+		(*imgData) = frame;
 
 		buffer->pushBuffer(index, head, imgData);
 	}

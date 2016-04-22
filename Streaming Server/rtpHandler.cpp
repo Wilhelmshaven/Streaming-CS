@@ -54,7 +54,7 @@ bool rtpHandler::pack(SOCKET socket, imgHead head, shared_ptr<vector<BYTE>> img)
 
 	encodeImgHead((*rtpPacket), head);
 
-	memcpy(&(((*rtpPacket))[headSize]), &((*img)[0]), imageSize);
+	memcpy(&((*rtpPacket)[headSize]), &((*img)[0]), imageSize);
 
 	shared_ptr<myPacket> packet(new myPacket);
 	(*packet).index = socket;

@@ -15,6 +15,13 @@
 
 using namespace cv;
 
+typedef struct myImage
+{
+	imgHead head;
+
+	shared_ptr<vector<BYTE>> imgData;
+};
+
 /*
 	基于OpenCV的播放器，单例模式
 
@@ -66,7 +73,7 @@ private:
 	static queue<unsigned char> cmdQueue;
 
 	//帧队列
-	static queue<shared_ptr<Mat>> imgQueue;
+	static queue<myImage> imgQueue;
 
 	//帧率（这里的意义是两帧之间间隔的毫秒数，即帧率的倒数）
 
@@ -74,7 +81,7 @@ private:
 	static int playRate;
 
 	//从队列里获取帧
-	static bool getImage(shared_ptr<Mat> &img);
+	static bool getImage(myImage &img);
 	/*
 		线程相关：播放器肯定是要线程的嘛……
 	*/
