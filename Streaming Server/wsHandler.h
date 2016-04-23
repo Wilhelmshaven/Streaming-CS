@@ -31,6 +31,8 @@ private:
 
 	static DWORD WINAPI decodeThreadFunc(LPVOID lapram);
 
+	static string base64(const char* Data, int DataByte);
+
 	/*
 		µ¥Àý
 	*/

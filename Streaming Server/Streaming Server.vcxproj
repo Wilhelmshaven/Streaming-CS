@@ -146,6 +146,7 @@
     <ClCompile Include="myServer.cpp" />
     <ClCompile Include="rtpHandler.cpp" />
     <ClCompile Include="rtspHandler.cpp" />
+    <ClCompile Include="sha1\sha1.cpp" />
     <ClCompile Include="wsHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -162,6 +163,7 @@
     <ClInclude Include="myServer.h" />
     <ClInclude Include="rtpHandler.h" />
     <ClInclude Include="rtspHandler.h" />
+    <ClInclude Include="sha1\sha1.h" />
     <ClInclude Include="wsHandler.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
