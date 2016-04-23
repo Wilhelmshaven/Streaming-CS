@@ -34,8 +34,8 @@ cvPlayer * cvPlayer::getInstance()
 */
 cvPlayer::cvPlayer()
 {
-	playRate = 20;
-	frameRate = 50;
+	playRate = 10;
+	frameRate = 1000 / playRate;
 
 	heStart = CreateEvent(NULL, TRUE, FALSE, NULL);
 

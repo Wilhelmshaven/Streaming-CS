@@ -38,7 +38,7 @@ camCap *camCap::instance = new camCap;
 */
 camCap::camCap()
 {
-	frameRate = 20;
+	frameRate = 10;
 
 	capRate = 1000/frameRate;
 
@@ -179,6 +179,8 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 	myImage matStruct;
 	myCommand cmdStruct;
 
+	string windowTitle = "Camera Live!";
+
 	SOCKET index;
 	imgHead head;
 
@@ -199,7 +201,7 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 
 		//摄像头对象
 		VideoCapture capture(0);
-
+		int p = 0;
 		while (1)
 		{
 			//若结束事件被设置，则结束线程
@@ -208,16 +210,6 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 
 			//从设备中取出当前帧
 			capture >> cvFrame;
-
-			//若显示图像事件被设置，则显示图像
-			if (WaitForSingleObject(hEventShowImg, 0) == WAIT_OBJECT_0)
-			{
-				imshow("Camera Live!", cvFrame);
-			}
-			else
-			{
-				destroyWindow("Camera Live!");
-			}
 
 			/*
 				取出接收到的客户端指令并根据指令对图像做一些小变换/改变帧率
@@ -271,8 +263,9 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 				*/
 				case ',':
 				{
-					if (frameRate > 0)
+					if (frameRate > 1)
 					{
+						//帧率至少也得有1
 						--frameRate;
 					}
 
@@ -353,6 +346,19 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 				imgQueue.push(matStruct);
 
 				ReleaseSemaphore(hsRenderDone, 1, NULL);
+			}
+
+			//若显示图像事件被设置，则显示图像
+			if (WaitForSingleObject(hEventShowImg, 0) == WAIT_OBJECT_0)
+			{
+				//显示帧率
+				putText(cvFrame, "Frame rate: " + to_string(frameRate), cvPoint(20, 20), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255, 255, 255));
+
+				imshow(windowTitle, cvFrame);
+			}
+			else
+			{
+				destroyWindow(windowTitle);
 			}
 
 			//等待时间间隔

@@ -21,6 +21,10 @@
 
 #include "wsHandler.h"
 
+////TestCode
+//#include "clientManager.h"
+//clientManager *client = clientManager::getInstance();
+
 middleWare* middleWare::instance = new middleWare;
 
 errHandler *errorHandler = errHandler::getInstance();
@@ -263,6 +267,16 @@ DWORD middleWare::mw_RTP_Cnct_Thread(LPVOID lparam)
 
 		//3.将数据包送入网络模块发送
 		network->sendMessage((*packet), index);
+
+		/*
+			以下为针对多用户情况进行的一个小测试
+			遍历客户端列表，给每个客户端都发一张图
+		*/
+		//for (auto iter = client->socToSessList.begin(); iter != client->socToSessList.end(); ++iter)
+		//{
+		//	shared_ptr<string> tmp = packet;
+		//	network->sendMessage((*tmp), iter->first);
+		//}
 
 		myClock->endTiming();
 	}

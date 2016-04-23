@@ -33,6 +33,8 @@ public:
 	//ÒÆ³ý¿Í»§¶Ë
 	bool removeClient(unsigned long session);
 
+	map<SOCKET, unsigned long> socToSessList;
+
 private:
 
 	/*
@@ -50,7 +52,7 @@ private:
 
 	//Key-Value MAP
 	map<unsigned long, PerClientData> clientList;
-	map<SOCKET, unsigned long> socToSessList;
+	
 
 	/*
 		Singleton
