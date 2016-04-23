@@ -8,9 +8,12 @@ HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::msgArr
 //网络模块：标记有新的控制信令信息来到
 HANDLE hsCtrlMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::msgArrivedCtrl);
 
+//网络模块：标记有新的HTTP握手请求来到
+HANDLE hsWebMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::webMsgArrived);
+
 cnctHandler *cnctHandler::instance = new cnctHandler;
 
-queue<stringSocketMsg> cnctHandler::rtspQueue, cnctHandler::ctrlQueue;
+queue<stringSocketMsg> cnctHandler::rtspQueue, cnctHandler::ctrlQueue, cnctHandler::webQueue;
 
 /*
 	构造函数
@@ -177,6 +180,21 @@ bool cnctHandler::getCtrlMsg(string &msg, SOCKET &socket)
 	return true;
 }
 
+bool cnctHandler::getHTTPMsg(string & msg, SOCKET & socket)
+{
+	if (webQueue.empty())
+	{
+		return false;
+	}
+
+	msg = webQueue.front().msg;
+	socket = webQueue.front().socket;
+
+	webQueue.pop();
+
+	return true;
+}
+
 void cnctHandler::sendMessage(string msg, SOCKET socket)
 {
 	LPPER_IO_DATA ioInfo = new PER_IO_DATA;
@@ -312,51 +330,68 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		/*
 			传入消息处理
 		*/
-		if (ioInfo->operationType == compRecv)
+
+		do
 		{
-			//EOF，连接关闭
-			if (bytesTransferred == 0)
+			if (ioInfo->operationType == compRecv)
 			{
-				cout << "Connection close: " << incomingIP << endl;
+				//EOF，连接关闭
+				if (bytesTransferred == 0)
+				{
+					cout << "Connection close: " << incomingIP << endl;
 
-				closesocket(clientSocket);
+					closesocket(clientSocket);
 
-				continue;
-			}
+					continue;
+				}
 
-			//显示消息来源
-			cout << "Recv message from " << incomingIP << endl;
+				//显示消息来源
+				cout << "Recv message from " << incomingIP << endl;
 
-			/*
-				处理信令
-				首先解析是流媒体还是控制，然后塞到对应队列中，最后激活信号量
-				注意把SOCKET一起丢进去……要不然回发，回给谁啊？？？！
-			*/
+				/*
+					处理信令
+					首先解析是流媒体还是控制，然后塞到对应队列中，最后激活信号量
+					注意把SOCKET一起丢进去……要不然回发，回给谁啊？？？！
+				*/
 
-			buf = ioInfo->buffer.substr(0, bytesTransferred);
+				buf = ioInfo->buffer.substr(0, bytesTransferred);
 
-			stringSocketMsg myMsg;
-			myMsg.msg = buf;
-			myMsg.socket = clientSocket;
+				stringSocketMsg myMsg;
+				myMsg.msg = buf;
+				myMsg.socket = clientSocket;
 
-			if (buf.find("RTSP") != string::npos)
-			{
-				cout << "Recv RTSP Msg:" << buf << endl;
+				if (buf.find("RTSP") != string::npos)
+				{
+					cout << "Recv RTSP Msg:" << endl << buf << endl;
 
-				rtspQueue.push(myMsg);
+					rtspQueue.push(myMsg);
 
-				ReleaseSemaphore(hsRTSPMsgArrived, 1, NULL);
-			}
-			else
-			{
+					ReleaseSemaphore(hsRTSPMsgArrived, 1, NULL);
+
+					break;
+				}
+				
+				if (buf.find("GET") != string::npos)
+				{
+					cout << "Recv HTTP Msg: " << endl << buf << endl;
+
+					webQueue.push(myMsg);
+
+					ReleaseSemaphore(hsWebMsgArrived, 1, NULL);
+
+					break;
+				}
 
 				cout << "Recv CTRL Msg" << endl;
 
 				ctrlQueue.push(myMsg);
 
 				ReleaseSemaphore(hsCtrlMsgArrived, 1, NULL);
+
+				break;
+				
 			}
-		}
+		} while (0);
 
 		/*
 			准备下一个连接，投递一个WSARecv

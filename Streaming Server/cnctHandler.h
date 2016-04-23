@@ -100,6 +100,9 @@ public:
 	//出口：获取控制信令。请监听hsCtrlMsgArrived信号量。
 	static bool getCtrlMsg(string &msg, SOCKET &socket);
 
+	//出口：获取HTTP信令。请监听hsWebMsgArrived信号量。
+	static bool getHTTPMsg(string &msg, SOCKET &socket);
+
 	//入口：（单纯）发送给定信息
 	void sendMessage(string msg, SOCKET socket);
 
@@ -115,7 +118,7 @@ private:
 		对于无意义（不符合格式的）消息，丢弃之
 	*/
 
-	static queue<stringSocketMsg> rtspQueue, ctrlQueue;
+	static queue<stringSocketMsg> rtspQueue, ctrlQueue, webQueue;
 
 	/*
 		线程相关

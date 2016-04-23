@@ -68,6 +68,9 @@
     <ClCompile Include="monitor.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="wsHandler.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camCap.h">
@@ -107,6 +110,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="monitor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="wsHandler.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

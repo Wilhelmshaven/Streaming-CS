@@ -19,6 +19,8 @@
 #include "logger.h"
 #include "monitor.h"
 
+#include "wsHandler.h"
+
 middleWare* middleWare::instance = new middleWare;
 
 errHandler *errorHandler = errHandler::getInstance();
@@ -29,22 +31,30 @@ monitor *myClock = monitor::getInstance();
 	信号量/互斥量/事件
 */
 
-//全局事件：结束服务器的事件
-HANDLE heShutdownSrv;
+namespace mwNS
+{
+	//全局事件：结束服务器的事件
+	HANDLE heShutdownSrv;
 
-//图像源出入口
-HANDLE hsRenderOutput;
+	//图像源出入口
+	HANDLE hsRenderOutput;
 
-//缓存出口
-HANDLE hsImgBufferOutput;
+	//缓存出口
+	HANDLE hsImgBufferOutput;
 
-//
-HANDLE hsCtrlMsgDecoded;
+	//
+	HANDLE hsCtrlMsgDecoded;
 
-HANDLE hsRTPEncoded;
+	HANDLE hsRTPEncoded;
 
-HANDLE hsMsgArrivedRTSP;
-HANDLE hsMsgArrivedCtrl;
+	HANDLE hsMsgArrivedRTSP;
+	HANDLE hsMsgArrivedCtrl;
+
+	HANDLE hsWebHandshake;
+	HANDLE hsWebMsgArrived;
+}
+
+using namespace mwNS;
 
 void middleWare::initHandles()
 {
@@ -60,6 +70,9 @@ void middleWare::initHandles()
 
 	hsMsgArrivedRTSP = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::msgArrivedRTSP));
 	hsMsgArrivedCtrl = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::msgArrivedCtrl));
+
+	hsWebHandshake = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::webHandshake);
+	hsWebMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::webMsgArrived);
 }
 
 middleWare* middleWare::getInstance()
@@ -86,6 +99,8 @@ void middleWare::startMiddleWare()
 	CreateThread(NULL, NULL, mw_Cnct_RTSP_Cnct_Thread, NULL, NULL, NULL);
 	CreateThread(NULL, NULL, mw_Cnct_Ctrl_Thread, NULL, NULL, NULL);
 	CreateThread(NULL, NULL, mw_Ctrl_Cam_Thread, NULL, NULL, NULL);
+	CreateThread(NULL, NULL, mw_Cnct_Web_Thread, NULL, NULL, NULL);
+	CreateThread(NULL, NULL, mw_Web_Cnct_Thread, NULL, NULL, NULL);
 
 	/*
 		调用那些需要手动启动的模块的启动函数
@@ -378,6 +393,72 @@ DWORD middleWare::mw_Ctrl_Cam_Thread(LPVOID lparam)
 
 		//3.将解码好的消息送入渲染器/摄像头
 		camera->render(index, key);
+	}
+
+	return 0;
+}
+
+DWORD middleWare::mw_Cnct_Web_Thread(LPVOID lparam)
+{
+	cnctHandler *network = cnctHandler::getInstance();
+
+	wsHandler *websocket = wsHandler::getInstance();
+
+	SOCKET index;
+
+	string msg;
+
+	while (1)
+	{
+		WaitForSingleObject(hsWebMsgArrived, INFINITE);
+
+		if (WaitForSingleObject(heShutdownSrv, 0) == WAIT_OBJECT_0)
+		{
+			break;
+		}
+
+		if (!network->getHTTPMsg(msg, index))
+		{
+			//502,Can't get message from network module.
+			errorHandler->handleError(502);
+			
+			continue;
+		}
+
+		websocket->decodeMsg(index, msg);
+	}
+
+	return 0;
+}
+
+DWORD middleWare::mw_Web_Cnct_Thread(LPVOID lparam)
+{
+	cnctHandler *network = cnctHandler::getInstance();
+
+	wsHandler *websocket = wsHandler::getInstance();
+
+	SOCKET index;
+
+	string msg;
+
+	while (1)
+	{
+		WaitForSingleObject(hsWebHandshake, INFINITE);
+
+		if (WaitForSingleObject(heShutdownSrv, 0) == WAIT_OBJECT_0)
+		{
+			break;
+		}
+
+		if (!websocket->getResponse(index, msg))
+		{
+			//501,Can't get message from websocket module.
+			errorHandler->handleError(501);
+
+			continue;
+		}
+
+		network->sendMessage(msg, index);
 	}
 
 	return 0;

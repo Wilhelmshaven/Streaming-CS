@@ -7,3 +7,5 @@
 201,Can't get RTSP message from network module
 301,[OpenCV]Mat格式的图像不连续，无法转为vector<unsigned char>
 401,Session is down
+501,Can't get message from websocket module.
+502,Can't get message from network module.

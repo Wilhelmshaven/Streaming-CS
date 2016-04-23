@@ -66,6 +66,12 @@ namespace syncManager
 	const char play[] = "hePlay";
 	const char pause[] = "hePause";
 	const char stop[] = "heStop";
+
+	/*
+		WebŒ’ ÷
+	*/
+	const char webMsgArrived[] = "hsWebMsgArrived";
+	const char webHandshake[] = "hsWebHandshake";
 }
 
 //RTSP∑Ω∑®

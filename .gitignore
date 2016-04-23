@@ -189,3 +189,11 @@ _Pvt_Extensions/
 ModelManifest.xml
 /OpenCVTest
 /serverTest
+/opencv
+/Streaming Server/ClassDiagram.cd
+/Streaming Client/ClassDiagram.cd
+/logs
+/Streaming Client/logs
+/Streaming Server/logs
+/Streaming CS.VC.db
+/Streaming CS.VC.VC.opendb

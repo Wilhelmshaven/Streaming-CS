@@ -35,6 +35,10 @@ private:
 
 	static DWORD WINAPI mw_Ctrl_Cam_Thread(LPVOID lparam);
 
+	static DWORD WINAPI mw_Cnct_Web_Thread(LPVOID lparam);
+
+	static DWORD WINAPI mw_Web_Cnct_Thread(LPVOID lparam);
+
 	/*
 		µ¥ÀýÄ£Ê½
 	*/
