@@ -95,9 +95,13 @@ enum rtspMethod
 enum CustomDefine
 {
 	BUF_SIZE = 4096,
-	//下面是完成端口的操作模式标记
+
+	//完成端口的操作模式标记
+
 	compRecv = 3,
 	compSend = 5,
+
+	cameraCaptureRate = 20,
 };
 
 /*

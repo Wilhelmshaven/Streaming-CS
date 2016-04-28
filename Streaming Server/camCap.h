@@ -68,7 +68,7 @@ public:
 	void stopCapture();
 
 	//改变帧率
-	static void changeFrameRate(unsigned int frameRate);
+	//static void changeFrameRate(unsigned int frameRate);
 
 	//是否需要观看摄像头图像？如果未显示，调用则显示，否则取消显示
 	void showImg();
@@ -104,12 +104,15 @@ private:
 	//抓取摄像头的处理线程
 	static DWORD WINAPI captureThread(LPVOID lparam);
 
+	//处理控制的线程
+	static DWORD WINAPI ctrlDealingThread(LPVOID lparam);
+
 	//帧率，单位毫秒
 	static unsigned int capRate;
 
 	//帧率
 	static unsigned int frameRate;
-	
+
 	/*
 		单例模式相关
 	*/

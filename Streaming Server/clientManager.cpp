@@ -1,4 +1,13 @@
+/*--Author：李宏杰--*/
 #include "clientManager.h"
+
+enum OpenCVFactor
+{
+	maxFrameRate = cameraCaptureRate,
+	minFrameRate = 1,
+	maxScaleFactor = 3,
+	minScaleFactor = 0,
+};
 
 clientManager *clientManager::instance = new clientManager;
 
@@ -23,6 +32,14 @@ bool clientManager::addClient(unsigned long session, SOCKET socket, unsigned int
 	client.socket = socket;
 	client.streamingPort = port;
 	client.enableUDP = enableUDP;
+
+	/*
+		为了摄像头准备的
+	*/
+
+	client.scaleFactor = 1;
+	client.play = false;
+	client.frameRate = 10;
 
 	if (clientList.find(session) == clientList.end())
 	{
@@ -105,4 +122,83 @@ bool clientManager::removeClient(unsigned long session)
 	}
 
 	return false;
+}
+
+map<unsigned long, PerClientData>::iterator clientManager::getIteratorStart()
+{
+	return clientList.begin();
+}
+
+map<unsigned long, PerClientData>::iterator clientManager::getIteratorEnd()
+{
+	return clientList.end();
+}
+
+bool clientManager::changePlayFactor(SOCKET index, bool play)
+{
+	if (!searchClient(index))
+	{
+		//Todo: log error
+
+		return false;
+	}
+
+	auto key = socToSessList.find(index);
+	auto iter = clientList.find(key->second);
+
+	iter->second.play = play;
+
+	return true;
+}
+
+bool clientManager::changePlayFactor(SOCKET index, double scaleFactor)
+{
+	if (!searchClient(index))
+	{
+		//Todo: log error
+
+		return false;
+	}
+
+	if (scaleFactor > maxScaleFactor || scaleFactor < minScaleFactor)
+	{
+		//Todo: log error
+
+		return false;
+	}
+
+	auto key = socToSessList.find(index);
+	auto iter = clientList.find(key->second);
+
+	iter->second.scaleFactor = scaleFactor;
+
+	return true;
+}
+
+bool clientManager::changePlayFactor(SOCKET index, int frameRateOffset)
+{
+	if (!searchClient(index))
+	{
+		//Todo: log error
+
+		return false;
+	}
+
+	auto key = socToSessList.find(index);
+	auto iter = clientList.find(key->second);
+
+	unsigned int frameRate = iter->second.frameRate + frameRateOffset;
+
+	if (frameRate > maxFrameRate || frameRate < minFrameRate)
+	{
+		//Todo: log error
+
+		return false;
+	}
+	else
+	{
+		iter->second.frameRate = frameRate;
+	}
+
+	return true;
 }
