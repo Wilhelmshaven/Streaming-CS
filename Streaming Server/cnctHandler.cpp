@@ -2,14 +2,26 @@
 
 #include "cnctHandler.h"
 
-//网络模块：标记有新的RTSP信令信息来到
-HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::msgArrivedRTSP);
+//获取性能数据用，计时
+#include "logger.h"
+#include "monitor.h"
 
-//网络模块：标记有新的控制信令信息来到
-HANDLE hsCtrlMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::msgArrivedCtrl);
+monitor *myNetClock = monitor::getInstance();
+logger *myNetLogger = logger::getInstance();
 
-//网络模块：标记有新的HTTP握手请求来到
-HANDLE hsWebMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::webMsgArrived);
+namespace netNS
+{
+	//网络模块：标记有新的RTSP信令信息来到
+	HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::msgArrivedRTSP);
+
+	//网络模块：标记有新的控制信令信息来到
+	HANDLE hsCtrlMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::msgArrivedCtrl);
+
+	//网络模块：标记有新的HTTP握手请求来到
+	HANDLE hsWebMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::webMsgArrived);
+};
+
+using namespace netNS;
 
 cnctHandler *cnctHandler::instance = new cnctHandler;
 
@@ -214,6 +226,14 @@ void cnctHandler::sendMessage(string msg, SOCKET socket)
 	ioInfo->flags = 0;
 
 	WSASend(socket, &(ioInfo->wsaBuf), 1, NULL, ioInfo->flags, &(ioInfo->overlapped), NULL);
+	
+	//测试代码#8
+	if (msg.length() > 4000)
+	{	
+		double testData8;
+		myNetClock->getTimeStamp(testData8);
+		myNetLogger->insertTimestamp(8, testData8);
+	}
 
 	delete(ioInfo);
 }

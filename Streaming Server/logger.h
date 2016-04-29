@@ -22,31 +22,37 @@ public:
 
 	static logger *getInstance();
 
-	void initLogModule();
+	static void initLogModule(int queueCnt = 9);
 
-	void logError(int errCode, string error);
+	static void logError(int errCode, string error);
 
-	void logDelayData(string data);
+	static void logData(string data);
 
-	void shutdownModule();
+	static void insertTimestamp(int pivot, double timestamp);
+
+	static void shutdownModule();
 
 private:
 
-	fstream errFile;
-	fstream delayDataFile;
+	static vector<queue<double>> clockRecord;
+
+	static int queueCnt;
+
+	static fstream errFile;
+	static fstream dataFile;
 
 	//根据当天时间建立日志名前缀
-	void generatePath();
+	static void generatePath();
 
 	//创建日志文件
-	void createLogFile(fstream &file, string filePath);
+	static void createLogFile(fstream &file, string filePath);
 
 	/*
 		徐行说：删除文件夹好用！
 	*/
 
-	void silentlyRemoveDir(const char * _dir);
-	void silentlyRemoveDir(const wchar_t * _dir);
+	static void silentlyRemoveDir(const char * _dir);
+	static void silentlyRemoveDir(const wchar_t * _dir);
 
 	/*
 		单例模式相关

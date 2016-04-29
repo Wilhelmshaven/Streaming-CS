@@ -270,8 +270,8 @@ DWORD middleWare::mw_Net_RTP_Thread(LPVOID lparam)
 			break;
 		}
 
-		//启动计时器
-		clock->beginTiming();
+		////启动计时器
+		//clock->beginTiming();
 
 		if (!network->getRTPMessage(ptr))
 		{
@@ -349,10 +349,20 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 			continue;
 		}
 
+		//测试代码#3
+		double timestamp3;
+		clock->getTimeStamp(timestamp3);
+		myLogger->insertTimestamp(3, timestamp3);
+
 		player->insertImage(head, ptr);
 
-		//结束计时器
-		clock->endTiming();
+		//测试代码#4
+		double timestamp4;
+		clock->getTimeStamp(timestamp4);
+		myLogger->insertTimestamp(4, timestamp4);
+
+		////结束计时器
+		//clock->endTiming();
 	}
 
 	return 0;

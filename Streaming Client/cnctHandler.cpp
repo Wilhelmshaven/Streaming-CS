@@ -2,6 +2,12 @@
 
 #include "cnctHandler.h"
 
+#include "monitor.h"
+#include "logger.h"
+
+monitor *netMonitor = monitor::getInstance();
+logger *netLogger = logger::getInstance();
+
 namespace cnctNS
 {
 	//网络模块：标记有消息需要发送
@@ -373,6 +379,9 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 
 	int bytesRecv;
 
+	//测试代码
+	int testIndex = 1;
+
 	//MAX：1920*1080*3
 	recvBuf.resize(MAX_RECV_BUF_SIZE);
 
@@ -422,10 +431,22 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 				size += incomingSize;
 			}
 
+			//测试代码#1
+			netLogger->insertTimestamp(0, testIndex);
+			++testIndex;
+			double timestamp1;
+			netMonitor->getTimeStamp(timestamp1);
+			netLogger->insertTimestamp(1, timestamp1);
+
 			(*ptr).resize(bytesRecv);
 			memcpy(&((*ptr)[0]), recvBuf.substr(0, bytesRecv).c_str(), bytesRecv);
 
 			recvRTPQueue.push(ptr);
+
+			//测试代码#2
+			double timestamp2;
+			netMonitor->getTimeStamp(timestamp2);
+			netLogger->insertTimestamp(2, timestamp2);
 
 			ReleaseSemaphore(hsNewRTPMsg, 1, NULL);
 			 

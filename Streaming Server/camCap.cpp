@@ -5,6 +5,13 @@
 //加入客户端管理器
 #include "clientManager.h"
 
+//获取性能数据用，计时
+#include "logger.h"
+#include "monitor.h"
+
+monitor *myCamClock = monitor::getInstance();
+logger *myCamLogger = logger::getInstance();
+
 namespace camNS
 {
 	//摄像头：标记中间件已拿到并转发解码好的指令，请渲染器（摄像头）处理
@@ -178,7 +185,7 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 {
 	clientManager *clientList = clientManager::getInstance();
 
-	Mat cvFrame;
+	Mat cvFrame, subFrame;
 
 	myImage matStruct;
 
@@ -201,7 +208,7 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 	while (1)
 	{
 		//等待开始信号
-		WaitForSingleObject(hEventStartCap, INFINITE);
+		WaitForSingleObject(hEventStartCap, INFINITE);	
 
 		//摄像头对象
 		VideoCapture capture(0);
@@ -212,11 +219,32 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 			if (WaitForSingleObject(hEventShutDown, 0) == WAIT_OBJECT_0)break;
 			if (WaitForSingleObject(hEventStartCap, 0) != WAIT_OBJECT_0)break;
 
+			auto iter = clientList->getIteratorStart();
+			auto iterEnd = clientList->getIteratorEnd();
+
+			//测试代码#1
+			if (iter != iterEnd)
+			{
+				myCamLogger->insertTimestamp(0, testIndex);
+				++testIndex;
+				double testData1;
+				myCamClock->getTimeStamp(testData1);
+				myCamLogger->insertTimestamp(1, testData1);
+			}
+
 			//从设备中取出当前帧
 			capture >> cvFrame;
 
 			++signal;
 			//if (signal > 86400)signal = 1;
+
+			//测试代码#2
+			if (iter != iterEnd)
+			{
+				double testData2;
+				myCamClock->getTimeStamp(testData2);
+				myCamLogger->insertTimestamp(2, testData2);
+			}
 
 			/*
 				遍历客户端列表，以相应的参数存入相应的帧
@@ -227,10 +255,8 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 				4.压缩（统一压缩参数了，当然也可以作为客户端参数的一部分）
 			*/
 
-			auto iter = clientList->getIteratorStart();
-			auto iterEnd = clientList->getIteratorEnd();
-
-			Mat subFrame;
+			//auto iter = clientList->getIteratorStart();
+			//auto iterEnd = clientList->getIteratorEnd();
 
 			while (iter != iterEnd)
 			{
@@ -247,6 +273,11 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 
 					continue;
 				}
+
+				//测试代码#3
+				double testData3;
+				myCamClock->getTimeStamp(testData3);
+				myCamLogger->insertTimestamp(3, testData3);
 
 				resize(cvFrame, subFrame, s, iter->second.scaleFactor, iter->second.scaleFactor);
 
@@ -276,12 +307,25 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 				////不压缩的做法
 				//imgData = frame.reshape(1, 1);
 
-				/*
-					压缩为JPG
-				*/
+				//测试代码#4
+				double testData4;
+				myCamClock->getTimeStamp(testData4);
+				myCamLogger->insertTimestamp(4, testData4);
+
+				//压缩为JPG
 				imencode(".jpg", subFrame, matStruct.frame, compressParam);
 
+				//测试代码#5
+				double testData5;
+				myCamClock->getTimeStamp(testData5);
+				myCamLogger->insertTimestamp(5, testData5);
+
 				imgQueue.push(matStruct);
+
+				//测试代码#6
+				double testData6;
+				myCamClock->getTimeStamp(testData6);
+				myCamLogger->insertTimestamp(6, testData6);
 
 				ReleaseSemaphore(hsRenderDone, 1, NULL);
 
@@ -333,7 +377,6 @@ DWORD camCap::ctrlDealingThread(LPVOID lparam)
 
 	while (1)
 	{
-
 		//若结束事件被设置，则结束线程
 		if (WaitForSingleObject(hEventShutDown, 0) == WAIT_OBJECT_0)break;
 		if (WaitForSingleObject(hEventStartCap, 0) != WAIT_OBJECT_0)break;
@@ -342,110 +385,109 @@ DWORD camCap::ctrlDealingThread(LPVOID lparam)
 			取出接收到的客户端指令并根据指令对图像做一些小变换/改变帧率
 		*/
 
-		if (WaitForSingleObject(hsRenderImage, 0) == WAIT_OBJECT_0)
+		WaitForSingleObject(hsRenderImage, INFINITE);
+		
+		if (!cmdQueue.empty())
 		{
-			if (!cmdQueue.empty())
-			{
-				cmdStruct = cmdQueue.front();
-				cmdQueue.pop();
+			cmdStruct = cmdQueue.front();
+			cmdQueue.pop();
 
-				key = cmdStruct.key;
-				index = cmdStruct.index;
-			}
-			else
-			{
-				//未取到指令，TODO，记录错误
+			key = cmdStruct.key;
+			index = cmdStruct.index;
+		}
+		else
+		{
+			//未取到指令，TODO，记录错误
 
-				continue;
-			}
+			continue;
+		}
 
-			switch (key)
-			{
-				/*
-					控制图像缩放倍率
-				*/
-			case '1':
-			{
-				scale = 0.5;
-				clientList->changePlayFactor(index, scale);
-
-				break;
-			}
-			case '2':
-			{
-				scale = 1;
-				clientList->changePlayFactor(index, scale);
-
-				break;
-			}
-			case '3':
-			{
-				scale = 1.5;
-				clientList->changePlayFactor(index, scale);
-
-				break;
-			}
-			case '4':
-			{
-				scale = 2;
-				clientList->changePlayFactor(index, scale);
-
-				break;
-			}
-			case '5':
-			{
-				scale = 2.5;
-				clientList->changePlayFactor(index, scale);
-
-				break;
-			}
-			case '6':
-			{
-				scale = 3;
-				clientList->changePlayFactor(index, scale);
-
-				break;
-			}
-			case '7':
-			{
-				scale = 0.2;
-				clientList->changePlayFactor(index, scale);
-
-				break;
-			}
-
+		switch (key)
+		{
 			/*
-				控制帧率变化
+				控制图像缩放倍率
 			*/
-			case ',':
-			{
-				frameRateOffset = -1;
-				clientList->changePlayFactor(index, frameRateOffset);
+		case '1':
+		{
+			scale = 0.5;
+			clientList->changePlayFactor(index, scale);
 
-				break;
-			}
-			case '.':
-			{
-				frameRateOffset = 1;
-				clientList->changePlayFactor(index, frameRateOffset);
+			break;
+		}
+		case '2':
+		{
+			scale = 1;
+			clientList->changePlayFactor(index, scale);
 
-				break;
-			}
+			break;
+		}
+		case '3':
+		{
+			scale = 1.5;
+			clientList->changePlayFactor(index, scale);
 
-			/*
-				控制播放模式
-			*/
-			case 'p':
-			{
-				play = !play;
-				clientList->changePlayFactor(index, play);
+			break;
+		}
+		case '4':
+		{
+			scale = 2;
+			clientList->changePlayFactor(index, scale);
 
-				break;
-			}
+			break;
+		}
+		case '5':
+		{
+			scale = 2.5;
+			clientList->changePlayFactor(index, scale);
 
-			default:
-				break;
-			}
+			break;
+		}
+		case '6':
+		{
+			scale = 3;
+			clientList->changePlayFactor(index, scale);
+
+			break;
+		}
+		case '7':
+		{
+			scale = 0.2;
+			clientList->changePlayFactor(index, scale);
+
+			break;
+		}
+
+		/*
+			控制帧率变化
+		*/
+		case ',':
+		{
+			frameRateOffset = -1;
+			clientList->changePlayFactor(index, frameRateOffset);
+
+			break;
+		}
+		case '.':
+		{
+			frameRateOffset = 1;
+			clientList->changePlayFactor(index, frameRateOffset);
+
+			break;
+		}
+
+		/*
+			控制播放模式
+		*/
+		case 'p':
+		{
+			play = !play;
+			clientList->changePlayFactor(index, play);
+
+			break;
+		}
+
+		default:
+			break;
 		}
 
 		//若结束事件被设置，则结束线程

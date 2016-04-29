@@ -51,6 +51,15 @@ void monitor::endTiming()
 	ReleaseSemaphore(hSemaphoreEnd, 1, NULL);
 }
 
+void monitor::getTimeStamp(double &timeStamp)
+{
+	LARGE_INTEGER cnt;
+
+	QueryPerformanceCounter(&cnt);
+
+	timeStamp = (double)(cnt.QuadPart * 1000 / frequency);
+}
+
 void monitor::shutdown()
 {
 	SetEvent(hEventShutdown);
@@ -99,7 +108,7 @@ bool monitor::isTimeout(int frameRate, int clockID)
 
 	string logMsg = to_string(frameRate) + ',' + to_string(diff);
 
-	myLog->logDelayData(logMsg);
+	myLog->logData(logMsg);
 
 	return true;
 }

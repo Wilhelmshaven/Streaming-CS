@@ -21,10 +21,6 @@
 
 #include "wsHandler.h"
 
-////TestCode
-//#include "clientManager.h"
-//clientManager *client = clientManager::getInstance();
-
 middleWare* middleWare::instance = new middleWare;
 
 errHandler *errorHandler = errHandler::getInstance();
@@ -148,7 +144,8 @@ DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 			break;
 		}
 
-		myClock->beginTiming();
+		//开始计时
+		//myClock->beginTiming();
 
 		//2.取出图像
 		if (!camera->getImage(index, head, frame))
@@ -265,20 +262,16 @@ DWORD middleWare::mw_RTP_Cnct_Thread(LPVOID lparam)
 			continue;
 		}
 
+		//测试代码#7
+		double testData7;
+		myClock->getTimeStamp(testData7);
+		myLogger->insertTimestamp(7, testData7);
+
 		//3.将数据包送入网络模块发送
 		network->sendMessage((*packet), index);
 
-		/*
-			以下为针对多用户情况进行的一个小测试
-			遍历客户端列表，给每个客户端都发一张图
-		*/
-		//for (auto iter = client->socToSessList.begin(); iter != client->socToSessList.end(); ++iter)
-		//{
-		//	shared_ptr<string> tmp = packet;
-		//	network->sendMessage((*tmp), iter->first);
-		//}
-
-		myClock->endTiming();
+		//结束计时
+		//myClock->endTiming();	
 	}
 
 	return 0;

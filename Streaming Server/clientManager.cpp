@@ -39,7 +39,7 @@ bool clientManager::addClient(unsigned long session, SOCKET socket, unsigned int
 
 	client.scaleFactor = 1;
 	client.play = false;
-	client.frameRate = 10;
+	client.frameRate = cameraCaptureRate / 2;
 
 	if (clientList.find(session) == clientList.end())
 	{

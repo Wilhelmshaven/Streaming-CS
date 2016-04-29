@@ -5,7 +5,6 @@
 //加入日志记录器
 #include "logger.h"
 
-//调播放器获取帧率，用于记录
 #include "camCap.h"
 
 monitor* monitor::instance = new monitor;
@@ -48,6 +47,15 @@ void monitor::endTiming()
 	ReleaseSemaphore(hSemaphoreEnd, 1, NULL);
 }
 
+void monitor::getTimeStamp(double &timeStamp)
+{
+	LARGE_INTEGER cnt;
+
+	QueryPerformanceCounter(&cnt);
+
+	timeStamp = (double)(cnt.QuadPart * 1000 / frequency);
+}
+
 void monitor::shutdown()
 {
 	SetEvent(hEventShutdown);
@@ -65,9 +73,6 @@ monitor::~monitor()
 /*
 	计算时间差，判断是否超时
 	这里使用了比较高精度的计时方法，单位毫秒
-
-	TODO：
-	以及，还有一个严重问题，如果有去无回呢？那停表的时候就肯定会停乱了
 */
 bool monitor::isTimeout(int frameRate, int clockID)
 {
@@ -96,7 +101,7 @@ bool monitor::isTimeout(int frameRate, int clockID)
 
 	string logMsg = to_string(frameRate) + ',' + to_string(diff);
 
-	myLog->logDelayData(logMsg);
+	myLog->logData(logMsg);
 
 	return true;
 }

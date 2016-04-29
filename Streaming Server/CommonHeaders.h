@@ -234,3 +234,6 @@ enum imgMsgType
 {
 	IMG_HEAD = 0x01,
 };
+
+//²âÊÔÓÃ´úÂë
+static int testIndex = 1;

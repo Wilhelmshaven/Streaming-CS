@@ -4,13 +4,22 @@
 
 logger *logger::instance = new logger;
 
+vector<queue<double>> logger::clockRecord;
+int logger::queueCnt;
+fstream logger::errFile;
+fstream logger::dataFile;
+
 logger * logger::getInstance()
 {
 	return instance;
 }
 
-void logger::initLogModule()
+void logger::initLogModule(int cnt)
 {
+	queueCnt = cnt;
+
+	clockRecord.resize(queueCnt);
+
 	//生成文件
 	generatePath();
 }
@@ -20,16 +29,41 @@ void logger::logError(int errCode, string error)
 	errFile << errCode << "," << error << endl;
 }
 
-void logger::logDelayData(string data)
+void logger::logData(string data)
 {
-	delayDataFile << data << endl;
+	dataFile << data << endl;
+}
+
+void logger::insertTimestamp(int pivot, double timestamp)
+{
+	clockRecord[pivot].push(timestamp);
+
+	if ((pivot + 1) == queueCnt)
+	{
+		string logStr;
+
+		double data;
+
+		for (int i = 0; i < queueCnt; ++i)
+		{
+			data = clockRecord[i].front();
+
+			clockRecord[i].pop();
+
+			logStr = logStr + to_string(data) + ',';
+		}
+
+		logStr.pop_back();
+
+		logData(logStr);
+	}
 }
 
 void logger::shutdownModule()
 {
 	errFile.close();
 
-	delayDataFile.close();
+	dataFile.close();
 }
 
 void logger::generatePath()
@@ -59,7 +93,7 @@ void logger::generatePath()
 	delayDataPath = "./logs/" + prefix + " DelayData.csv";
 
 	createLogFile(errFile, errFilePath);
-	createLogFile(delayDataFile, delayDataPath);
+	createLogFile(dataFile, delayDataPath);
 }
 
 /*

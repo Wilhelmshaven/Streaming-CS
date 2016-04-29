@@ -12,10 +12,7 @@ typedef struct timingClock
 };
 
 /*
-	监控器模块，检测帧率，实时反馈给服务器（服务器管不管……就不知道了）
-	毫无疑问，单例模式
-
-	需要获知是否有超时的情况，请监控信号量hsMonitor
+	监控器模块，单例模式
 
 	使用：
 
@@ -24,7 +21,6 @@ typedef struct timingClock
 	void beginTiming()：开始计时
 
 	void endTiming()：结束计时
-
 */
 class monitor
 {
@@ -39,6 +35,9 @@ public:
 
 	//结束计时
 	void endTiming();
+
+	//直接获取时间戳
+	void getTimeStamp(double &timeStamp);
 
 	//关闭计时器
 	void shutdown();

@@ -2,6 +2,12 @@
 
 #include "cvPlayer.h"
 
+#include "monitor.h"
+#include "logger.h"
+
+monitor *playerClock = monitor::getInstance();
+logger *playerLogger = logger::getInstance();
+
 //类内静态成员变量定义
 HANDLE cvPlayer::heStart;
 HANDLE cvPlayer::hePause;
@@ -146,7 +152,7 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 
 	string windowName = "Streaming Client Media Player";
 	//namedWindow(windowName, CV_WINDOW_AUTOSIZE);
-
+	imshow(windowName, preFrame);
 	int key;
 
 	myImage img;
@@ -179,15 +185,30 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 
 					*/
 
+					//测试代码#5
+					double timestamp5;
+					playerClock->getTimeStamp(timestamp5);
+					playerLogger->insertTimestamp(5, timestamp5);
+
 					//解压缩图片
 					Mat frame = imdecode(Mat(*(img.imgData)), CV_LOAD_IMAGE_COLOR);
 
+					//测试代码#6
+					double timestamp6;
+					playerClock->getTimeStamp(timestamp6);
+					playerLogger->insertTimestamp(6, timestamp6);
+
 					preFrame = frame;
 				}
-			}
+			
 
 			imshow(windowName, preFrame);
 
+			//测试代码#7
+			double timestamp7;
+			playerClock->getTimeStamp(timestamp7);
+			playerLogger->insertTimestamp(7, timestamp7);
+			}
 			if (WaitForSingleObject(hePause, 0) == WAIT_OBJECT_0)
 			{
 				break;
