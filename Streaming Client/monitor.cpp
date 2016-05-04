@@ -76,9 +76,6 @@ monitor::~monitor()
 /*
 	计算时间差，判断是否超时
 	这里使用了比较高精度的计时方法，单位毫秒
-
-	TODO：
-	以及，还有一个严重问题，如果有去无回呢？那停表的时候就肯定会停乱了
 */
 bool monitor::isTimeout(int clockID)
 {
@@ -91,8 +88,6 @@ bool monitor::isTimeout(int clockID)
 
 	if (diff > timingThreshold)
 	{
-		//TODO：超时，记录并向服务端报告
-
 		return false;
 	}
 

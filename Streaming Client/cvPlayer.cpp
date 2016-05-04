@@ -18,6 +18,9 @@ namespace cvPlayerNS
 	HANDLE hsPlayerOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::playerOutput);
 
 	HANDLE heCloseClient = CreateEvent(NULL, TRUE, FALSE, syncManager::ESCPressed);
+
+	//超时
+	HANDLE hsTimeOut = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::timeOut);
 }
 using namespace cvPlayerNS;
 
@@ -166,6 +169,8 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 			读取缓存->播放，循环
 		*/
 
+		playerClock->beginTiming();
+
 		while (1)
 		{
 			/*
@@ -174,6 +179,22 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 			*/
 			if (WaitForSingleObject(hsPlayerInput, 0) == WAIT_OBJECT_0)
 			{
+				/*
+					计算时间差
+				*/
+
+				playerClock->endTiming();
+
+				//超时回报：直接推入小于号
+				if (WaitForSingleObject(hsTimeOut, 0) == WAIT_OBJECT_0)
+				{
+					cmdQueue.push(',');
+
+					ReleaseSemaphore(hsPlayerOutput, 1, NULL);
+				}
+
+				playerClock->beginTiming();
+
 				if (getImage(img))
 				{
 					/*
@@ -211,7 +232,7 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 					break;
 				}
 
-				//控制按键频率
+				//控制按键频率：waitkey按下后会立即返回的，所以等待时间会不足，这里需要补偿一下
 				Sleep(frameRate);
 
 				//有输入，则通知中间件来取走
