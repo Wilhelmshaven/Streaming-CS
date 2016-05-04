@@ -2,14 +2,15 @@
 
 #include "cnctHandler.h"
 
-#include "monitor.h"
 #include "logger.h"
 
-monitor *netMonitor = monitor::getInstance();
-logger *netLogger = logger::getInstance();
+#include "monitor.h"
 
 namespace cnctNS
 {
+	monitor *netMonitor = monitor::getInstance();
+	logger *netLogger = logger::getInstance();
+
 	//网络模块：标记有消息需要发送
 	HANDLE hsNewSendMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctInput);
 
@@ -20,15 +21,14 @@ namespace cnctNS
 	HANDLE hsNewRTSPMsg = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::cnctRTSPOutput);
 
 	HANDLE heCloseClient = CreateEvent(NULL, TRUE, FALSE, syncManager::ESCPressed);
-};
-
+}
 using namespace cnctNS;
 
 cnctHandler *cnctHandler::instance = new cnctHandler(srvSettingFile);
 
 queue<string> cnctHandler::sendMsgQueue, cnctHandler::recvRTSPQueue;
-
 queue<shared_ptr<vector<BYTE>>> cnctHandler::recvRTPQueue;
+
 /*
 	构造函数（传入文件名为参数，否则读取公共头中指定的文件路径）
 
@@ -175,8 +175,11 @@ void cnctHandler::fillInfo(string label, string buf, srvInfo & serverInfo)
 			if (errCode != 0)
 			{
 				serverInfo.isValid = false;
-				//cout << "配置文件中包含非法域名，错误代码：" << WSAGetLastError() << endl;
-				//errHandler(201)
+
+				cout << "配置文件中包含非法域名，错误代码：" << WSAGetLastError() << endl;
+				
+				//201,Unvalid Server Information.
+				netLogger->logError(201);
 			}
 			else
 			{
@@ -354,10 +357,13 @@ DWORD cnctHandler::sendThread(LPVOID lparam)
 
 			bytesSent = send(socket, msg.c_str(), msg.length(), NULL);
 
+#ifdef DEBUG
 			if (bytesSent > 0)
 			{
 				cout << "Send Message:" << endl << msg << endl;
 			}
+#endif // DEBUG
+
 		}
 	}
 

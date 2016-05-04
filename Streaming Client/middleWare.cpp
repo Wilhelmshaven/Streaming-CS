@@ -10,40 +10,43 @@
 
 #include "cnctHandler.h"
 
-//错误处理
 #include "errHandler.h"
 
-//计时器模块：用于获取延迟数据而已
+//计时器模块：用于获取延迟数据
 #include "monitor.h"
 
-//日志
 #include "logger.h"
 
-errHandler *errorHandler = errHandler::getInstance();
+namespace mwNS
+{
+	errHandler *errorHandler = errHandler::getInstance();
 
-monitor *clock = monitor::getInstance();
-logger *myLogger = logger::getInstance();
+	monitor *clock = monitor::getInstance();
 
-//关闭服务器事件
-HANDLE heCloseClientAll;
+	logger *myLogger = logger::getInstance();
 
-//播放器出口
-HANDLE hsCvPlayerOutput;
+	//关闭服务器事件
+	HANDLE heCloseClientAll;
 
-//控制信令编码器出口
-HANDLE hsCtrlOutput;
+	//播放器出口
+	HANDLE hsCvPlayerOutput;
 
-//标记网络模块收到RTSP信息
-HANDLE hsRecvRTSPMsg;
+	//控制信令编码器出口
+	HANDLE hsCtrlOutput;
 
-//标记网络模块收到RTP信息
-HANDLE hsRecvRTPMsg;
+	//标记网络模块收到RTSP信息
+	HANDLE hsRecvRTSPMsg;
 
-//标记RTP解包完成
-HANDLE hsRTPUnpacked;
+	//标记网络模块收到RTP信息
+	HANDLE hsRecvRTPMsg;
 
-//标记图像缓存中有图像
-HANDLE hsBufOutput;
+	//标记RTP解包完成
+	HANDLE hsRTPUnpacked;
+
+	//标记图像缓存中有图像
+	HANDLE hsBufOutput;
+}
+using namespace mwNS;
 
 middleWare* middleWare::instance = new middleWare;
 
@@ -93,7 +96,7 @@ void middleWare::startMiddleWare()
 	else
 	{
 		//100,Can't connect to server.
-		errorHandler->handleError(100);
+		myLogger->logError(100);
 
 		SetEvent(heCloseClientAll);
 	}
@@ -160,7 +163,7 @@ DWORD middleWare::mw_Player_Ctrl_Thread(LPVOID lparam)
 		if (!player->getCtrlKey(key))
 		{
 			//101,Can't get control key from player.
-			errorHandler->handleError(101);
+			myLogger->logError(101);
 
 			continue;
 		}
@@ -194,7 +197,7 @@ DWORD middleWare::mw_Ctrl_Net_Thread(LPVOID lparam)
 		if (!ctrl->getEncodedMsg(encodedMsg))
 		{
 			//102,Can't get encoded control message from encoder.
-			errorHandler->handleError(102);
+			myLogger->logError(102);
 
 			continue;
 		}
@@ -276,7 +279,7 @@ DWORD middleWare::mw_Net_RTP_Thread(LPVOID lparam)
 		if (!network->getRTPMessage(ptr))
 		{
 			//104,Can't get RTP message from network handler.
-			errorHandler->handleError(104);
+			myLogger->logError(104);
 
 			continue;
 		}
@@ -310,7 +313,7 @@ DWORD middleWare::mw_RTP_Buf_Thread(LPVOID lparam)
 		if (!rtp->getMedia(head, ptr))
 		{
 			//105,Can't get media from RTP module.
-			errorHandler->handleError(105);
+			myLogger->logError(105);
 
 			continue;
 		}
@@ -344,7 +347,7 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 		if (!buffer->popBuffer(head, ptr))
 		{
 			//106,Can't get media from buffer.
-			errorHandler->handleError(106);
+			myLogger->logError(106);
 
 			continue;
 		}
@@ -435,7 +438,7 @@ void middleWare::recvRTSPMsg(int & errCode)
 			errCode = 103;
 
 			//103,Can't get RTSP message from network handler.
-			errorHandler->handleError(errCode);
+			myLogger->logError(103);
 
 			break;
 		}

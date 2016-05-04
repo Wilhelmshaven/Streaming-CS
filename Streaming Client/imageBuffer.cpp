@@ -2,8 +2,12 @@
 
 #include "imageBuffer.h"
 
-//媒体缓存模块：标记有图像了，请取走播放
-HANDLE hsBufferOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::bufferOutput);
+namespace bufNS
+{
+	//媒体缓存模块：标记有图像了，请取走播放
+	HANDLE hsBufferOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::bufferOutput);
+}
+using namespace bufNS;
 
 imgBuffer *imgBuffer::instance = new imgBuffer;
 

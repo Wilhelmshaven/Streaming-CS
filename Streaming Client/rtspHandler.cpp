@@ -56,7 +56,7 @@ string rtspHandler::getHandlerInfo()
 
 	/*
 		Tips. 这是我目前发现唯一适合使用三目运算符的情况……
-		当然不止一处适用，我只是讨厌那些滥用三目的人，可读性至上好吗！（而不是长度
+		当然不止一处适用，我只是讨厌那些滥用三目的人，可读性至上好吗！（而不是代码长度
 	*/
 
 	sprintf_s((char *)msg.data(), BUF_SIZE, "RTSP版本：%s\r\n会话号（session）：%s\r\n端口号：%d\r\n传输方式：%s\r\n",

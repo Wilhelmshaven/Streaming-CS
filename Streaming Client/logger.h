@@ -11,9 +11,13 @@
 	其二，记录运行数据到文本
 
 	使用：
+
 	void initLogModule()：初始化模块
-	void logError(int errCode, string error)：写入错误信息
-	void logDelayData(string data)：写入延迟数据
+
+	void logError(int errCode = -1, string error = "")：写入错误信息
+
+	void insertTimestamp(int pivot, double timestamp)：写入时间数据
+
 	void shutdownModule()：关闭模块
 */
 class logger
@@ -24,9 +28,7 @@ public:
 
 	static void initLogModule(int queueCnt = 8);
 
-	static void logError(int errCode, string error);
-
-	static void logData(string data);
+	static void logError(int errCode = -1, string error = "");
 
 	static void insertTimestamp(int pivot, double timestamp);
 

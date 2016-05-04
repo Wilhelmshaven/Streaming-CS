@@ -10,8 +10,7 @@ namespace myHandle
 	HANDLE heCloseClient;
 
 	HANDLE heESCPressed;
-};
-
+}
 using namespace myHandle;
 
 void initServer()

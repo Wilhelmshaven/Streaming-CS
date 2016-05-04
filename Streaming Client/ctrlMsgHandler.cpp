@@ -2,7 +2,11 @@
 
 #include "ctrlMsgHandler.h"
 
-HANDLE hsCtrlMsgEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgOutput);
+namespace ctrlNS
+{
+	HANDLE hsCtrlMsgEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgOutput);
+}
+using namespace ctrlNS;
 
 ctrlMsgHandler* ctrlMsgHandler::instance = new ctrlMsgHandler;
 

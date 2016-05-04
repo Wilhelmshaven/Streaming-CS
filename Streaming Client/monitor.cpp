@@ -5,20 +5,19 @@
 //加入日志记录器
 #include "logger.h"
 
-//调播放器获取帧率，用于记录
-#include "cvPlayer.h"
+namespace monitorNS
+{
+	logger *myLog = logger::getInstance();
+
+	//监控模块：标记是否有超时的情况
+	HANDLE hsTimeOut = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::timeOut);
+}
+using namespace monitorNS;
 
 monitor* monitor::instance = new monitor;
 
-logger *myLog = logger::getInstance();
-cvPlayer *myPlayer = cvPlayer::getInstance();
-
-//监控模块：标记是否有超时的情况
-HANDLE hsTimeOut = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::timeOut);
-
 double monitor::frequency;
 
-//定义一下
 timingClock monitor::myClock[MAX_CLOCK];
 
 int monitor::startClockID;
@@ -81,7 +80,7 @@ monitor::~monitor()
 	TODO：
 	以及，还有一个严重问题，如果有去无回呢？那停表的时候就肯定会停乱了
 */
-bool monitor::isTimeout(int frameRate, int clockID)
+bool monitor::isTimeout(int clockID)
 {
 	double start, end, diff;
 
@@ -92,23 +91,10 @@ bool monitor::isTimeout(int frameRate, int clockID)
 
 	if (diff > timingThreshold)
 	{
-
-#ifdef DEBUG
-		cout << " Timeout!" << endl;
-#endif // DEBUG
-
-		diff = -1;
+		//TODO：超时，记录并向服务端报告
 
 		return false;
 	}
-
-#ifdef DEBUG
-	cout << "Delay: " << diff << "ms" << endl;
-#endif // DEBUG
-
-	string logMsg = to_string(frameRate) + ',' + to_string(diff);
-
-	myLog->logData(logMsg);
 
 	return true;
 }
@@ -141,8 +127,6 @@ DWORD monitor::beginTimingThreadFunc(LPVOID lparam)
 */
 DWORD monitor::endTimingThreadFunc(LPVOID lparam)
 {
-	int frameRate;
-
 	while (1)
 	{
 		WaitForSingleObject(hSemaphoreEnd, INFINITE);
@@ -154,9 +138,7 @@ DWORD monitor::endTimingThreadFunc(LPVOID lparam)
 
 		QueryPerformanceCounter(&(myClock[endClockID].endTime));
 
-		frameRate = myPlayer->getFrameRate();
-
-		if (isTimeout(frameRate, endClockID))
+		if (isTimeout(endClockID))
 		{
 			ReleaseSemaphore(hsTimeOut, 1, NULL);
 		}

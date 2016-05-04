@@ -65,6 +65,7 @@ public:
 	//出口，弹出用户输入的按键
 	static bool getCtrlKey(unsigned char &key);
 
+	//获取当前帧率
 	static int getFrameRate();
 
 private:

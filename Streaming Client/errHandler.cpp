@@ -9,7 +9,7 @@ errHandler * errHandler::getInstance()
 	return instance;
 }
 
-string errHandler::handleError(int errCode)
+string errHandler::getErrorMsg(int errCode)
 {
 	string errMsg;
 
@@ -17,7 +17,7 @@ string errHandler::handleError(int errCode)
 
 	if (iter == errList.end())
 	{
-		errMsg = "Unknown error...";
+		errMsg = "Unknown error.";
 	}
 	else
 	{

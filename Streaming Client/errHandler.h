@@ -10,7 +10,7 @@
 
 使用：
 
-	string handleError(unsigned int errCode)：输入错误码，屏幕上会输出错误信息，也可以从返回值读取
+	string getErrorMsg(unsigned int errCode)：输入错误码，返回错误信息
 */
 class errHandler
 {
@@ -18,7 +18,7 @@ public:
 
 	static errHandler* getInstance();
 
-	string handleError(int errCode);
+	string getErrorMsg(int errCode);
 
 private:
 

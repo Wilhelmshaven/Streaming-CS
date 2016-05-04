@@ -2,11 +2,26 @@
 
 #include "cvPlayer.h"
 
-#include "monitor.h"
 #include "logger.h"
 
-monitor *playerClock = monitor::getInstance();
-logger *playerLogger = logger::getInstance();
+#include "monitor.h"
+
+namespace cvPlayerNS
+{
+	monitor *playerClock = monitor::getInstance();
+	logger *playerLogger = logger::getInstance();
+
+	//播放器模块：图像是否被输入
+	HANDLE hsPlayerInput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::playerInput);
+
+	//播放器模块：获取到了操作，通知中间件取走
+	HANDLE hsPlayerOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::playerOutput);
+
+	HANDLE heCloseClient = CreateEvent(NULL, TRUE, FALSE, syncManager::ESCPressed);
+}
+using namespace cvPlayerNS;
+
+cvPlayer* cvPlayer::instance = new cvPlayer;
 
 //类内静态成员变量定义
 HANDLE cvPlayer::heStart;
@@ -18,16 +33,6 @@ queue<myImage> cvPlayer::imgQueue;
 
 int cvPlayer::frameRate;
 int cvPlayer::playRate;
-
-//播放器模块：图像是否被输入
-HANDLE hsPlayerInput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::playerInput);
-
-//播放器模块：获取到了操作，通知中间件取走
-HANDLE hsPlayerOutput = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::playerOutput);
-
-HANDLE heCloseClient = CreateEvent(NULL, TRUE, FALSE, syncManager::ESCPressed);
-
-cvPlayer* cvPlayer::instance = new cvPlayer;
 
 cvPlayer * cvPlayer::getInstance()
 {
@@ -83,8 +88,6 @@ void cvPlayer::destroyPlayer()
 	SetEvent(heCloseClient);
 }
 
-
-//还原vector为Mat，并推入队列
 void cvPlayer::insertImage(imgHead head, shared_ptr<vector<BYTE>> image)
 {
 	myImage img;
@@ -143,16 +146,14 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 
 	Mat preFrame;
 
-	int nScreenWidth, nScreenHeight;
-
-	nScreenWidth = GetSystemMetrics(SM_CXSCREEN) / 2;
-	nScreenHeight = GetSystemMetrics(SM_CYSCREEN) / 2;
+	int nScreenWidth = GetSystemMetrics(SM_CXSCREEN) / 2;
+	int nScreenHeight = GetSystemMetrics(SM_CYSCREEN) / 2;
 
 	preFrame.create(nScreenHeight, nScreenWidth, CV_8UC3);
 
 	string windowName = "Streaming Client Media Player";
 	//namedWindow(windowName, CV_WINDOW_AUTOSIZE);
-	imshow(windowName, preFrame);
+
 	int key;
 
 	myImage img;
@@ -176,39 +177,22 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 				if (getImage(img))
 				{
 					/*
-
 					//不压缩的处理代码（还原Mat）
 
 					////如果vector的大小不对，会爆出CV内存错误
 					//Mat frame = Mat(*image).reshape(head.channels, head.yAxis.rows).clone();
 					//frame.convertTo(frame, head.imgType);
-
 					*/
-
-					//测试代码#5
-					double timestamp5;
-					playerClock->getTimeStamp(timestamp5);
-					playerLogger->insertTimestamp(5, timestamp5);
 
 					//解压缩图片
 					Mat frame = imdecode(Mat(*(img.imgData)), CV_LOAD_IMAGE_COLOR);
 
-					//测试代码#6
-					double timestamp6;
-					playerClock->getTimeStamp(timestamp6);
-					playerLogger->insertTimestamp(6, timestamp6);
-
 					preFrame = frame;
 				}
-			
+			}
 
 			imshow(windowName, preFrame);
 
-			//测试代码#7
-			double timestamp7;
-			playerClock->getTimeStamp(timestamp7);
-			playerLogger->insertTimestamp(7, timestamp7);
-			}
 			if (WaitForSingleObject(hePause, 0) == WAIT_OBJECT_0)
 			{
 				break;
@@ -248,7 +232,10 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 
 				if (key == '.')
 				{
-					++playRate;
+					if (playRate < 20)
+					{
+						++playRate;
+					}
 #ifdef DEBUG
 					cout << "Frame Rate = " << playRate << endl;
 #endif

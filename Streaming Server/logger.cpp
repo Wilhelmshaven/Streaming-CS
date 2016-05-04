@@ -64,7 +64,7 @@ void logger::insertTimestamp(int pivot, double timestamp)
 
 		logStr.pop_back();
 
-		dataFile << logStr;
+		dataFile << logStr << endl;
 	}
 }
 
