@@ -53,7 +53,7 @@ typedef struct myCommand
 
 	bool getImage(SOCKET &index, Mat frame)：获取图像
 
-	int getFrameRate()：获取帧率
+	int getFrameRate()：获取当前帧率
 */
 class camCap
 {
@@ -79,7 +79,7 @@ public:
 	//获取图像
 	bool getImage(SOCKET &index, imgHead &head, vector<BYTE> &frame);
 
-	//获取帧率
+	//获取当前帧率
 	static int getFrameRate();
 
 	~camCap();

@@ -54,17 +54,17 @@ bool imgBuffer::isBufEmpty()
 	return imgQueue.empty();
 }
 
-int imgBuffer::dropFrame(unsigned int cnt)
-{
-	for (int i = 0; i < cnt; ++i)
-	{
-		if (isBufEmpty())
-		{
-			return i;
-		}
-
-		imgQueue.pop();
-	}
-
-	return 0;
-}
+//int imgBuffer::dropFrame(unsigned int cnt)
+//{
+//	for (int i = 0; i < cnt; ++i)
+//	{
+//		if (isBufEmpty())
+//		{
+//			return i;
+//		}
+//
+//		imgQueue.pop();
+//	}
+//
+//	return 0;
+//}

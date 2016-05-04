@@ -72,9 +72,11 @@ typedef struct stringSocketMsg
 
 	int startServer()：启动服务器并监听传入连接，返回值为winsock中listen函数的返回值
 
-	static bool getRTSPMsg(string &msg, SOCKET &socket)：出口，获取RTSP信令。请监听hsRTSPMsgArrived信号量。
+	bool getRTSPMsg(string &msg, SOCKET &socket)：出口，获取RTSP信令
 
-	static bool getCtrlMsg(string &msg, SOCKET &socket)：出口，获取控制信令。请监听hsCtrlMsgArrived信号量。
+	bool getCtrlMsg(string &msg, SOCKET &socket)：出口，获取控制信令
+
+	bool getHTTPMsg(string &msg, SOCKET &socket)：出口，获取HTTP信令
 
 	void sendMessage(string msg, SOCKET socket)：入口，（单纯）发送给定信息
 
@@ -86,7 +88,7 @@ public:
 
 	WSADATA wsaData;
 
-	static cnctHandler *getInstance();           //返回单例
+	static cnctHandler *getInstance();
 
 	//设置服务器参数
 	int srvConfig(int port = 8554);
@@ -94,20 +96,20 @@ public:
 	//启动服务器并监听传入连接
 	int startServer();
 
-	//出口：获取RTSP信令。请监听hsRTSPMsgArrived信号量。
+	//出口：获取RTSP信令
 	static bool getRTSPMsg(string &msg, SOCKET &socket);
 
-	//出口：获取控制信令。请监听hsCtrlMsgArrived信号量。
+	//出口：获取控制信令
 	static bool getCtrlMsg(string &msg, SOCKET &socket);
 
-	//出口：获取HTTP信令。请监听hsWebMsgArrived信号量。
+	//出口：获取HTTP信令
 	static bool getHTTPMsg(string &msg, SOCKET &socket);
 
 	//入口：（单纯）发送给定信息
 	void sendMessage(string msg, SOCKET socket);
 
 	//检查某个套接字是否还活动
-	bool isSocketAlive(SOCKET clientSocket);
+	static bool isSocketAlive(SOCKET clientSocket);
 
 	~cnctHandler();                           
 

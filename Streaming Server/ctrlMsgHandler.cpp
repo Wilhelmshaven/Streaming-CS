@@ -2,11 +2,15 @@
 
 #include "ctrlMsgHandler.h"
 
-//控制信令处理模块：标记信令解码完毕，请中间件拿走转给渲染器
-HANDLE ctrlMsgDecoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgDecoded);
+namespace ctrlNS
+{
+	//控制信令处理模块：标记信令解码完毕，请中间件拿走转给渲染器
+	HANDLE ctrlMsgDecoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgDecoded);
 
-//控制信令处理模块：标记信令编码完毕，请中间件拿走转给网络模块
-//HANDLE hsCtrlMsgEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgEncoded);
+	//控制信令处理模块：标记信令编码完毕，请中间件拿走转给网络模块
+	//HANDLE hsCtrlMsgEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::ctrlMsgEncoded);
+};
+using namespace ctrlNS;
 
 ctrlMsgHandler* ctrlMsgHandler::instance = new ctrlMsgHandler;
 

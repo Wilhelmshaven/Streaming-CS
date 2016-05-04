@@ -5,12 +5,9 @@
 //加入日志记录器
 #include "logger.h"
 
-#include "camCap.h"
-
 monitor* monitor::instance = new monitor;
 
 logger *myLog = logger::getInstance();
-camCap *camera = camCap::getInstance();
 
 double monitor::frequency;
 
@@ -74,7 +71,7 @@ monitor::~monitor()
 	计算时间差，判断是否超时
 	这里使用了比较高精度的计时方法，单位毫秒
 */
-bool monitor::isTimeout(int frameRate, int clockID)
+bool monitor::isTimeout(int clockID)
 {
 	double start, end, diff;
 
@@ -85,25 +82,15 @@ bool monitor::isTimeout(int frameRate, int clockID)
 
 	if (diff > timingThreshold)
 	{
+		//记录下错误信息
+		//601,Time out.
 
-#ifdef DEBUG
-		cout << " Timeout!" << endl;
-#endif // DEBUG
+		myLog->logError(601);
 
-		diff = -1;
-
-		return false;
+		return true;
 	}
 
-#ifdef DEBUG
-	cout << "Delay: " << diff << "ms" << endl;
-#endif // DEBUG
-
-	string logMsg = to_string(frameRate) + ',' + to_string(diff);
-
-	myLog->logData(logMsg);
-
-	return true;
+	return false;
 }
 
 /*
@@ -134,8 +121,6 @@ DWORD monitor::beginTimingThreadFunc(LPVOID lparam)
 */
 DWORD monitor::endTimingThreadFunc(LPVOID lparam)
 {
-	int frameRate;
-
 	while (1)
 	{
 		WaitForSingleObject(hSemaphoreEnd, INFINITE);
@@ -147,9 +132,7 @@ DWORD monitor::endTimingThreadFunc(LPVOID lparam)
 
 		QueryPerformanceCounter(&(myClock[endClockID].endTime));
 
-		frameRate = camera->getFrameRate();
-
-		if (isTimeout(frameRate, endClockID))
+		if (isTimeout(endClockID))
 		{
 			//ReleaseSemaphore(hsTimeOut, 1, NULL);
 		}

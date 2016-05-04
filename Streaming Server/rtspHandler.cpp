@@ -17,7 +17,6 @@ namespace rtspNS
 	HANDLE heStopPlay = CreateEvent(NULL, TRUE, FALSE, syncManager::stop);
 	HANDLE hePausePlay = CreateEvent(NULL, TRUE, FALSE, syncManager::pause);
 };
-
 using namespace rtspNS;
 
 /*----------------------NTP时间戳获取类---------------------*/

@@ -2,6 +2,15 @@
 
 #include "logger.h"
 
+//查询错误信息用
+#include "errHandler.h"
+
+namespace loggerNS
+{
+	errHandler *myErrorHandler = errHandler::getInstance();
+};
+using namespace loggerNS;
+
 logger *logger::instance = new logger;
 
 vector<queue<double>> logger::clockRecord;
@@ -26,12 +35,12 @@ void logger::initLogModule(int cnt)
 
 void logger::logError(int errCode, string error)
 {
-	errFile << errCode << "," << error << endl;
-}
+	if (error == "" || errCode == -1)
+	{
+		error = myErrorHandler->getErrorMsg(errCode);
+	}
 
-void logger::logData(string data)
-{
-	dataFile << data << endl;
+	errFile << errCode << "," << error << endl;
 }
 
 void logger::insertTimestamp(int pivot, double timestamp)
@@ -55,7 +64,7 @@ void logger::insertTimestamp(int pivot, double timestamp)
 
 		logStr.pop_back();
 
-		logData(logStr);
+		dataFile << logStr;
 	}
 }
 

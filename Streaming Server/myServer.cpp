@@ -21,8 +21,12 @@ myMessage::myMessage()
 };
 const myMessage myMsg;
 
-//全局事件：结束服务器的事件
-HANDLE heSrvDown;
+namespace myServerNS
+{
+	//全局事件：结束服务器的事件
+	HANDLE heSrvDown;
+}
+using namespace myServerNS;
 
 /*
 	初始化服务器
@@ -46,8 +50,6 @@ int main()
 	/*
 		剩余清理工作
 	*/
-
-	//camera->stopCapture();
 
 	return 0;
 }

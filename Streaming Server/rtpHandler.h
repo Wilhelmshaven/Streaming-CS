@@ -34,7 +34,7 @@ private:
 		shared_ptr<string> packet;
 	};
 
-	//为了非阻塞
+	//数据包队列
 	queue<shared_ptr<myPacket>> packetQueue;
 
 	/*

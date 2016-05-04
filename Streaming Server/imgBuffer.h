@@ -18,7 +18,7 @@
 
 	bool isBufEmpty()：返回缓存是否为空
 
-	int dropFrame(unsigned int cnt)：丢弃掉指定数量的帧
+	//int dropFrame(unsigned int cnt)：丢弃掉指定数量的帧
 */
 class imgBuffer
 {
@@ -32,7 +32,7 @@ public:
 
 	bool isBufEmpty();
 
-	int dropFrame(unsigned int cnt);
+	//int dropFrame(unsigned int cnt);
 
 private:
 

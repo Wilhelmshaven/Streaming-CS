@@ -5,15 +5,17 @@
 //加入客户端管理器
 #include "clientManager.h"
 
-//获取性能数据用，计时
+//日志
 #include "logger.h"
-#include "monitor.h"
 
-monitor *myCamClock = monitor::getInstance();
-logger *myCamLogger = logger::getInstance();
+//获取性能数据用，计时
+//#include "monitor.h"
 
 namespace camNS
 {
+	//monitor *myCamClock = monitor::getInstance();
+	logger *myCamLogger = logger::getInstance();
+
 	//摄像头：标记中间件已拿到并转发解码好的指令，请渲染器（摄像头）处理
 	HANDLE hsRenderImage = CreateSemaphore(NULL, 0, BUF_SIZE, TEXT(syncManager::renderInput));
 
@@ -219,32 +221,11 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 			if (WaitForSingleObject(hEventShutDown, 0) == WAIT_OBJECT_0)break;
 			if (WaitForSingleObject(hEventStartCap, 0) != WAIT_OBJECT_0)break;
 
-			auto iter = clientList->getIteratorStart();
-			auto iterEnd = clientList->getIteratorEnd();
-
-			//测试代码#1
-			if (iter != iterEnd)
-			{
-				myCamLogger->insertTimestamp(0, testIndex);
-				++testIndex;
-				double testData1;
-				myCamClock->getTimeStamp(testData1);
-				myCamLogger->insertTimestamp(1, testData1);
-			}
-
 			//从设备中取出当前帧
 			capture >> cvFrame;
 
 			++signal;
 			//if (signal > 86400)signal = 1;
-
-			//测试代码#2
-			if (iter != iterEnd)
-			{
-				double testData2;
-				myCamClock->getTimeStamp(testData2);
-				myCamLogger->insertTimestamp(2, testData2);
-			}
 
 			/*
 				遍历客户端列表，以相应的参数存入相应的帧
@@ -255,8 +236,8 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 				4.压缩（统一压缩参数了，当然也可以作为客户端参数的一部分）
 			*/
 
-			//auto iter = clientList->getIteratorStart();
-			//auto iterEnd = clientList->getIteratorEnd();
+			auto iter = clientList->getIteratorStart();
+			auto iterEnd = clientList->getIteratorEnd();
 
 			while (iter != iterEnd)
 			{
@@ -273,11 +254,6 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 
 					continue;
 				}
-
-				//测试代码#3
-				double testData3;
-				myCamClock->getTimeStamp(testData3);
-				myCamLogger->insertTimestamp(3, testData3);
 
 				resize(cvFrame, subFrame, s, iter->second.scaleFactor, iter->second.scaleFactor);
 
@@ -307,25 +283,10 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 				////不压缩的做法
 				//imgData = frame.reshape(1, 1);
 
-				//测试代码#4
-				double testData4;
-				myCamClock->getTimeStamp(testData4);
-				myCamLogger->insertTimestamp(4, testData4);
-
 				//压缩为JPG
 				imencode(".jpg", subFrame, matStruct.frame, compressParam);
 
-				//测试代码#5
-				double testData5;
-				myCamClock->getTimeStamp(testData5);
-				myCamLogger->insertTimestamp(5, testData5);
-
 				imgQueue.push(matStruct);
-
-				//测试代码#6
-				double testData6;
-				myCamClock->getTimeStamp(testData6);
-				myCamLogger->insertTimestamp(6, testData6);
 
 				ReleaseSemaphore(hsRenderDone, 1, NULL);
 
@@ -397,7 +358,8 @@ DWORD camCap::ctrlDealingThread(LPVOID lparam)
 		}
 		else
 		{
-			//未取到指令，TODO，记录错误
+			//102,Can't get decoded control msg from decodoer
+			myCamLogger->logError(102);
 
 			continue;
 		}

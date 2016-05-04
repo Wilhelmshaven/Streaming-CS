@@ -1,6 +1,15 @@
 /*--Author：李宏杰--*/
 #include "clientManager.h"
 
+//日志系统
+#include "logger.h"
+
+namespace clientManagerNS
+{
+	logger *myLogger = logger::getInstance();
+};
+using namespace clientManagerNS;
+
 enum OpenCVFactor
 {
 	maxFrameRate = cameraCaptureRate,
@@ -39,7 +48,7 @@ bool clientManager::addClient(unsigned long session, SOCKET socket, unsigned int
 
 	client.scaleFactor = 1;
 	client.play = false;
-	client.frameRate = cameraCaptureRate / 2;
+	client.frameRate = cameraCaptureRate / 2;  //使用摄像机固定采集率的一半作为客户端初始帧率
 
 	if (clientList.find(session) == clientList.end())
 	{
@@ -49,6 +58,9 @@ bool clientManager::addClient(unsigned long session, SOCKET socket, unsigned int
 
 		return true;
 	}
+
+	//607,Can't add new client, client duplicated.
+	myLogger->logError(607);
 
 	return false;
 }
@@ -68,6 +80,9 @@ bool clientManager::searchClient(unsigned long session)
 	return false;
 }
 
+/*
+	函数：查询客户端是否存在，返回是否存在
+*/
 bool clientManager::searchClient(SOCKET socket)
 {
 	auto iter = socToSessList.find(socket);
@@ -85,9 +100,7 @@ bool clientManager::searchClient(SOCKET socket)
 */
 bool clientManager::getClientInfo(unsigned long session, SOCKET &socket, unsigned int &port, bool &enableUDP)
 {
-	map<unsigned long, PerClientData>::iterator iter;
-
-	iter = clientList.find(session);
+	auto iter = clientList.find(session);
 
 	if (iter != clientList.end())
 	{
@@ -99,6 +112,9 @@ bool clientManager::getClientInfo(unsigned long session, SOCKET &socket, unsigne
 
 		return true;
 	}
+
+	//606,Can't get client info from client manager, no such client in lists.
+	myLogger->logError(606);
 
 	return false;
 }
@@ -121,6 +137,9 @@ bool clientManager::removeClient(unsigned long session)
 		return true;
 	}
 
+	//Error: 605,Can't delete client in client manager, no such client in lists.
+	myLogger->logError(605);
+
 	return false;
 }
 
@@ -138,7 +157,8 @@ bool clientManager::changePlayFactor(SOCKET index, bool play)
 {
 	if (!searchClient(index))
 	{
-		//Todo: log error
+		//Error: 602,Can't find client while changing client info.
+		myLogger->logError(602);
 
 		return false;
 	}
@@ -155,14 +175,16 @@ bool clientManager::changePlayFactor(SOCKET index, double scaleFactor)
 {
 	if (!searchClient(index))
 	{
-		//Todo: log error
+		//Error: 602,Can't find client while changing client info.
+		myLogger->logError(602);
 
 		return false;
 	}
 
 	if (scaleFactor > maxScaleFactor || scaleFactor < minScaleFactor)
 	{
-		//Todo: log error
+		//Error: 603,Scale factor limit exceeded while changing client info.
+		myLogger->logError(603);
 
 		return false;
 	}
@@ -179,7 +201,8 @@ bool clientManager::changePlayFactor(SOCKET index, int frameRateOffset)
 {
 	if (!searchClient(index))
 	{
-		//Todo: log error
+		//Error: 602,Can't find client while changing client info.
+		myLogger->logError(602);
 
 		return false;
 	}
@@ -191,14 +214,13 @@ bool clientManager::changePlayFactor(SOCKET index, int frameRateOffset)
 
 	if (frameRate > maxFrameRate || frameRate < minFrameRate)
 	{
-		//Todo: log error
+		//Error: 604,Framerate factor limit exceeded while changing client info.
+		myLogger->logError(604);
 
 		return false;
 	}
-	else
-	{
-		iter->second.frameRate = frameRate;
-	}
+	
+	iter->second.frameRate = frameRate;
 
 	return true;
 }

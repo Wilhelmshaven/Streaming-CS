@@ -13,9 +13,6 @@
 #include "rtpHandler.h"
 #include "rtspHandler.h"
 
-//错误处理模块
-#include "errHandler.h"
-
 #include "logger.h"
 #include "monitor.h"
 
@@ -23,16 +20,11 @@
 
 middleWare* middleWare::instance = new middleWare;
 
-errHandler *errorHandler = errHandler::getInstance();
-logger *myLogger = logger::getInstance();
-monitor *myClock = monitor::getInstance();
-
-/*
-	信号量/互斥量/事件
-*/
-
 namespace mwNS
 {
+	logger *myLogger = logger::getInstance();
+	monitor *myClock = monitor::getInstance();
+
 	//全局事件：结束服务器的事件
 	HANDLE heShutdownSrv;
 
@@ -53,7 +45,6 @@ namespace mwNS
 	HANDLE hsWebHandshake;
 	HANDLE hsWebMsgArrived;
 }
-
 using namespace mwNS;
 
 void middleWare::initHandles()
@@ -151,7 +142,7 @@ DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 		if (!camera->getImage(index, head, frame))
 		{
 			//103: Can't get image from renderer
-			errorHandler->handleError(103);
+			myLogger->logError(103);
 
 			continue;
 		}
@@ -207,7 +198,7 @@ DWORD middleWare::mw_Buf_RTP_Thread(LPVOID lparam)
 		if (!buffer->popBuffer(index, head, imgData))
 		{
 			//106:Can't get image from Image Buffer
-			errorHandler->handleError(106);
+			myLogger->logError(106);
 
 			continue;
 		}
@@ -219,7 +210,7 @@ DWORD middleWare::mw_Buf_RTP_Thread(LPVOID lparam)
 		if (!rtp->pack(index, head, imgData))
 		{
 			//401. Session is down
-			errorHandler->handleError(401);
+			myLogger->logError(401);
 
 			continue;
 		}
@@ -257,15 +248,10 @@ DWORD middleWare::mw_RTP_Cnct_Thread(LPVOID lparam)
 		if (!rtp->getPacket(index, packet))
 		{
 			//104:Can't get packed packet from RTP module
-			errorHandler->handleError(104);
+			myLogger->logError(104);
 
 			continue;
 		}
-
-		//测试代码#7
-		double testData7;
-		myClock->getTimeStamp(testData7);
-		myLogger->insertTimestamp(7, testData7);
 
 		//3.将数据包送入网络模块发送
 		network->sendMessage((*packet), index);
@@ -306,7 +292,7 @@ DWORD middleWare::mw_Cnct_RTSP_Cnct_Thread(LPVOID lparam)
 		if (!network->getRTSPMsg(msg, index))
 		{
 			//201:Can't get RTSP message from network module
-			errorHandler->handleError(201);
+			myLogger->logError(201);
 
 			continue;
 		}
@@ -350,7 +336,7 @@ DWORD middleWare::mw_Cnct_Ctrl_Thread(LPVOID lparam)
 		if (!network->getCtrlMsg(msg, index))
 		{
 			//101:Can't get control message from network module
-			errorHandler->handleError(101);
+			myLogger->logError(101);
 
 			continue;
 		}
@@ -393,7 +379,7 @@ DWORD middleWare::mw_Ctrl_Cam_Thread(LPVOID lparam)
 		if (!ctrl->getDecodedMsg(index, session, key))
 		{
 			//102:Can't get decoded control msg from decodoer
-			errorHandler->handleError(102);
+			myLogger->logError(102);
 
 			continue;
 		}
@@ -405,6 +391,10 @@ DWORD middleWare::mw_Ctrl_Cam_Thread(LPVOID lparam)
 	return 0;
 }
 
+/*
+	测试用代码：WebSocket，服务于Web端
+	连接模块到Web模块
+*/
 DWORD middleWare::mw_Cnct_Web_Thread(LPVOID lparam)
 {
 	cnctHandler *network = cnctHandler::getInstance();
@@ -427,7 +417,7 @@ DWORD middleWare::mw_Cnct_Web_Thread(LPVOID lparam)
 		if (!network->getHTTPMsg(msg, index))
 		{
 			//502,Can't get message from network module.
-			errorHandler->handleError(502);
+			myLogger->logError(502);
 			
 			continue;
 		}
@@ -438,6 +428,10 @@ DWORD middleWare::mw_Cnct_Web_Thread(LPVOID lparam)
 	return 0;
 }
 
+/*
+	测试用代码：WebSocket，服务于Web端
+	Web模块到连接模块
+*/
 DWORD middleWare::mw_Web_Cnct_Thread(LPVOID lparam)
 {
 	cnctHandler *network = cnctHandler::getInstance();
@@ -460,7 +454,7 @@ DWORD middleWare::mw_Web_Cnct_Thread(LPVOID lparam)
 		if (!websocket->getResponse(index, msg))
 		{
 			//501,Can't get message from websocket module.
-			errorHandler->handleError(501);
+			myLogger->logError(501);
 
 			continue;
 		}

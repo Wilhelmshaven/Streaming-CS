@@ -9,3 +9,10 @@
 401,Session is down
 501,Can't get message from websocket module.
 502,Can't get message from network module.
+601,Time out.
+602,Can't find client while changing client info.
+603,Scale factor limit exceeded while changing client info.
+604,Framerate factor limit exceeded while changing client info.
+605,Can't delete client in client manager, no such client in lists.
+606,Can't get client info from client manager, no such client in lists.
+607,Can't add new client, client duplicated.

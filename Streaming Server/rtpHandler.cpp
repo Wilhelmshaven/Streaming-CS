@@ -5,7 +5,11 @@
 //
 #include "clientManager.h"
 
-HANDLE rtpEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtpEncoded);
+namespace rtpHandlerNS
+{
+	HANDLE rtpEncoded = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::rtpEncoded);
+}
+using namespace rtpHandlerNS;
 
 rtpHandler* rtpHandler::instance = new rtpHandler;
 

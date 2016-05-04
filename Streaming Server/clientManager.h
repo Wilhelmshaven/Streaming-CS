@@ -32,6 +32,7 @@ typedef struct PerClientData
 	bool addClient(unsigned long session, SOCKET socket, int port, bool enableUDP)：插入客户端
 
 	bool searchClient(unsigned long session)：查询客户端是否存在
+	bool searchClient(SOCKET socket)：查询客户端是否存在
 
 	bool getClientInfo(unsigned long session, SOCKET &socket, int &port, bool &enableUDP)：获得客户端信息
 
@@ -66,18 +67,21 @@ public:
 	//遍历用终点迭代器
 	map<unsigned long, PerClientData>::iterator getIteratorEnd();
 
-	//改变是否播放属性
+	//改变客户端配置：是否播放
 	bool changePlayFactor(SOCKET index, bool play);
 
-	//改变缩放率（模拟不同分辨率传输）
+	//改变客户端配置：缩放率（模拟不同分辨率传输）
 	bool changePlayFactor(SOCKET index, double scaleFactor);
 
-	//改变帧率（加上偏移量）
+	//改变客户端配置：帧率（参数为正负偏移量）
 	bool changePlayFactor(SOCKET index, int offset);
 
 private:
 
-	//Key-Value MAP
+	/*
+		Key-Value MAP
+	*/
+
 	map<unsigned long, PerClientData> clientList;
 	
 	map<SOCKET, unsigned long> socToSessList;

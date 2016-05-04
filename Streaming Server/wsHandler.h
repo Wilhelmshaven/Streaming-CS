@@ -11,9 +11,11 @@ typedef struct myWSMsg
 };
 
 /*
-	Just a test for websocket.
+	Just a test for Websocket.
 
-	Abort.
+	Abort. Abort. Abort.
+
+	Mom told me I should repeat twice for that important message.
 */
 class wsHandler
 {

@@ -2,15 +2,16 @@
 
 #include "cnctHandler.h"
 
-//获取性能数据用，计时
 #include "logger.h"
-#include "monitor.h"
 
-monitor *myNetClock = monitor::getInstance();
-logger *myNetLogger = logger::getInstance();
+//获取性能数据用，计时
+#include "monitor.h"
 
 namespace netNS
 {
+	monitor *myNetClock = monitor::getInstance();
+	logger *myNetLogger = logger::getInstance();
+
 	//网络模块：标记有新的RTSP信令信息来到
 	HANDLE hsRTSPMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::msgArrivedRTSP);
 
@@ -20,7 +21,6 @@ namespace netNS
 	//网络模块：标记有新的HTTP握手请求来到
 	HANDLE hsWebMsgArrived = CreateSemaphore(NULL, 0, BUF_SIZE, syncManager::webMsgArrived);
 };
-
 using namespace netNS;
 
 cnctHandler *cnctHandler::instance = new cnctHandler;
@@ -187,7 +187,6 @@ bool cnctHandler::getCtrlMsg(string &msg, SOCKET &socket)
 	socket = ctrlQueue.front().socket;
 
 	ctrlQueue.pop();
-	
 
 	return true;
 }
@@ -226,14 +225,6 @@ void cnctHandler::sendMessage(string msg, SOCKET socket)
 	ioInfo->flags = 0;
 
 	WSASend(socket, &(ioInfo->wsaBuf), 1, NULL, ioInfo->flags, &(ioInfo->overlapped), NULL);
-	
-	//测试代码#8
-	if (msg.length() > 4000)
-	{	
-		double testData8;
-		myNetClock->getTimeStamp(testData8);
-		myNetLogger->insertTimestamp(8, testData8);
-	}
 
 	delete(ioInfo);
 }
@@ -358,7 +349,11 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 				//EOF，连接关闭
 				if (bytesTransferred == 0)
 				{
-					cout << "Connection close: " << incomingIP << endl;
+					//由于在同一个socket上投递了很多个连接，所以会打出很多个，因此需要检查存活性
+					if (isSocketAlive(clientSocket))
+					{
+						cout << "Connection close: " << incomingIP << endl;
+					}
 
 					closesocket(clientSocket);
 
@@ -402,7 +397,7 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 					break;
 				}
 
-				cout << "Recv CTRL Msg" << endl;
+				cout << "Recv CTRL Msg." << endl;
 
 				ctrlQueue.push(myMsg);
 
@@ -436,8 +431,8 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 		WSARecv(clientSocket, &(ioInfo->wsaBuf), 1, &(ioInfo->bytesRecv), &(ioInfo->flags), &(ioInfo->overlapped), NULL);		
 	}
 
-	free(handleInfo);
-	free(ioInfo);
+	delete(handleInfo);
+	delete(ioInfo);
 
 	return 0;
 }
