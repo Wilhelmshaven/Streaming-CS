@@ -16,7 +16,7 @@ typedef struct timingClock
 
 	使用：
 
-	void initMonitor(int timingThreshold = 200)：设置超时阈值，单位毫秒。注意，这个值的设置大于等于2000时失效。
+	void initMonitor(int frameRate = CLIENT_FRAME_RATE)：设置超时阈值，单位毫秒。注意，这个值的设置大于等于2000时失效。
 
 	void beginTiming()：开始计时
 	void endTiming()：结束计时
@@ -28,8 +28,8 @@ class monitor
 public:
 	static monitor* getInstance();
 
-	//设置超时阈值，单位毫秒。注意，这个值的设置大于等于2000时失效
-	void initMonitor(int timingThreshold = 200);
+	//设置帧率
+	void initMonitor(unsigned int frameRate = CLIENT_FRAME_RATE);
 
 	//开始计时
 	void beginTiming();
@@ -59,12 +59,15 @@ private:
 	static DWORD WINAPI beginTimingThreadFunc(LPVOID lparam);
 	static DWORD WINAPI endTimingThreadFunc(LPVOID lparam);
 
-	static int timingThreshold;
-
 	static HANDLE hSemaphoreBegin;
 	static HANDLE hSemaphoreEnd;
 
 	static HANDLE hEventShutdown;
+
+	//帧率同步
+	static unsigned int frameRate;
+
+	static unsigned double timingThreshold;
 
 	/*
 		单例模式相关

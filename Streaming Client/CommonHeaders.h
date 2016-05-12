@@ -80,6 +80,9 @@ enum CustomDefine
 
 	//MAX£º1920*1080*3
 	MAX_RECV_BUF_SIZE = 6210000,
+
+	//³õÊ¼Ö¡ÂÊ£º10
+	CLIENT_FRAME_RATE = 10,
 };
 
 /*

@@ -27,7 +27,7 @@ typedef struct myImage
 
 	使用：
 
-	void setFrameRate(int frameRate = 20)：指定帧率，单位为帧数每秒
+	void setFrameRate(int frameRate = CLIENT_FRAME_RATE)：指定帧率，单位为帧数每秒
 
 	void play()：启动播放器
 
@@ -48,7 +48,7 @@ public:
 	static cvPlayer* getInstance();
 
 	//指定帧率，单位为帧数每秒
-	static void setFrameRate(unsigned short frameRate = 20);
+	static void setFrameRate(unsigned short frameRate = CLIENT_FRAME_RATE);
 
 	//启动播放器
 	void play();

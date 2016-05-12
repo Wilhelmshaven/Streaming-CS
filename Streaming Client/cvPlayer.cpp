@@ -48,7 +48,7 @@ cvPlayer * cvPlayer::getInstance()
 */
 cvPlayer::cvPlayer()
 {
-	playRate = 10;
+	playRate = CLIENT_FRAME_RATE;
 	frameRate = 1000 / playRate;
 
 	heStart = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -177,23 +177,26 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 				成功获取到图像则播放，否则检查退出事件
 				重要！若没有新的一帧，则使用上一帧来播放画面
 			*/
+
 			if (WaitForSingleObject(hsPlayerInput, 0) == WAIT_OBJECT_0)
 			{
 				/*
 					计算时间差
 				*/
 
-				playerClock->endTiming();
+				//playerClock->endTiming();
 
-				//超时回报：直接推入小于号
-				if (WaitForSingleObject(hsTimeOut, 0) == WAIT_OBJECT_0)
-				{
-					cmdQueue.push(',');
+				////超时回报：直接推入小于号
+				//if (WaitForSingleObject(hsTimeOut, 0) == WAIT_OBJECT_0)
+				//{
+				//	cmdQueue.push(',');
+				//	
+				//	setFrameRate(playRate - 1);
 
-					ReleaseSemaphore(hsPlayerOutput, 1, NULL);
-				}
+				//	ReleaseSemaphore(hsPlayerOutput, 1, NULL);
+				//}
 
-				playerClock->beginTiming();
+				//playerClock->beginTiming();
 
 				if (getImage(img))
 				{

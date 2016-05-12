@@ -22,7 +22,8 @@ timingClock monitor::myClock[MAX_CLOCK];
 
 int monitor::startClockID;
 int monitor::endClockID;
-int monitor::timingThreshold;
+unsigned double monitor::timingThreshold;
+unsigned int monitor::frameRate;
 
 HANDLE monitor::hSemaphoreBegin;
 HANDLE monitor::hSemaphoreEnd;
@@ -33,11 +34,12 @@ monitor * monitor::getInstance()
 	return instance;
 }
 
-void monitor::initMonitor(int threshold)
+void monitor::initMonitor(unsigned int rate)
 {
-	timingThreshold = threshold + 100;
+	timingThreshold = 1000 / rate;
+	frameRate = rate;
 
-	if (timingThreshold > 2000)timingThreshold = 2000;
+	if (timingThreshold < 50)timingThreshold = 50;
 }
 
 void monitor::beginTiming()
@@ -86,8 +88,13 @@ bool monitor::isTimeout(int clockID)
 
 	diff = (end - start) * 1000 / frequency;
 
-	if (diff > timingThreshold)
+	if (diff > timingThreshold + 400)
 	{
+		cout << frameRate<<" "<<timingThreshold<<" "<<diff << endl;
+
+		if (frameRate > 1)--frameRate;
+		timingThreshold = 1000 / frameRate;
+
 		return false;
 	}
 

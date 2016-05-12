@@ -91,7 +91,7 @@ void middleWare::startMiddleWare()
 		player->play();
 
 		//初始化计时器
-		clock->initMonitor(200);
+		clock->initMonitor();
 	}
 	else
 	{
