@@ -255,10 +255,14 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 					continue;
 				}
 
-				if (iter->second.scaleFactor != 1)
-				{
+				//if (iter->second.scaleFactor != 1)
+				//{
 					resize(cvFrame, subFrame, s, iter->second.scaleFactor, iter->second.scaleFactor);
-				}
+				//}
+				//else
+				//{
+				//	subFrame = cvFrame;
+				//}
 
 				/*
 					以在图像上加水印的形式显示帧率以及其它相关信息
