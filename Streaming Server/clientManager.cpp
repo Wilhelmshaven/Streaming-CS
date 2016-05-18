@@ -166,7 +166,7 @@ bool clientManager::changePlayFactor(SOCKET index, bool play)
 	auto key = socToSessList.find(index);
 	auto iter = clientList.find(key->second);
 
-	iter->second.play = play;
+	iter->second.play = !iter->second.play;
 
 	return true;
 }

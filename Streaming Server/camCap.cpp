@@ -255,7 +255,10 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 					continue;
 				}
 
-				resize(cvFrame, subFrame, s, iter->second.scaleFactor, iter->second.scaleFactor);
+				if (iter->second.scaleFactor != 1)
+				{
+					resize(cvFrame, subFrame, s, iter->second.scaleFactor, iter->second.scaleFactor);
+				}
 
 				/*
 					以在图像上加水印的形式显示帧率以及其它相关信息
@@ -331,7 +334,6 @@ DWORD camCap::ctrlDealingThread(LPVOID lparam)
 
 	double scale = 1;
 	int frameRateOffset = 0;
-	bool play = false;
 
 	//等待开始信号
 	WaitForSingleObject(hEventStartCap, INFINITE);
@@ -442,8 +444,7 @@ DWORD camCap::ctrlDealingThread(LPVOID lparam)
 		*/
 		case 'p':
 		{
-			play = !play;
-			clientList->changePlayFactor(index, play);
+			clientList->changePlayFactor(index, true);
 
 			break;
 		}
