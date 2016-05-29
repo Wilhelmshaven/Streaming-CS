@@ -46,9 +46,16 @@ bool clientManager::addClient(unsigned long session, SOCKET socket, unsigned int
 		为了摄像头准备的
 	*/
 
-	client.scaleFactor = 1;
+	client.scaleFactorX = 1;
+	client.scaleFactorY = 1;
 	client.play = false;
 	client.frameRate = cameraCaptureRate / 2;  //使用摄像机固定采集率的一半作为客户端初始帧率
+
+	//Additional attribute
+	client.threshold = false;
+	client.isDrawn = false;
+	client.axesX = 20;
+	client.axesY = 20;
 
 	if (clientList.find(session) == clientList.end())
 	{
@@ -153,7 +160,7 @@ map<unsigned long, PerClientData>::iterator clientManager::getIteratorEnd()
 	return clientList.end();
 }
 
-bool clientManager::changePlayFactor(SOCKET index, bool play)
+bool clientManager::changePlayFactor(SOCKET index)
 {
 	if (!searchClient(index))
 	{
@@ -171,7 +178,7 @@ bool clientManager::changePlayFactor(SOCKET index, bool play)
 	return true;
 }
 
-bool clientManager::changePlayFactor(SOCKET index, double scaleFactor)
+bool clientManager::changePlayFactor(SOCKET index, double scaleFactor, bool changeX, bool changeY)
 {
 	if (!searchClient(index))
 	{
@@ -192,7 +199,8 @@ bool clientManager::changePlayFactor(SOCKET index, double scaleFactor)
 	auto key = socToSessList.find(index);
 	auto iter = clientList.find(key->second);
 
-	iter->second.scaleFactor = scaleFactor;
+	if(changeX)iter->second.scaleFactorX = scaleFactor;
+	if(changeY)iter->second.scaleFactorY = scaleFactor;
 
 	return true;
 }
@@ -221,6 +229,92 @@ bool clientManager::changePlayFactor(SOCKET index, int frameRateOffset)
 	}
 	
 	iter->second.frameRate = frameRate;
+
+	return true;
+}
+
+bool clientManager::changeImageFactor(SOCKET index)
+{
+	if (!searchClient(index))
+	{
+		//Error: 602,Can't find client while changing client info.
+		myLogger->logError(602);
+
+		return false;
+	}
+
+	auto key = socToSessList.find(index);
+	auto iter = clientList.find(key->second);
+
+	iter->second.threshold = !iter->second.threshold;
+
+	return true;
+}
+
+bool clientManager::drawEllipse(SOCKET index)
+{
+	if (!searchClient(index))
+	{
+		//Error: 602,Can't find client while changing client info.
+		myLogger->logError(602);
+
+		return false;
+	}
+
+	auto key = socToSessList.find(index);
+	auto iter = clientList.find(key->second);
+
+	iter->second.isDrawn = !iter->second.isDrawn;
+
+	return true;
+}
+
+bool clientManager::setEllipseX(SOCKET index, bool axesX)
+{
+	if (!searchClient(index))
+	{
+		//Error: 602,Can't find client while changing client info.
+		myLogger->logError(602);
+
+		return false;
+	}
+
+	auto key = socToSessList.find(index);
+	auto iter = clientList.find(key->second);
+
+	if (axesX)
+	{
+		if (iter->second.axesX < 150)iter->second.axesX += 5;
+	}
+	else
+	{
+		if (iter->second.axesX > 5)iter->second.axesX -= 5;
+	}
+
+	return true;
+}
+
+bool clientManager::setEllipseY(SOCKET index, bool axesY)
+{
+	if (!searchClient(index))
+	{
+		//Error: 602,Can't find client while changing client info.
+		myLogger->logError(602);
+
+		return false;
+	}
+
+	auto key = socToSessList.find(index);
+	auto iter = clientList.find(key->second);
+
+	if (axesY)
+	{
+		if (iter->second.axesY < 150)iter->second.axesY += 2;
+	}
+	else
+	{
+		if (iter->second.axesY > 5)iter->second.axesY -= 2;
+	}
 
 	return true;
 }

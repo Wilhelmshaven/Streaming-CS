@@ -191,7 +191,7 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 
 	myImage matStruct;
 
-	string windowTitle = "Camera Live!";
+	string windowTitle = "Server View";
 
 	imgHead head;
 
@@ -257,12 +257,32 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 
 				//if (iter->second.scaleFactor != 1)
 				//{
-					resize(cvFrame, subFrame, s, iter->second.scaleFactor, iter->second.scaleFactor);
+					resize(cvFrame, subFrame, s, iter->second.scaleFactorX, iter->second.scaleFactorY);
 				//}
 				//else
 				//{
 				//	subFrame = cvFrame;
 				//}
+
+				//加一些额外的形变操作体现控制
+				if (iter->second.threshold)
+				{
+					threshold(subFrame, subFrame, 150, 150, CV_THRESH_BINARY);
+				}
+
+				if (iter->second.isDrawn)
+				{
+					Size ellipseSize;
+					ellipseSize.height = iter->second.axesY;
+					ellipseSize.width = iter->second.axesX;
+
+					Point center;
+					center.x = subFrame.rows / 2;
+					center.y = subFrame.cols / 2;
+
+					ellipse(subFrame, center, ellipseSize, 0, 0, 360, CV_RGB(255, 0, 0), 5);
+				}
+
 
 				/*
 					以在图像上加水印的形式显示帧率以及其它相关信息
@@ -307,9 +327,13 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 			if (WaitForSingleObject(hEventShowImg, 0) == WAIT_OBJECT_0)
 			{
 				//显示帧率
-				putText(cvFrame, "Capture rate: " + to_string(frameRate), cvPoint(20, 20), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255, 255, 255));
+
+				//putText(cvFrame, "Capture rate: " + to_string(frameRate), cvPoint(20, 20), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255, 255, 255));
 
 				imshow(windowTitle, cvFrame);
+
+				if (!subFrame.empty())imshow("Client View", subFrame);
+
 			}
 			else
 			{
@@ -378,49 +402,49 @@ DWORD camCap::ctrlDealingThread(LPVOID lparam)
 		case '1':
 		{
 			scale = 0.5;
-			clientList->changePlayFactor(index, scale);
+			clientList->changePlayFactor(index, scale, true, true);
 
 			break;
 		}
 		case '2':
 		{
 			scale = 1;
-			clientList->changePlayFactor(index, scale);
+			clientList->changePlayFactor(index, scale, true, true);
 
 			break;
 		}
 		case '3':
 		{
 			scale = 1.5;
-			clientList->changePlayFactor(index, scale);
+			clientList->changePlayFactor(index, scale, true, true);
 
 			break;
 		}
 		case '4':
 		{
 			scale = 2;
-			clientList->changePlayFactor(index, scale);
+			clientList->changePlayFactor(index, scale, true, true);
 
 			break;
 		}
 		case '5':
 		{
 			scale = 2.5;
-			clientList->changePlayFactor(index, scale);
+			clientList->changePlayFactor(index, scale, true, true);
 
 			break;
 		}
 		case '6':
 		{
 			scale = 3;
-			clientList->changePlayFactor(index, scale);
+			clientList->changePlayFactor(index, scale, true, true);
 
 			break;
 		}
 		case '7':
 		{
 			scale = 0.2;
-			clientList->changePlayFactor(index, scale);
+			clientList->changePlayFactor(index, scale, true, true);
 
 			break;
 		}
@@ -448,8 +472,42 @@ DWORD camCap::ctrlDealingThread(LPVOID lparam)
 		*/
 		case 'p':
 		{
-			clientList->changePlayFactor(index, true);
+			clientList->changePlayFactor(index);
 
+			break;
+		}
+
+		/*
+			其它控制
+		*/
+		case 't':
+		{
+			clientList->changeImageFactor(index);
+			break;
+		}
+		case 'a':
+		{
+			clientList->setEllipseX(index, false);
+			break;
+		}
+		case 'd':
+		{
+			clientList->setEllipseX(index, true);
+			break;
+		}
+		case 's':
+		{
+			clientList->setEllipseY(index, false);
+			break;
+		}
+		case 'w':
+		{
+			clientList->setEllipseY(index, true);
+			break;
+		}
+		case 'r':
+		{
+			clientList->drawEllipse(index);
 			break;
 		}
 

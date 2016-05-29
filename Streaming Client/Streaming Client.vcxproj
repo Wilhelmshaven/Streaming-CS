@@ -78,6 +78,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>ws2_32.lib;opencv_ts300d.lib;opencv_world300d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>../opencv/build/x86/vc12/lib;../opencv/build/x86/vc12/staticlib</AdditionalLibraryDirectories>
+      <AdditionalOptions>/SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -108,6 +109,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>opencv_ts300.lib;opencv_world300.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>../opencv/build/x86/vc12/lib;</AdditionalLibraryDirectories>
+      <AdditionalOptions>/SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -137,6 +139,7 @@
     <ClInclude Include="CommonHeaders.h" />
     <ClInclude Include="cvPlayer.h" />
     <ClInclude Include="errHandler.h" />
+    <ClInclude Include="glPlayer.h" />
     <ClInclude Include="imageBuffer.h" />
     <ClInclude Include="ctrlMsgHandler.h" />
     <ClInclude Include="logger.h" />
@@ -150,6 +153,7 @@
     <ClCompile Include="cnctHandler.cpp" />
     <ClCompile Include="cvPlayer.cpp" />
     <ClCompile Include="errHandler.cpp" />
+    <ClCompile Include="glPlayer.cpp" />
     <ClCompile Include="imageBuffer.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="middleWare.cpp" />

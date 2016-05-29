@@ -1,13 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Streaming Client", "Streaming Client\Streaming Client.vcxproj", "{3AC90858-2877-48E1-97D2-D804DF3805C6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Streaming Server", "Streaming Server\Streaming Server.vcxproj", "{3ABEBF1C-CDA7-4CEB-87C0-A15CEB256CED}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenCVTest", "OpenCVTest\OpenCVTest.vcxproj", "{2B7948B1-A8F4-47B2-B2E4-0C7ADFCA5FC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +21,6 @@ Global
 		{3ABEBF1C-CDA7-4CEB-87C0-A15CEB256CED}.Debug|Win32.Build.0 = Debug|Win32
 		{3ABEBF1C-CDA7-4CEB-87C0-A15CEB256CED}.Release|Win32.ActiveCfg = Release|Win32
 		{3ABEBF1C-CDA7-4CEB-87C0-A15CEB256CED}.Release|Win32.Build.0 = Release|Win32
-		{2B7948B1-A8F4-47B2-B2E4-0C7ADFCA5FC6}.Debug|Win32.ActiveCfg = Debug|Win32
-		{2B7948B1-A8F4-47B2-B2E4-0C7ADFCA5FC6}.Debug|Win32.Build.0 = Debug|Win32
-		{2B7948B1-A8F4-47B2-B2E4-0C7ADFCA5FC6}.Release|Win32.ActiveCfg = Release|Win32
-		{2B7948B1-A8F4-47B2-B2E4-0C7ADFCA5FC6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

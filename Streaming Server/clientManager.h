@@ -15,13 +15,21 @@ typedef struct PerClientData
 	bool enableUDP;
 
 	//图像缩放比率（仅针对摄像头设计）
-	double scaleFactor;
+	double scaleFactorX;
+	double scaleFactorY;
 
 	//是否播放
 	bool play;
 
 	//帧率（实际上是发送频率，摄像头的帧率是不变的）
 	unsigned int frameRate;
+
+	//Additional attribute
+
+	bool threshold;
+	bool isDrawn;
+	double axesX;
+	double axesY;
 };
 
 /*
@@ -68,13 +76,20 @@ public:
 	map<unsigned long, PerClientData>::iterator getIteratorEnd();
 
 	//改变客户端配置：是否播放
-	bool changePlayFactor(SOCKET index, bool play);
+	bool changePlayFactor(SOCKET index);
 
 	//改变客户端配置：缩放率（模拟不同分辨率传输）
-	bool changePlayFactor(SOCKET index, double scaleFactor);
+	bool changePlayFactor(SOCKET index, double scaleFactor, bool changeX, bool changeY);
 
 	//改变客户端配置：帧率（参数为正负偏移量）
 	bool changePlayFactor(SOCKET index, int offset);
+
+	//
+	bool changeImageFactor(SOCKET index);
+
+	bool drawEllipse(SOCKET index);
+	bool setEllipseX(SOCKET index, bool axes);
+	bool setEllipseY(SOCKET index, bool axes);
 
 private:
 

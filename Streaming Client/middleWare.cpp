@@ -2,7 +2,8 @@
 
 #include "middleWare.h"
 
-#include "cvPlayer.h"
+#include "glPlayer.h"
+//#include "cvPlayer.h"
 #include "ctrlMsgHandler.h"
 #include "imageBuffer.h"
 #include "rtpHandler.h"
@@ -61,7 +62,8 @@ void middleWare::startMiddleWare()
 
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
-	cvPlayer *player = cvPlayer::getInstance();
+	//cvPlayer *player = cvPlayer::getInstance();
+	glPlayer *player = glPlayer::getInstance();
 
 	/*
 		创建好各子线程
@@ -86,7 +88,8 @@ void middleWare::startMiddleWare()
 	{
 		CreateThread(NULL, NULL, mw_RTSP_Net_RTSP_Thread, NULL, NULL, NULL);
 
-		player->setFrameRate(20);
+		//player->setFrameRate(20);
+		//glPlayer->不需要设置
 
 		player->play();
 
@@ -141,7 +144,8 @@ void middleWare::initHandles()
 
 DWORD middleWare::mw_Player_Ctrl_Thread(LPVOID lparam)
 {
-	cvPlayer *player = cvPlayer::getInstance();
+	//cvPlayer *player = cvPlayer::getInstance();
+	glPlayer *player = glPlayer::getInstance();
 
 	ctrlMsgHandler *ctrl = ctrlMsgHandler::getInstance();
 
@@ -328,7 +332,8 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 {
 	imgBuffer *buffer = imgBuffer::getInstance();
 
-	cvPlayer *player = cvPlayer::getInstance();
+	//cvPlayer *player = cvPlayer::getInstance();
+	glPlayer *player = glPlayer::getInstance();
 
 	imgHead head;
 	vector<unsigned char> imgData;
