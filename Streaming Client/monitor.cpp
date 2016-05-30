@@ -22,7 +22,7 @@ timingClock monitor::myClock[MAX_CLOCK];
 
 int monitor::startClockID;
 int monitor::endClockID;
-unsigned double monitor::timingThreshold;
+double monitor::timingThreshold;
 unsigned int monitor::frameRate;
 
 HANDLE monitor::hSemaphoreBegin;
@@ -88,12 +88,15 @@ bool monitor::isTimeout(int clockID)
 
 	diff = (end - start) * 1000 / frequency;
 
+	//For Test
+	printf("Latency: %.2f\n", diff);
+
 	if (diff > timingThreshold + 400)
 	{
-		cout << frameRate<<" "<<timingThreshold<<" "<<diff << endl;
+		//cout << frameRate << " " << timingThreshold << " " << diff << endl;
 
-		if (frameRate > 1)--frameRate;
-		timingThreshold = 1000 / frameRate;
+		//if (frameRate > 1)--frameRate;
+		//timingThreshold = 1000 / frameRate;
 
 		return false;
 	}
@@ -142,7 +145,7 @@ DWORD monitor::endTimingThreadFunc(LPVOID lparam)
 
 		if (isTimeout(endClockID))
 		{
-			ReleaseSemaphore(hsTimeOut, 1, NULL);
+			//ReleaseSemaphore(hsTimeOut, 1, NULL);
 		}
 
 		++endClockID;

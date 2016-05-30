@@ -332,8 +332,10 @@ void cnctHandler::startThread()
 	CreateThread(NULL, NULL, sendThread, param, NULL, NULL);
 
 	//设置Socket接收超时为10秒，避免阻塞太久（嗯当然我们现在还是用阻塞模式，客户端么）
-	int recvTimeMax = 10000;
-	setsockopt(srvSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)recvTimeMax, sizeof(int));
+	//int recvTimeMax = 10000;
+	string recvTimeMax = to_string(10000);
+	//setsockopt(srvSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)recvTimeMax, sizeof(int));
+	setsockopt(srvSocket, SOL_SOCKET, SO_RCVTIMEO, recvTimeMax.c_str(), recvTimeMax.size());
 }
 
 DWORD cnctHandler::sendThread(LPVOID lparam)
@@ -386,7 +388,7 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 	int bytesRecv;
 
 	//测试代码
-	int testIndex = 1;
+	//int testIndex = 1;
 
 	//MAX：1920*1080*3
 	recvBuf.resize(MAX_RECV_BUF_SIZE);
@@ -437,22 +439,22 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 				size += incomingSize;
 			}
 
-			//测试代码#1
-			netLogger->insertTimestamp(0, testIndex);
-			++testIndex;
-			double timestamp1;
-			netMonitor->getTimeStamp(timestamp1);
-			netLogger->insertTimestamp(1, timestamp1);
+			////测试代码#1
+			//netLogger->insertTimestamp(0, testIndex);
+			//++testIndex;
+			//double timestamp1;
+			//netMonitor->getTimeStamp(timestamp1);
+			//netLogger->insertTimestamp(1, timestamp1);
 
 			(*ptr).resize(bytesRecv);
 			memcpy(&((*ptr)[0]), recvBuf.substr(0, bytesRecv).c_str(), bytesRecv);
 
 			recvRTPQueue.push(ptr);
 
-			//测试代码#2
-			double timestamp2;
-			netMonitor->getTimeStamp(timestamp2);
-			netLogger->insertTimestamp(2, timestamp2);
+			////测试代码#2
+			//double timestamp2;
+			//netMonitor->getTimeStamp(timestamp2);
+			//netLogger->insertTimestamp(2, timestamp2);
 
 			ReleaseSemaphore(hsNewRTPMsg, 1, NULL);
 			 

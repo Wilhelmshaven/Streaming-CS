@@ -169,7 +169,7 @@ DWORD cvPlayer::playThreadFunc(LPVOID lparam)
 			¶ÁÈ¡»º´æ->²¥·Å£¬Ñ­»·
 		*/
 
-		playerClock->beginTiming();
+		//playerClock->beginTiming();
 
 		while (1)
 		{

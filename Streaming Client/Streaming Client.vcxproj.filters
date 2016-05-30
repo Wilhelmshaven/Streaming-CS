@@ -24,9 +24,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cvPlayer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="CommonHeaders.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -60,14 +57,11 @@
     <ClInclude Include="monitor.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="glPlayer.h">
+    <ClInclude Include="xPlayer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cvPlayer.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="ModularTest.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -101,7 +95,7 @@
     <ClCompile Include="monitor.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="glPlayer.cpp">
+    <ClCompile Include="xPlayer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

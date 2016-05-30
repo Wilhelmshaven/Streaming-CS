@@ -29,9 +29,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="camCap.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="imgBuffer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -74,14 +71,11 @@
     <ClCompile Include="sha1\sha1.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="glRenderer.cpp">
+    <ClCompile Include="xRenderer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="camCap.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="CommonHeaders.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -124,7 +118,7 @@
     <ClInclude Include="sha1\sha1.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="glRenderer.h">
+    <ClInclude Include="xRenderer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

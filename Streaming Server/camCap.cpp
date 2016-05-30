@@ -218,14 +218,8 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 		while (1)
 		{
 			//若结束事件被设置，则结束线程
-			if (WaitForSingleObject(hEventShutDown, 0) == WAIT_OBJECT_0)break;
-			if (WaitForSingleObject(hEventStartCap, 0) != WAIT_OBJECT_0)break;
-
-			//从设备中取出当前帧
-			capture >> cvFrame;
-
-			++signal;
-			//if (signal > 86400)signal = 1;
+			//if (WaitForSingleObject(hEventShutDown, 0) == WAIT_OBJECT_0)break;
+			//if (WaitForSingleObject(hEventStartCap, 0) != WAIT_OBJECT_0)break;
 
 			/*
 				遍历客户端列表，以相应的参数存入相应的帧
@@ -238,6 +232,21 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 
 			auto iter = clientList->getIteratorStart();
 			auto iterEnd = clientList->getIteratorEnd();
+
+			//if (iter == iterEnd)
+			//{
+			//	destroyAllWindows();
+			//	continue;
+			//}
+
+			//从设备中取出当前帧
+			capture >> cvFrame;
+
+			++signal;
+			//if (signal > 86400)signal = 1;
+
+			int clientCnt = 1;
+			string clientWindowTitle;
 
 			while (iter != iterEnd)
 			{
@@ -255,14 +264,7 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 					continue;
 				}
 
-				//if (iter->second.scaleFactor != 1)
-				//{
-					resize(cvFrame, subFrame, s, iter->second.scaleFactorX, iter->second.scaleFactorY);
-				//}
-				//else
-				//{
-				//	subFrame = cvFrame;
-				//}
+				resize(cvFrame, subFrame, s, iter->second.scaleFactorX, iter->second.scaleFactorY);
 
 				//加一些额外的形变操作体现控制
 				if (iter->second.threshold)
@@ -318,26 +320,27 @@ DWORD WINAPI camCap::captureThread(LPVOID lparam)
 				ReleaseSemaphore(hsRenderDone, 1, NULL);
 
 				++iter;
-			}
 
-			/*
-				服务器端：若显示图像事件被设置，则显示图像
-			*/
+				/*
+					服务器端：若显示图像事件被设置，则显示图像
+				*/
 
-			if (WaitForSingleObject(hEventShowImg, 0) == WAIT_OBJECT_0)
-			{
-				//显示帧率
+				if (WaitForSingleObject(hEventShowImg, 0) == WAIT_OBJECT_0)
+				{
+					//显示帧率
 
-				//putText(cvFrame, "Capture rate: " + to_string(frameRate), cvPoint(20, 20), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255, 255, 255));
+					//putText(cvFrame, "Capture rate: " + to_string(frameRate), cvPoint(20, 20), FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255, 255, 255));
 
-				imshow(windowTitle, cvFrame);
+					//imshow(windowTitle, cvFrame);
+					clientWindowTitle = "Client View" + to_string(clientCnt++);
+					if (!subFrame.empty())imshow(clientWindowTitle, subFrame);
 
-				if (!subFrame.empty())imshow("Client View", subFrame);
+				}
+				else
+				{
+					destroyWindow(windowTitle);
+				}
 
-			}
-			else
-			{
-				destroyWindow(windowTitle);
 			}
 
 			//等待时间间隔

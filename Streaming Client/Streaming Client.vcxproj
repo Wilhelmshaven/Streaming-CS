@@ -27,7 +27,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -72,12 +72,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../opencv/build/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ws2_32.lib;opencv_ts300d.lib;opencv_world300d.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>../opencv/build/x86/vc12/lib;../opencv/build/x86/vc12/staticlib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
       <AdditionalOptions>/SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
@@ -109,7 +110,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>opencv_ts300.lib;opencv_world300.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>../opencv/build/x86/vc12/lib;</AdditionalLibraryDirectories>
-      <AdditionalOptions>/SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -137,9 +137,7 @@
   <ItemGroup>
     <ClInclude Include="cnctHandler.h" />
     <ClInclude Include="CommonHeaders.h" />
-    <ClInclude Include="cvPlayer.h" />
     <ClInclude Include="errHandler.h" />
-    <ClInclude Include="glPlayer.h" />
     <ClInclude Include="imageBuffer.h" />
     <ClInclude Include="ctrlMsgHandler.h" />
     <ClInclude Include="logger.h" />
@@ -148,12 +146,11 @@
     <ClInclude Include="myClient.h" />
     <ClInclude Include="rtpHandler.h" />
     <ClInclude Include="rtspHandler.h" />
+    <ClInclude Include="xPlayer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cnctHandler.cpp" />
-    <ClCompile Include="cvPlayer.cpp" />
     <ClCompile Include="errHandler.cpp" />
-    <ClCompile Include="glPlayer.cpp" />
     <ClCompile Include="imageBuffer.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="middleWare.cpp" />
@@ -163,6 +160,7 @@
     <ClCompile Include="myClient.cpp" />
     <ClCompile Include="rtpHandler.cpp" />
     <ClCompile Include="rtspHandler.cpp" />
+    <ClCompile Include="xPlayer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

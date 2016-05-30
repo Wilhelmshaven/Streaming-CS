@@ -104,10 +104,11 @@ void glPlayer::redraw()
 		}
 	}
 
-	glRasterPos2i(0, 0);
+	glRasterPos3d(1, 1, 1);
 	glDrawPixels(480, 480, GLUT_RGB, GL_UNSIGNED_BYTE, prePixelData);
 
-	glutSwapBuffers();
+	//glutSwapBuffers();
+	glFlush();
 }
 
 void glPlayer::key(unsigned char k, int x, int y)

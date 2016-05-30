@@ -6,8 +6,8 @@
 	加载中间件所需要对接的模块
 */
 
-#include "glRenderer.h"
-//#include "camCap.h"
+#include "xRenderer.h"
+
 #include "cnctHandler.h"
 #include "ctrlMsgHandler.h"
 #include "imgBuffer.h"
@@ -45,6 +45,8 @@ namespace mwNS
 
 	HANDLE hsWebHandshake;
 	HANDLE hsWebMsgArrived;
+
+	xRenderer *renderer = xRenderer::getInstance();
 }
 using namespace mwNS;
 
@@ -101,11 +103,7 @@ void middleWare::startMiddleWare()
 	cnctHandler *netModule = cnctHandler::getInstance();
 	netModule->startServer();
 
-	//camCap *camera = camCap::getInstance();
-	//camera->startCapture();
-	glRenderer *renderer = glRenderer::getInstance();
 	renderer->startRenderer();
-
 
 	myClock->initMonitor(200);
 
@@ -119,9 +117,6 @@ void middleWare::startMiddleWare()
 */
 DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 {
-	//camCap *camera = camCap::getInstance();
-	glRenderer *renderer = glRenderer::getInstance();
-
 	imgBuffer *buffer = imgBuffer::getInstance();
 
 	SOCKET index;
@@ -144,7 +139,6 @@ DWORD middleWare::mw_Cam_Buf_Thread(LPVOID lparam)
 		//myClock->beginTiming();
 
 		//2.取出图像
-		//if (!camera->getImage(index, head, frame))
 		if (!renderer->getImage(index, head, frame))
 		{
 			//103: Can't get image from renderer
@@ -363,9 +357,6 @@ DWORD middleWare::mw_Ctrl_Cam_Thread(LPVOID lparam)
 {
 	ctrlMsgHandler *ctrl = ctrlMsgHandler::getInstance();
 
-	//camCap *camera = camCap::getInstance();
-	glRenderer *renderer = glRenderer::getInstance();
-
 	SOCKET index;
 
 	unsigned char key;
@@ -392,7 +383,6 @@ DWORD middleWare::mw_Ctrl_Cam_Thread(LPVOID lparam)
 		}
 
 		//3.将解码好的消息送入渲染器/摄像头
-		//camera->render(index, key);
 		renderer->render(index, key);
 	}
 

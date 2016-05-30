@@ -67,7 +67,7 @@ private:
 	//帧率同步
 	static unsigned int frameRate;
 
-	static unsigned double timingThreshold;
+	static double timingThreshold;
 
 	/*
 		单例模式相关

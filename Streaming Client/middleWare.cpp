@@ -2,8 +2,8 @@
 
 #include "middleWare.h"
 
-#include "glPlayer.h"
-//#include "cvPlayer.h"
+#include "xPlayer.h"
+
 #include "ctrlMsgHandler.h"
 #include "imageBuffer.h"
 #include "rtpHandler.h"
@@ -25,6 +25,8 @@ namespace mwNS
 	monitor *clock = monitor::getInstance();
 
 	logger *myLogger = logger::getInstance();
+
+	xPlayer *player = xPlayer::getInstance();
 
 	//关闭服务器事件
 	HANDLE heCloseClientAll;
@@ -62,9 +64,6 @@ void middleWare::startMiddleWare()
 
 	rtspHandler *rtsp = rtspHandler::getInstance();
 
-	//cvPlayer *player = cvPlayer::getInstance();
-	glPlayer *player = glPlayer::getInstance();
-
 	/*
 		创建好各子线程
 	*/
@@ -91,7 +90,7 @@ void middleWare::startMiddleWare()
 		//player->setFrameRate(20);
 		//glPlayer->不需要设置
 
-		player->play();
+		player->startPlayer();
 
 		//初始化计时器
 		clock->initMonitor();
@@ -144,9 +143,6 @@ void middleWare::initHandles()
 
 DWORD middleWare::mw_Player_Ctrl_Thread(LPVOID lparam)
 {
-	//cvPlayer *player = cvPlayer::getInstance();
-	glPlayer *player = glPlayer::getInstance();
-
 	ctrlMsgHandler *ctrl = ctrlMsgHandler::getInstance();
 
 	rtspHandler *rtsp = rtspHandler::getInstance();
@@ -277,7 +273,7 @@ DWORD middleWare::mw_Net_RTP_Thread(LPVOID lparam)
 			break;
 		}
 
-		////启动计时器
+		//启动计时器
 		//clock->beginTiming();
 
 		if (!network->getRTPMessage(ptr))
@@ -332,9 +328,6 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 {
 	imgBuffer *buffer = imgBuffer::getInstance();
 
-	//cvPlayer *player = cvPlayer::getInstance();
-	glPlayer *player = glPlayer::getInstance();
-
 	imgHead head;
 	vector<unsigned char> imgData;
 
@@ -357,19 +350,19 @@ DWORD middleWare::mw_Buf_Player_Thread(LPVOID lparam)
 			continue;
 		}
 
-		//测试代码#3
-		double timestamp3;
-		clock->getTimeStamp(timestamp3);
-		myLogger->insertTimestamp(3, timestamp3);
+		////测试代码#3
+		//double timestamp3;
+		//clock->getTimeStamp(timestamp3);
+		//myLogger->insertTimestamp(3, timestamp3);
 
 		player->insertImage(head, ptr);
 
-		//测试代码#4
-		double timestamp4;
-		clock->getTimeStamp(timestamp4);
-		myLogger->insertTimestamp(4, timestamp4);
+		////测试代码#4
+		//double timestamp4;
+		//clock->getTimeStamp(timestamp4);
+		//myLogger->insertTimestamp(4, timestamp4);
 
-		////结束计时器
+		//结束计时器
 		//clock->endTiming();
 	}
 
