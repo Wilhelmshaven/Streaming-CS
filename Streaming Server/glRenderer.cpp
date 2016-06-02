@@ -1,10 +1,16 @@
 /*--Author：李宏杰--*/
 #include "glRenderer.h"
 
+#include "monitor.h"
+
 double fRotate = 0;
 bool bAnim = false;
 double eye[3] = { 0, 0, 8 };
 double center[3] = { 0, 0, 0 };
+
+//OpenGL搞不了1080p是什么节奏……C语言数组开不起那么大了是么
+static const int glWidth = 480;
+static const int glHeight = 480;
 
 namespace glNS
 {
@@ -17,6 +23,8 @@ namespace glNS
 	HANDLE heStartPlay = CreateEvent(NULL, TRUE, FALSE, syncManager::play);
 	HANDLE heStopPlay = CreateEvent(NULL, TRUE, FALSE, syncManager::stop);
 	HANDLE hePausePlay = CreateEvent(NULL, TRUE, FALSE, syncManager::pause);
+
+	
 };
 using namespace glNS;
 
@@ -155,7 +163,7 @@ DWORD glRenderer::mainLoopThread(LPVOID lparam)
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH);// | GLUT_DOUBLE);
-	glutInitWindowSize(480, 480);
+	glutInitWindowSize(glWidth, glHeight);
 	glutCreateWindow("Simple GLUT App");
 
 	glutDisplayFunc(redraw);
@@ -177,12 +185,14 @@ DWORD glRenderer::mainLoopThread(LPVOID lparam)
 
 DWORD glRenderer::xRenderFunc(LPVOID lparam)
 {
+	vector<BYTE> vec;
+	vec.resize(glWidth * glHeight * 4);
+
 	do
 	{
 		if (WaitForSingleObject(hsRenderImage, 0) == WAIT_OBJECT_0)
 		{
-			vector<BYTE> vec;
-			vec.resize(480 * 480 * 4);
+
 
 			GLubyte* pPixelData = (GLubyte*)&vec[0];
 
@@ -213,7 +223,7 @@ DWORD glRenderer::xRenderFunc(LPVOID lparam)
 			if (myKey == 27 || myKey == 'q')break;
 
 			//从OpenGL中截取数据
-			glReadPixels(0, 0, 480, 480, GL_RGBA, GL_UNSIGNED_BYTE, pPixelData);
+			glReadPixels(0, 0, glWidth, glHeight, GL_RGBA, GL_UNSIGNED_BYTE, pPixelData);
 
 			auto error = glGetError();
 
@@ -221,8 +231,8 @@ DWORD glRenderer::xRenderFunc(LPVOID lparam)
 				填充图像头
 			*/
 
-			head.cols = 480;
-			head.rows = 480;
+			head.cols = glWidth;
+			head.rows = glHeight;
 			head.channels = 4;
 			head.imgType = GL_RGBA;
 
@@ -240,71 +250,71 @@ DWORD glRenderer::xRenderFunc(LPVOID lparam)
 	return 0;
 }
 
-DWORD glRenderer::renderThread(LPVOID lparam)
-{
-	vector<BYTE> vec;
-	vec.resize(480 * 480 * 4);
-
-	GLubyte* pPixelData = (GLubyte*)&vec[0];
-
-	myImage image;
-	imgHead head;
-	myCommand cmdStruct;
-
-	BYTE myKey;
-	SOCKET index;
-
-	while (1)
-	{
-		WaitForSingleObject(hsRenderImage, INFINITE);
-
-		//取出控制信令
-		if (!cmdQueue.empty())
-		{
-			cmdStruct = cmdQueue.front();
-			cmdQueue.pop();
-
-			myKey = cmdStruct.key;
-			index = cmdStruct.index;
-		}
-		else
-		{
-			//102,Can't get decoded control msg from decodoer
-			//myCamLogger->logError(102);
-
-			continue;
-		}
-
-		key(myKey, 0, 0);
-
-		if (myKey == 27 || myKey == 'q')break;
-
-		//从OpenGL中截取数据
-		glReadPixels(0, 0, 480, 480, GL_RGBA, GL_UNSIGNED_BYTE, pPixelData);
-
-		auto error = glGetError();
-
-		/*
-			填充图像头
-		*/
-
-		head.cols = 480;
-		head.rows = 480;
-		head.channels = 4;
-		head.imgType = GL_RGBA;
-
-		image.head = head;
-		image.index = index;
-		image.frame = vec;
-
-		//塞入队列
-		imgQueue.push(image);
-
-		ReleaseSemaphore(hsRenderDone, 1, NULL);
-	}
-
-	return 0;
-}
+//DWORD glRenderer::renderThread(LPVOID lparam)
+//{
+//	vector<BYTE> vec;
+//	vec.resize(480 * 480 * 4);
+//
+//	GLubyte* pPixelData = (GLubyte*)&vec[0];
+//
+//	myImage image;
+//	imgHead head;
+//	myCommand cmdStruct;
+//
+//	BYTE myKey;
+//	SOCKET index;
+//
+//	while (1)
+//	{
+//		WaitForSingleObject(hsRenderImage, INFINITE);
+//
+//		//取出控制信令
+//		if (!cmdQueue.empty())
+//		{
+//			cmdStruct = cmdQueue.front();
+//			cmdQueue.pop();
+//
+//			myKey = cmdStruct.key;
+//			index = cmdStruct.index;
+//		}
+//		else
+//		{
+//			//102,Can't get decoded control msg from decodoer
+//			//myCamLogger->logError(102);
+//
+//			continue;
+//		}
+//
+//		key(myKey, 0, 0);
+//
+//		if (myKey == 27 || myKey == 'q')break;
+//
+//		//从OpenGL中截取数据
+//		glReadPixels(0, 0, 1920, 1080, GL_RGBA, GL_UNSIGNED_BYTE, pPixelData);
+//
+//		auto error = glGetError();
+//
+//		/*
+//			填充图像头
+//		*/
+//
+//		head.cols = 1920;
+//		head.rows = 1080;
+//		head.channels = 4;
+//		head.imgType = GL_RGBA;
+//
+//		image.head = head;
+//		image.index = index;
+//		image.frame = vec;
+//
+//		//塞入队列
+//		imgQueue.push(image);
+//
+//		ReleaseSemaphore(hsRenderDone, 1, NULL);
+//	}
+//
+//	return 0;
+//}
 
 glRenderer::glRenderer()
 {

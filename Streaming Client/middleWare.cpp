@@ -160,6 +160,8 @@ DWORD middleWare::mw_Player_Ctrl_Thread(LPVOID lparam)
 			break;
 		}
 
+		mwNS::clock->beginTiming();
+
 		if (!player->getCtrlKey(key))
 		{
 			//101,Can't get control key from player.
@@ -319,6 +321,8 @@ DWORD middleWare::mw_RTP_Buf_Thread(LPVOID lparam)
 		}
 
 		buffer->pushBuffer(head, ptr);
+
+		mwNS::clock->endTiming();
 	}
 
 	return 0;

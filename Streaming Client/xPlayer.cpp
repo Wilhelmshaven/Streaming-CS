@@ -255,11 +255,19 @@ DWORD xPlayer::playThreadFunc(LPVOID lparam)
 			{
 				cout << "KEYDOWN" << endl;
 
+				if (msg.wParam == 'q' || msg.wParam == 27)
+				{
+					SetEvent(heCloseClient);
+					break;
+				}
+
 				cmdQueue.push(msg.wParam);
 
 				newKeydown++;
 			}
 		}
+
+		if (WaitForSingleObject(heCloseClient, 0) == WAIT_OBJECT_0)break;
 
 		// 在这里等图、画图
 		//

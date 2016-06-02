@@ -26,7 +26,7 @@ public:
 
 	static logger *getInstance();
 
-	static void initLogModule(int queueCnt = 9);
+	static void initLogModule(int queueCnt = 1);
 
 	static void logError(int errCode = -1, string error = "Unknown Error");
 

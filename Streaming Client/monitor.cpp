@@ -88,20 +88,22 @@ bool monitor::isTimeout(int clockID)
 
 	diff = (end - start) * 1000 / frequency;
 
-	//For Test
-	printf("Latency: %.2f\n", diff);
+	myLog->insertTimestamp(0, diff);
 
-	if (diff > timingThreshold + 400)
-	{
-		//cout << frameRate << " " << timingThreshold << " " << diff << endl;
+	////For Test
+	//printf("Latency: %.2f\n", diff);
 
-		//if (frameRate > 1)--frameRate;
-		//timingThreshold = 1000 / frameRate;
+	//if (diff > timingThreshold + 400)
+	//{
+	//	//cout << frameRate << " " << timingThreshold << " " << diff << endl;
 
-		return false;
-	}
+	//	//if (frameRate > 1)--frameRate;
+	//	//timingThreshold = 1000 / frameRate;
 
-	return true;
+	//	return false;
+	//}
+
+	return false;
 }
 
 /*

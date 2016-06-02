@@ -259,7 +259,7 @@ DWORD middleWare::mw_RTP_Cnct_Thread(LPVOID lparam)
 		network->sendMessage((*packet), index);
 
 		//结束计时
-		//myClock->endTiming();	
+		myClock->endTiming();	
 	}
 
 	return 0;
@@ -333,6 +333,8 @@ DWORD middleWare::mw_Cnct_Ctrl_Thread(LPVOID lparam)
 		{
 			break;
 		}
+
+		myClock->beginTiming();
 
 		//2.从网络模块取出控制信息
 		if (!network->getCtrlMsg(msg, index))

@@ -80,15 +80,17 @@ bool monitor::isTimeout(int clockID)
 
 	diff = (end - start) * 1000 / frequency;
 
-	if (diff > timingThreshold)
-	{
-		//记录下错误信息
-		//601,Time out.
+	myLog->insertTimestamp(0, diff);
 
-		myLog->logError(601);
+	//if (diff > timingThreshold)
+	//{
+	//	//记录下错误信息
+	//	//601,Time out.
 
-		return true;
-	}
+	//	myLog->logError(601);
+
+	//	return true;
+	//}
 
 	return false;
 }

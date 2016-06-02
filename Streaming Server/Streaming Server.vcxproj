@@ -152,7 +152,6 @@
     <ClCompile Include="rtspHandler.cpp" />
     <ClCompile Include="sha1\sha1.cpp" />
     <ClCompile Include="wsHandler.cpp" />
-    <ClCompile Include="xRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clientManager.h" />
@@ -170,7 +169,6 @@
     <ClInclude Include="rtspHandler.h" />
     <ClInclude Include="sha1\sha1.h" />
     <ClInclude Include="wsHandler.h" />
-    <ClInclude Include="xRenderer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
