@@ -7,6 +7,28 @@
 
 typedef struct myImage
 {
+	myImage(){}
+
+	myImage(myImage && rr)
+	{
+		index = rr.index;
+		head = rr.head;
+		frame = move(rr.frame);
+
+		rr.index = INVALID_SOCKET;
+	}
+
+	myImage & operator = (myImage && rr)
+	{
+		index = rr.index;
+		head = rr.head;
+		frame = move(rr.frame);
+
+		rr.index = INVALID_SOCKET;
+	}
+
+
+
 	SOCKET index;
 
 	imgHead head;
@@ -52,6 +74,8 @@ private:
 	static DWORD WINAPI mainLoopThread(LPVOID lparam);
 
 	static DWORD WINAPI renderThread(LPVOID lparam);
+
+	static DWORD WINAPI xRenderFunc(LPVOID lparam);
 
 	/*
 		单例模式相关

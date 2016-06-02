@@ -12,6 +12,8 @@
 //获取性能数据用，计时，现在不需要这玩意了
 //#include "monitor.h"
 
+#include <cmath>
+
 namespace xrNS
 {
 	//monitor *myCamClock = monitor::getInstance();
@@ -28,18 +30,28 @@ using namespace xrNS;
 queue<myImage> xRenderer::imgQueue;
 queue<myCommand> xRenderer::cmdQueue;
 
-//统一初始化
-xRenderer *xRenderer::instance = new xRenderer;
 
 xRenderer *xRenderer::getInstance()
 {
-	return instance;
+	// xx
+	// 注意全局变量初始化顺序，原先在外面 new 并设置指针（全局变量），在这里返回的时候
+	// 可能因为 getInstance 先于 new 被调用（其它全局变量的初始化调用了 getInstance，并且那个全局变量的初始化顺序更靠前）
+	// 而导致返回 nullptr
+	// 下面这种应该是万无一失的写法
+
+	static xRenderer ret;
+
+	return &ret;
 }
 
 void xRenderer::startRenderer()
 {
 	//TODO: add your init codes
 
+	rendererThread = thread([this]()
+	{
+		workerThread(0);
+	});
 }
 
 void xRenderer::render(SOCKET index, unsigned char cmd)
@@ -56,19 +68,20 @@ void xRenderer::render(SOCKET index, unsigned char cmd)
 
 bool xRenderer::getImage(SOCKET &index, imgHead &head, vector<BYTE> &frame)
 {
-	myImage tmp;
-
 	if (imgQueue.empty())
 	{
 		return false;
 	}
 
-	tmp = imgQueue.front();
-	imgQueue.pop();
+	// xx 避免拷贝！
 
-	index = tmp.index;
-	head = tmp.head;
-	frame = tmp.frame;
+	auto & ref = imgQueue.front();
+	
+	index = ref.index;
+	head = ref.head;
+	frame = move(ref.frame); // xx 避免拷贝！
+
+	imgQueue.pop();
 
 	return true;
 }
@@ -78,19 +91,21 @@ DWORD WINAPI xRenderer::workerThread(LPVOID lparam)
 	//...
 
 	myImage image;
-	imgHead imageHead;
 
 	//解释一下，我用socket来作为存储客户端信息的主键，几乎所有函数都有这个参数
 	SOCKET index;
 
-	vector<BYTE> imageData;
+	//Beep(1000, 100);
 
 	while (1)
 	{
+		//Beep(2000, 100);
+
 		//...
 
 		//若有按键信息传入，这里就会等到
 		WaitForSingleObject(hsRenderImage, INFINITE);
+		//WaitForSingleObject(hsRenderImage, 1000);
 
 		/*
 			取出按键
@@ -115,20 +130,17 @@ DWORD WINAPI xRenderer::workerThread(LPVOID lparam)
 			具体数据爱怎么填怎么填
 		*/
 
-
-
-
-
 		//...
 
+		image.frame.resize(640 * 480 * 4);
 
-
-
-
-
-
-
-
+		for (size_t r = 0; r < 480; ++r)
+			for (size_t c = 0; c < 640; ++c)
+				for (size_t p = 0; p < 4; ++p)
+				{
+					image.frame[(r * 640 + c) * 4 + p] = rand();
+				}
+		
 
 		/*
 			这里是把图像送入队列
@@ -139,17 +151,14 @@ DWORD WINAPI xRenderer::workerThread(LPVOID lparam)
 			//TODO：自己填图像头就行
 		*/
 
-		imageHead.cols = 0;    //填图像宽度
-		imageHead.rows = 0;    //填图像高度
-		imageHead.imgType = 0; //图像类型，随便定义，客户端认得就可以，不用可以不管
-		imageHead.channels = 0;//图像通道数，随便定义，客户端认得就可以，不用可以不管
+		image.head.cols = 640;    //填图像宽度
+		image.head.rows = 480;    //填图像高度
+		image.head.imgType = 0; //图像类型，随便定义，客户端认得就可以，不用可以不管
+		image.head.channels = 0;//图像通道数，随便定义，客户端认得就可以，不用可以不管
 
-		image.head = imageHead;
 		image.index = index;
 
-		image.frame = imageData;
-
-		imgQueue.push(image);
+		imgQueue.push(move(image)); // xx，避免拷贝！
 
 		ReleaseSemaphore(hsRenderDone, 1, NULL);
 	}

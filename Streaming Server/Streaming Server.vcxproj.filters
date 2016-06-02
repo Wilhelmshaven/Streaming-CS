@@ -74,6 +74,9 @@
     <ClCompile Include="xRenderer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="glRenderer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommonHeaders.h">
@@ -119,6 +122,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="xRenderer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="glRenderer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

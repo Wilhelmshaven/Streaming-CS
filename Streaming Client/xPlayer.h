@@ -2,6 +2,8 @@
 
 #include "CommonHeaders.h"
 
+#include <thread>
+
 typedef struct myImage
 {
 	imgHead head;
@@ -43,6 +45,7 @@ private:
 	*/
 
 	xPlayer();
+	virtual ~xPlayer();
 
 	static xPlayer *instance;
 
@@ -58,4 +61,9 @@ private:
 		}
 	};
 	static CGarbo Garbo;
+
+	// xx
+	//
+
+	std::thread playerThread;
 };

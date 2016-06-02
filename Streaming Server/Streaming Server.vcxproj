@@ -27,7 +27,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -101,14 +101,17 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../opencv/build/include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>
+      </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>../opencv/build/x86/vc12/lib;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_ts300.lib;opencv_world300.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,6 +141,7 @@
     <ClCompile Include="cnctHandler.cpp" />
     <ClCompile Include="ctrlMsgHandler.cpp" />
     <ClCompile Include="errHandler.cpp" />
+    <ClCompile Include="glRenderer.cpp" />
     <ClCompile Include="imgBuffer.cpp" />
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="middleWare.cpp" />
@@ -156,6 +160,7 @@
     <ClInclude Include="CommonHeaders.h" />
     <ClInclude Include="ctrlMsgHandler.h" />
     <ClInclude Include="errHandler.h" />
+    <ClInclude Include="glRenderer.h" />
     <ClInclude Include="imgBuffer.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="middleWare.h" />

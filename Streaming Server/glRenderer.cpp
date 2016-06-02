@@ -33,7 +33,7 @@ glRenderer * glRenderer::getInstance()
 void glRenderer::startRenderer()
 {
 	CreateThread(NULL, NULL, mainLoopThread, NULL, NULL, NULL);
-	CreateThread(NULL, NULL, renderThread, NULL, NULL, NULL);
+	//CreateThread(NULL, NULL, renderThread, NULL, NULL, NULL);
 }
 
 void glRenderer::render(SOCKET index, unsigned char cmd)
@@ -50,25 +50,27 @@ void glRenderer::render(SOCKET index, unsigned char cmd)
 
 bool glRenderer::getImage(SOCKET & index, imgHead & head, vector<BYTE>& frame)
 {
-	myImage tmp;
+	//myImage tmp;
 
 	if (imgQueue.empty())
 	{
 		return false;
 	}
 
-	tmp = imgQueue.front();
-	imgQueue.pop();
-
+	auto & tmp = imgQueue.front();
+	
 	index = tmp.index;
 	head = tmp.head;
-	frame = tmp.frame;
+	frame = move(tmp.frame);
+
+	imgQueue.pop();
 
 	return true;
 }
 
 void glRenderer::redraw()
 {
+	glClearColor(0, 0, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();									// Reset The Current Modelview Matrix
 
@@ -99,7 +101,9 @@ void glRenderer::redraw()
 
 	if (bAnim) fRotate += 0.5f;
 
-	glutSwapBuffers();
+	glFlush();
+
+	//glutSwapBuffers();
 }
 
 void glRenderer::reshape(int width, int height)
@@ -150,16 +154,88 @@ DWORD glRenderer::mainLoopThread(LPVOID lparam)
 	argv[0] = "D:\Projects\Streaming-CS\Debug\Streaming Server.exe";
 
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH);// | GLUT_DOUBLE);
 	glutInitWindowSize(480, 480);
 	glutCreateWindow("Simple GLUT App");
 
 	glutDisplayFunc(redraw);
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(key);
-	glutIdleFunc(idle);
+	//glutIdleFunc(idle);
+
+	glutIdleFunc([]()
+	{
+		idle();
+
+		xRenderFunc(0);
+	});
 
 	glutMainLoop();
+
+	return 0;
+}
+
+DWORD glRenderer::xRenderFunc(LPVOID lparam)
+{
+	do
+	{
+		if (WaitForSingleObject(hsRenderImage, 0) == WAIT_OBJECT_0)
+		{
+			vector<BYTE> vec;
+			vec.resize(480 * 480 * 4);
+
+			GLubyte* pPixelData = (GLubyte*)&vec[0];
+
+			myImage image;
+			imgHead head;
+			myCommand cmdStruct;
+
+			BYTE myKey;
+			SOCKET index;
+
+			//取出控制信令
+			if (!cmdQueue.empty())
+			{
+				cmdStruct = cmdQueue.front();
+				cmdQueue.pop();
+
+				myKey = cmdStruct.key;
+				index = cmdStruct.index;
+			}
+			else
+			{
+				//102,Can't get decoded control msg from decodoer
+				//myCamLogger->logError(102);
+			}
+
+			key(myKey, 0, 0);
+
+			if (myKey == 27 || myKey == 'q')break;
+
+			//从OpenGL中截取数据
+			glReadPixels(0, 0, 480, 480, GL_RGBA, GL_UNSIGNED_BYTE, pPixelData);
+
+			auto error = glGetError();
+
+			/*
+				填充图像头
+			*/
+
+			head.cols = 480;
+			head.rows = 480;
+			head.channels = 4;
+			head.imgType = GL_RGBA;
+
+			image.head = head;
+			image.index = index;
+			image.frame = move(vec);
+
+			//塞入队列
+			imgQueue.push(move(image));
+
+			ReleaseSemaphore(hsRenderDone, 1, NULL);
+		}
+	} while (0);
 
 	return 0;
 }
@@ -167,7 +243,7 @@ DWORD glRenderer::mainLoopThread(LPVOID lparam)
 DWORD glRenderer::renderThread(LPVOID lparam)
 {
 	vector<BYTE> vec;
-	vec.resize(480 * 480 * 3);
+	vec.resize(480 * 480 * 4);
 
 	GLubyte* pPixelData = (GLubyte*)&vec[0];
 
@@ -204,7 +280,9 @@ DWORD glRenderer::renderThread(LPVOID lparam)
 		if (myKey == 27 || myKey == 'q')break;
 
 		//从OpenGL中截取数据
-		glReadPixels(0, 0, 480, 480, GL_RGB, GL_UNSIGNED_BYTE, pPixelData);
+		glReadPixels(0, 0, 480, 480, GL_RGBA, GL_UNSIGNED_BYTE, pPixelData);
+
+		auto error = glGetError();
 
 		/*
 			填充图像头
@@ -212,8 +290,8 @@ DWORD glRenderer::renderThread(LPVOID lparam)
 
 		head.cols = 480;
 		head.rows = 480;
-		head.channels = 3;
-		head.imgType = GL_RGB;
+		head.channels = 4;
+		head.imgType = GL_RGBA;
 
 		image.head = head;
 		image.index = index;

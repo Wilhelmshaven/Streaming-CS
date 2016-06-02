@@ -6,7 +6,8 @@
 	加载中间件所需要对接的模块
 */
 
-#include "xRenderer.h"
+//#include "xRenderer.h"
+#include "glRenderer.h"
 
 #include "cnctHandler.h"
 #include "ctrlMsgHandler.h"
@@ -46,7 +47,8 @@ namespace mwNS
 	HANDLE hsWebHandshake;
 	HANDLE hsWebMsgArrived;
 
-	xRenderer *renderer = xRenderer::getInstance();
+	//xRenderer *renderer = xRenderer::getInstance();
+	glRenderer *renderer = glRenderer::getInstance();
 }
 using namespace mwNS;
 

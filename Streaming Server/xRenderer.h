@@ -2,6 +2,8 @@
 
 #include "CommonHeaders.h"
 
+#include <thread>
+
 /*
 	这些就是公共代码了
 	我觉得标得很清楚了，反正能跑就行啊
@@ -15,7 +17,29 @@
 
 typedef struct myImage
 {
-	SOCKET index;
+	myImage(){}
+	// xx 使用右值引用 move 避免拷贝
+
+	myImage(myImage && rr)
+	{
+		index = rr.index;
+		head = rr.head;
+		frame = move(rr.frame);
+
+		rr.index = INVALID_SOCKET;
+	}
+
+	myImage & operator = (myImage && rr)
+	{
+		index = rr.index;
+		head = rr.head;
+		frame = move(rr.frame);
+
+		rr.index = INVALID_SOCKET;
+	}
+
+
+	SOCKET index = INVALID_SOCKET;
 
 	imgHead head;
 
@@ -52,6 +76,11 @@ private:
 
 	//代码写在这里面
 	DWORD WINAPI workerThread(LPVOID lparam);
+
+	// xx
+	//
+
+	std::thread rendererThread;
 
 	/*
 		单例模式相关

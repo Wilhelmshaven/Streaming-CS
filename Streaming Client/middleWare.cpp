@@ -93,7 +93,7 @@ void middleWare::startMiddleWare()
 		player->startPlayer();
 
 		//初始化计时器
-		clock->initMonitor();
+		mwNS::clock->initMonitor();
 	}
 	else
 	{
@@ -119,7 +119,7 @@ void middleWare::shutdownAll()
 	ReleaseSemaphore(hsRTPUnpacked, 1, NULL);
 	ReleaseSemaphore(hsBufOutput, 1, NULL);
 
-	clock->shutdown();
+	mwNS::clock->shutdown();
 
 	myLogger->shutdownModule();
 }
