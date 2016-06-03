@@ -192,8 +192,6 @@ DWORD glRenderer::xRenderFunc(LPVOID lparam)
 	{
 		if (WaitForSingleObject(hsRenderImage, 0) == WAIT_OBJECT_0)
 		{
-
-
 			GLubyte* pPixelData = (GLubyte*)&vec[0];
 
 			myImage image;

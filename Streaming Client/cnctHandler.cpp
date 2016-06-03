@@ -387,13 +387,11 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 
 	int bytesRecv;
 
-	//≤‚ ‘¥˙¬Î
-	//int testIndex = 1;
-
 	//MAX£∫1920*1080*3
 	recvBuf.resize(MAX_RECV_BUF_SIZE);
 
 	shared_ptr<vector<BYTE>> ptr(new vector<BYTE>);
+	vector<BYTE> tmp;
 
 	while (1)
 	{
@@ -439,22 +437,10 @@ DWORD cnctHandler::recvThread(LPVOID lparam)
 				size += incomingSize;
 			}
 
-			////≤‚ ‘¥˙¬Î#1
-			//netLogger->insertTimestamp(0, testIndex);
-			//++testIndex;
-			//double timestamp1;
-			//netMonitor->getTimeStamp(timestamp1);
-			//netLogger->insertTimestamp(1, timestamp1);
-
 			(*ptr).resize(bytesRecv);
 			memcpy(&((*ptr)[0]), recvBuf.substr(0, bytesRecv).c_str(), bytesRecv);
 
 			recvRTPQueue.push(ptr);
-
-			////≤‚ ‘¥˙¬Î#2
-			//double timestamp2;
-			//netMonitor->getTimeStamp(timestamp2);
-			//netLogger->insertTimestamp(2, timestamp2);
 
 			ReleaseSemaphore(hsNewRTPMsg, 1, NULL);
 			 

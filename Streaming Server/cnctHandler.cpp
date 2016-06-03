@@ -360,8 +360,10 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 					continue;
 				}
 
+#ifdef DEBUG
 				//显示消息来源
 				cout << "Recv message from " << incomingIP << endl;
+#endif
 
 				/*
 					处理信令
@@ -397,7 +399,9 @@ DWORD WINAPI cnctHandler::workerThreadFunc(LPVOID lparam)
 					break;
 				}
 
+#ifdef DEBUG
 				cout << "Recv CTRL Msg." << endl;
+#endif
 
 				ctrlQueue.push(myMsg);
 
