@@ -15,7 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram.cd" />
     <None Include="config\static\systemErrCodeList.csv">
       <Filter>资源文件</Filter>
     </None>

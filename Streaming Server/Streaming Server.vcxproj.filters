@@ -23,7 +23,6 @@
     <None Include="config\static\rtspErrCodeList.csv">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="ClassDiagram.cd" />
     <None Include="config\static\systemErrCodeList.csv">
       <Filter>资源文件</Filter>
     </None>

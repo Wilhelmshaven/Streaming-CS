@@ -280,7 +280,7 @@ string rtspHandler::msgCodec(SOCKET socket, string msg)
 
 	request = extractString(msg);
 
-	int req;
+	int req = 0;
 
 	for (int i = 0; i < rtspMethod.size(); ++i)
 	{

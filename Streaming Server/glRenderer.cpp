@@ -188,18 +188,20 @@ DWORD glRenderer::xRenderFunc(LPVOID lparam)
 	vector<BYTE> vec;
 	vec.resize(glWidth * glHeight * 4);
 
+	myImage image;
+	imgHead head;
+	myCommand cmdStruct;
+
+	BYTE myKey = 27;
+	SOCKET index = 0;
+
 	do
 	{
 		if (WaitForSingleObject(hsRenderImage, 0) == WAIT_OBJECT_0)
 		{
 			GLubyte* pPixelData = (GLubyte*)&vec[0];
 
-			myImage image;
-			imgHead head;
-			myCommand cmdStruct;
 
-			BYTE myKey;
-			SOCKET index;
 
 			//取出控制信令
 			if (!cmdQueue.empty())
@@ -214,6 +216,8 @@ DWORD glRenderer::xRenderFunc(LPVOID lparam)
 			{
 				//102,Can't get decoded control msg from decodoer
 				//myCamLogger->logError(102);
+
+				continue;
 			}
 
 			key(myKey, 0, 0);
